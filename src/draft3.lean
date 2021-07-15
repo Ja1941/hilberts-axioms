@@ -179,7 +179,7 @@ begin
   exact h, exact absurd hd h
 end
 
-lemma not_diff_same_pt {Γ : incidence_geometry_betweenness}
+lemma not_diff_side_pt {Γ : incidence_geometry_betweenness}
 {p a b : Γ.pts} (hpab : collinear p a b) (ha : a ≠ p) (hb : b ≠ p) :
 (¬diff_side_pt p a b ↔ same_side_pt p a b) :=
 by rw [←not_iff_not.mpr (not_same_side_pt hpab ha hb), not_not]

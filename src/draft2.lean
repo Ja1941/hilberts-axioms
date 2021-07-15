@@ -128,8 +128,6 @@ begin
   exact h, exact absurd hd h
 end
 
-example {p q : Prop} : (p ↔ q) ↔ (¬p ↔ ¬q) := not_iff_not.symm
-
 lemma not_diff_same_pt {Γ : incidence_geometry_with_betweenness pts}
 (p a b : pts) (hpab : collinear pts Γ p a b) (ha : a ≠ p) (hb : b ≠ p) :
 (¬diff_side_pt pts Γ p a b ↔ same_side_pt pts Γ p a b) :=
@@ -156,23 +154,6 @@ two_pt_one_line pts Γ a b hab (line pts Γ b a hab.symm).1 (line pts Γ b a hab
 
 def ray (Γ : incidence_geometry_with_betweenness pts) (a b : pts) (hab : a ≠ b) : set pts :=
 (line pts Γ a b hab).1 ∩ {x : pts | same_side_pt pts Γ a b x}
-
-def opposite_ray (Γ : incidence_geometry_with_betweenness pts) (a b : pts) (hab : a ≠ b) :
-{L : set pts // L ∪ ray pts Γ a b hab = (line pts Γ a b hab).1} :=
-begin
-  choose c hc using Γ.B2 b a hab.symm,
-  use ray pts Γ a c (Γ.B1 b a c hc).2.2.2.1,
-  unfold ray,
-  have : (line pts Γ a c _).1 = (line pts Γ a b hab).1,
-    rcases (Γ.B1 b a c hc).2.2.2.2 with ⟨l, hl, hbl, hal, hcl⟩,
-    rw [←(two_pt_one_line pts Γ a b hab l hl hal hbl), ←(two_pt_one_line pts Γ a c (Γ.B1 b a c hc).2.2.2.1 l hl hal hcl)],
-  rw this,
-  have : {x : pts | same_side_pt pts Γ a c x} = {x : pts | diff_side_pt pts Γ a b x},
-    ext1, simp,
-    split; intro h,
-    by_contra hf,
-    
-end
 
 /-
 example {a b c : set pts} (h : b ⊆ a) : a ∩ b = b := inter_eq_right_iff_subset.mpr h
