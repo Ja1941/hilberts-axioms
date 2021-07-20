@@ -172,6 +172,7 @@ begin
   exact B.B3 a b c l hl ⟨hal, hbl, hcl⟩
 end
 
+--Can I combine inside and in_eq?
 structure segment := (pt1 : B.pts) (pt2 : B.pts)
 (inside : set B.pts) (in_eq : inside = {x : B.pts | B.is_between pt1 x pt2} ∪ {pt1, pt2})
 
@@ -180,10 +181,11 @@ def two_pt_segment (a b : B.pts) : segment :=
 
 notation a`∘`b := two_pt_segment a b
 
+--This proof looks ugly
 lemma segment_rw (s : @segment B) : (s.pt1∘s.pt2) = s :=
 begin
-  unfold two_pt_segment,
-  hint,
+  induction s using segment.rec_on with pt1 pt2 inside in_eq,
+  simp, unfold two_pt_segment, simp, rw in_eq, simp
 end
 
 def two_pt_segment_inside (a b : B.pts) : set B.pts :=
@@ -685,6 +687,7 @@ same_side_line (o~a) b p ∧ same_side_line (o~b) a p
 lemma crossbar {a b c d : B.pts} (BAC := angle b a c) (hbac : noncollinear b a c)
 (hd : inside_angle BAC d) : ray a d $ (b-c) :=
 begin
+  unfold inside_angle at hd,
   by_cases hac : a = c,
     rw hac, use c, unfold ray, rw segment_inside, simp,
   by_cases hab : a = b,
