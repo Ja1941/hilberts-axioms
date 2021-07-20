@@ -677,17 +677,14 @@ lemma t_shape_segment {a b : B.pts} {e : B.pts} (hab : a ≠ b) (heab : e ∉ (a
 ∀ x ∈ (b-e), x ≠ b → same_side_line (a~b) e x :=
 λ x hxbe hxb, t_shape_ray hab heab x ((segment_in_ray b e) hxbe) hxb
 
-def angle (a o b : B.pts) : set B.pts := (ray o a) ∪ ray o b
+structure angle := (pt1 : B.pts) (vertex : B.pts) (pt2 : B.pts) (inside : set B.pts)
+(noncollinear : noncollinear pt1 vertex pt2)
+(in_eq : inside = {p : B.pts | same_side_line (vertex~pt1) pt2 p ∧ same_side_line (vertex~pt2) pt1 p})
 
-notation `∠` := angle
-
-def inside_angle {a o b : B.pts} (O := angle a o b) (p : B.pts) : Prop := 
-same_side_line (o~a) b p ∧ same_side_line (o~b) a p
-
-lemma crossbar {a b c d : B.pts} (BAC := angle b a c) (hbac : noncollinear b a c)
-(hd : inside_angle BAC d) : ray a d $ (b-c) :=
+lemma crossbar (α : @angle B) {d : B.pts} (hd : d ∈ α.inside) : ray α.vertex d $ (α.pt1-α.pt2) :=
 begin
-  unfold inside_angle at hd,
+  rw α.in_eq at hd, simp at hd, have hbac := α.noncollinear,
+  set b := α.pt1, set a := α.vertex, set c := α.pt2,
   by_cases hac : a = c,
     rw hac, use c, unfold ray, rw segment_inside, simp,
   by_cases hab : a = b,
@@ -712,15 +709,15 @@ begin
     rcases is_between_collinear hcae with ⟨m, hm, hcm, ham, hem⟩,
     rw ←(two_pt_one_line hm (line_in_lines had) hae ⟨ham, hem⟩ ⟨pt_left_in_line a d, haed⟩) at hf,
     rw (two_pt_one_line hm (line_in_lines hac) hac ⟨ham, hcm⟩ ⟨pt_left_in_line a c, pt_right_in_line a c⟩) at hf,
-    unfold inside_angle same_side_line at hd, apply hd.2, use d, rw segment_inside, exact ⟨hf, by simp⟩,
+    unfold same_side_line at hd, apply hd.2, use d, rw segment_inside, exact ⟨hf, by simp⟩,
     intro hacd,
     have hf : d ∈ (a~d), from pt_right_in_line a d,
     rw (two_pt_one_line (line_in_lines had) (line_in_lines hac) hac ⟨pt_left_in_line a d, hacd⟩ ⟨pt_left_in_line a c, pt_right_in_line a c⟩) at hf,
-    unfold inside_angle same_side_line at hd, apply hd.2, use d, rw segment_inside, exact ⟨hf, by simp⟩,
+    unfold same_side_line at hd, apply hd.2, use d, rw segment_inside, exact ⟨hf, by simp⟩,
     intro habd,
     have hf : d ∈ (a~d), from pt_right_in_line a d,
     rw (two_pt_one_line (line_in_lines had) (line_in_lines hab) hab ⟨pt_left_in_line a d, habd⟩ ⟨pt_left_in_line a b, pt_right_in_line a b⟩) at hf,
-    unfold inside_angle same_side_line at hd, apply hd.1, use d, rw segment_inside, exact ⟨hf, by simp⟩,
+    unfold same_side_line at hd, apply hd.1, use d, rw segment_inside, exact ⟨hf, by simp⟩,
     use a, split, exact pt_left_in_line a d,
     rw segment_inside, simp, right, right, rw is_between_symm at hcae, exact hcae,
   have hbeab : ∀ x ∈ (b-e), x ≠ b → same_side_line (a~b) e x,
@@ -793,10 +790,9 @@ begin
   unfold ray same_side_pt, simp, right, split,
   intro hf, apply hdfac, use a, exact ⟨pt_left_in_line a c, hf⟩,
   exact ⟨(a~d), line_in_lines had, pt_left_in_line a d, pt_right_in_line a d, hfad⟩,
-  rw segment_comm, exact hfcb 
+  rw segment_comm, exact hfcb
 end
 
---needs improvement
 structure incidence_order_congruence_geometry extends incidence_order_geometry :=
 (line_congr : segment → segment → Prop)
 --For an arbitrary segment and a ray, we find a unique congruent segment on the ray
