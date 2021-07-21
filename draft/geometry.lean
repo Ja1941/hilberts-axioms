@@ -1,4 +1,5 @@
 import algebra.support
+import set_theory.zfc
 
 open set
 
@@ -27,27 +28,27 @@ begin
   exact ⟨l, λ h, hl, ha, hb⟩
 end
 
-local notation a`~`b := (line a b : set I.pts)
+local notation a`-ₗ`b := (line a b : set I.pts)
 
 def intersect (m n : set I.pts) : Prop := (m ∩ n).nonempty
 
 notation m`$`n := intersect m n
 
 lemma line_in_lines {a b : I.pts} (hab : a ≠ b) :
-a~b ∈ I.lines := (line a b).2.1 hab
+(a-ₗb) ∈ I.lines := (line a b).2.1 hab
 
 lemma pt_left_in_line (a b : I.pts) :
-a ∈ (a~b) := (line a b).2.2.1
+a ∈ (a-ₗb) := (line a b).2.2.1
 
 lemma pt_right_in_line (a b : I.pts) :
-b ∈ (a~b) := (line a b).2.2.2
+b ∈ (a-ₗb) := (line a b).2.2.2
 
 lemma line_unique {a b : I.pts} (hab : a ≠ b)
-{l : set I.pts} (hl : l ∈ I.lines) (ha : a ∈ l) (hb : b ∈ l) : l = (a~b) :=
+{l : set I.pts} (hl : l ∈ I.lines) (ha : a ∈ l) (hb : b ∈ l) : l = (a-ₗb) :=
 begin
   rcases (I.I1 a b hab) with ⟨n, hn, -, -, key⟩,
   rw [key l hl ha hb,
-      key (a~b) (line_in_lines hab) (pt_left_in_line a b) (pt_right_in_line a b)]
+      key (a-ₗb) (line_in_lines hab) (pt_left_in_line a b) (pt_right_in_line a b)]
 end
 
 lemma two_pt_on_one_line {l : set I.pts} (hl : l ∈ I.lines) :
@@ -57,7 +58,7 @@ lemma two_pt_one_line {l m : set I.pts} (hl : l ∈ I.lines) (hm : m ∈ I.lines
 a ∈ l ∧ b ∈ l → a ∈ m ∧ b ∈ m → l = m :=
 λ habl habm, (line_unique hab hl habl.1 habl.2).trans (line_unique hab hm habm.1 habm.2).symm
 
-lemma line_comm (a b : I.pts) : (a~b) = (b~a) :=
+lemma line_comm (a b : I.pts) : (a-ₗb) = (b-ₗa) :=
 begin
   by_cases a = b, rw h,
   exact two_pt_one_line (line_in_lines h) (line_in_lines (ne.symm h)) h ⟨pt_left_in_line a b, pt_right_in_line a b⟩ ⟨pt_right_in_line b a, pt_left_in_line b a⟩
@@ -144,7 +145,7 @@ structure incidence_order_geometry extends incidence_geometry :=
 
 variable {B : incidence_order_geometry}
 
-local notation a`~`b := (line a b : set B.pts)
+local notation a`-ₗ`b := (line a b : set B.pts)
 
 instance : has_coe incidence_order_geometry incidence_geometry :=
 ⟨incidence_order_geometry.to_incidence_geometry⟩
@@ -171,34 +172,73 @@ begin
   exact B.B3 a b c l hl ⟨hal, hbl, hcl⟩
 end
 
-def segment (a b : B.pts) : set B.pts :=
-{c : B.pts | B.is_between a c b} ∪ {a, b}
+structure segment := (pt1 : B.pts) (pt2 : B.pts)
 
-notation a`-`b := segment a b
+namespace segment
 
-lemma segment_comm (a b : B.pts) : a-b = b-a :=
+def inside (s : segment) : set B.pts := {x : B.pts | B.is_between s.pt1 x s.pt2} ∪ {s.pt1, s.pt2}
+
+def mem (x : B.pts) (s : @segment B) : Prop := x ∈ s.inside
+
+instance : has_mem B.pts (segment) := ⟨segment.mem⟩
+
+end segment
+
+def two_pt_segment (a b : B.pts) : segment := ⟨a, b⟩
+
+notation a`-ₛ`b := two_pt_segment a b
+
+lemma segment_pt1 {a b : B.pts} : (a-ₛb).pt1 = a := rfl
+
+lemma segment_pt2 {a b : B.pts} : (a-ₛb).pt2 = b := rfl
+
+lemma segment_rw (s : @segment B) : (s.pt1-ₛs.pt2) = s :=
+by { induction s using segment.rec_on with pt1 pt2, unfold two_pt_segment }
+
+lemma segment_inside (s : @segment B) :
+s.inside = {x : B.pts | B.is_between s.pt1 x s.pt2} ∪ {s.pt1, s.pt2} := rfl
+
+lemma in_segment (x : B.pts) (s : @segment B) :
+x ∈ s ↔ x ∈ {x : B.pts | B.is_between s.pt1 x s.pt2} ∪ {s.pt1, s.pt2} :=
+by { rw ←segment_inside, refl }
+
+lemma pt_left_in_segment (a b : B.pts) : a ∈ (a-ₛb) :=
+by { unfold two_pt_segment, rw in_segment, simp }
+
+lemma pt_right_in_segment (a b : B.pts) : b ∈ (a-ₛb) :=
+by { unfold two_pt_segment, rw in_segment, simp }
+
+lemma segment_inside_comm {a b : B.pts} : (a-ₛb).inside = (b-ₛa).inside :=
 begin
-  unfold segment,
-  ext1, simp,
-  rw [is_between_symm b x a, or_comm, or_assoc, or_comm _ (x=a)]
+  rw [segment_inside, segment_inside, segment_pt1, segment_pt1, segment_pt2, segment_pt2],
+  ext, simp, rw is_between_symm, tauto
 end
 
-lemma segment_singleton (a : B.pts) : a-a = {a} :=
+lemma in_segment_comm {p a b : B.pts} : p ∈ (a-ₛb) ↔ p ∈ (b-ₛa) :=
 begin
-  unfold segment,
-  suffices : {c : B.pts | B.is_between a c a} = ∅,
-    rw this, simp,
-  ext1, simp, intro hf,
-  exact (is_between_not_eq hf).2.1 (rfl)
+  rw [in_segment, in_segment, segment_pt1, segment_pt1, segment_pt2, segment_pt2], simp,
+  rw is_between_symm, tauto
 end
 
-lemma segment_in_line (a b : B.pts) : (a-b) ⊆ (a~b) :=
+lemma segment_singleton (a : B.pts) : (a-ₛa).inside = {a} :=
 begin
-  have hal : a ∈ (a~b), from pt_left_in_line a b,
-  have hbl : b ∈ (a~b), from pt_right_in_line a b,
+  rw segment_inside, ext1, rw [segment_pt1, segment_pt2], simp,
+  intro haxa, exact absurd rfl (is_between_not_eq haxa).2.1
+end
+
+lemma in_segment_singleton {x a : B.pts} : x ∈ (a-ₛa) ↔ x = a :=
+begin
+  rw in_segment, rw [segment_pt1, segment_pt2], simp,
+  intro haxa, exact absurd rfl (is_between_not_eq haxa).2.1
+end
+
+lemma segment_in_line (a b : B.pts) : (a-ₛb).inside ⊆ (a-ₗb) :=
+begin
+  have hal : a ∈ (a-ₗb), from pt_left_in_line a b,
+  have hbl : b ∈ (a-ₗb), from pt_right_in_line a b,
   by_cases hab : a = b,
     rw hab, rw hab at hbl, rw segment_singleton, simp, exact hbl,
-  unfold segment,
+  rw segment_inside,
   apply union_subset,
   intros c hc, simp at hc,
   rcases is_between_collinear hc with ⟨m, hm, ham, hcm, hbm⟩,
@@ -208,45 +248,47 @@ begin
 end
 
 lemma pasch {a b c : B.pts} (habc : noncollinear a b c) {l : set B.pts} (hl : l ∈ B.lines) :
-a ∉ l → b ∉ l → c ∉ l → (l $ (a-b)) →
-((l $ (a-c)) ∨ (l $ (b-c))) ∧ ¬((l $ (a-c)) ∧ (l $ (b-c))) :=
+a ∉ l → b ∉ l → c ∉ l → (l $ (a-ₛb).inside) →
+((l $ (a-ₛc).inside) ∨ (l $ (b-ₛc).inside)) ∧ ¬((l $ (a-ₛc).inside) ∧ (l $ (b-ₛc).inside)) :=
 begin
   intros ha hb hc hlab,
   have hd : ∃ d : B.pts, B.is_between a d b ∧ d ∈ l,
-    unfold segment intersect set.nonempty at hlab, simp at hlab,
+    rw segment_inside at hlab, unfold intersect set.nonempty at hlab, simp at hlab,
     rcases hlab with ⟨d, hdl, da | db | hadb⟩,
     rw da at hdl, exact absurd hdl ha,
     rw db at hdl, exact absurd hdl hb,
     exact ⟨d, hadb, hdl⟩,
   split,
   rcases (B.B4 a b c l hl habc ha hb hc hd).1 with ⟨p, hpl, h⟩,
-  unfold intersect segment set.nonempty, simp,
+  rw segment_inside, unfold intersect set.nonempty, simp,
   cases h with h h,
   left, exact ⟨p, hpl, by {right, right, exact h}⟩,
-  right, exact ⟨p, hpl, by {right, right, exact h}⟩,
-  unfold intersect segment set.nonempty,
+  right, rw segment_inside, simp, exact ⟨p, hpl, by {right, right, exact h}⟩,
+  unfold intersect set.nonempty, rw segment_inside,
   have := (B.B4 a b c l hl habc ha hb hc hd).2,
   intros hf, simp at hf,
   rcases hf.1 with ⟨x, hxl, hx⟩,
   rcases hf.2 with ⟨y, hyl, hy⟩,
   rcases hx with hxa | hxc | hx,
-  rw ←hxa at ha, exact absurd hxl ha, rw ←hxc at hc, exact absurd hxl hc,
-  rcases hy with hyb | hyc | hy,
-  rw ←hyb at hb, exact absurd hyl hb, rw ←hyc at hc, exact absurd hyl hc,
-  exact (this x y hxl hyl) ⟨hx, hy⟩
+  rw segment_pt1 at hxa, rw ←hxa at ha, exact absurd hxl ha,
+  rw segment_pt2 at hxc, rw ←hxc at hc, exact absurd hxl hc,
+  rcases hy with hy | hyb | hyc,
+  exact (this x y hxl hyl) ⟨hx, hy⟩,
+  rw segment_pt1 at hyb, rw ←hyb at hb, exact absurd hyl hb,
+  rw segment_pt2 at hyc, simp at hyc, rw ←hyc at hc, exact absurd hyl hc
 end
 
-def same_side_line (l : set B.pts) (a b : B.pts) : Prop := ¬(l $ (a-b))
+def same_side_line (l : set B.pts) (a b : B.pts) : Prop := ¬(l $ (a-ₛb).inside)
 
 def diff_side_line (l : set B.pts) (a b : B.pts) : Prop :=
-(l $ (a-b)) ∧ a ∉ l ∧ b ∉ l
+(l $ (a-ₛb).inside) ∧ a ∉ l ∧ b ∉ l
 
 theorem plane_separation
 {l : set B.pts} (hl : l ∈ B.lines) {a b : B.pts} (ha : a ∉ l) (hb : b ∉ l) :
 (same_side_line l a b ∨ diff_side_line l a b)
 ∧ ¬(same_side_line l a b ∧ diff_side_line l a b) :=
 begin
-  unfold same_side_line diff_side_line segment,
+  unfold same_side_line diff_side_line, rw segment_inside,
   split,
   apply not_or_of_imp, intro h,
   exact ⟨h, ha, hb⟩,
@@ -259,7 +301,7 @@ lemma same_or_diff_line_strict
 (same_side_line l a b ∨ diff_side_line l a b)
 ∧ ¬(same_side_line l a b ∧ diff_side_line l a b) :=
 begin
-  unfold same_side_line diff_side_line segment,
+  unfold same_side_line diff_side_line, rw segment_inside,
   split,
   rw or_and_distrib_left,
   split, exact or.comm.mp (em _),
@@ -294,16 +336,16 @@ lemma same_side_line_symm {l : set B.pts} (hl : l ∈ B.lines) {a b : B.pts} :
 same_side_line l a b → same_side_line l b a :=
 begin
   unfold same_side_line,
-  rw segment_comm, simp
+  rw segment_inside_comm, simp
 end
 
 lemma same_side_line_not_in {x y : B.pts} {l : set B.pts} (hl : l ∈ B.lines) :
 same_side_line l x y → x ∉ l ∧ y ∉ l :=
 begin
   intro hlxy, unfold same_side_line intersect at hlxy, rw not_nonempty_iff_eq_empty at hlxy, split,
-  intro hxl, have : x ∈ l ∩ (x-y), simp, exact ⟨hxl, by {unfold segment, simp}⟩,
+  intro hxl, have : x ∈ l ∩ (x-ₛy).inside, simp, exact ⟨hxl, by {rw [segment_inside, segment_pt1], simp}⟩,
   rw hlxy at this, exact this,
-  intro hyl, have : y ∈ l ∩ (x-y), simp, exact ⟨hyl, by {unfold segment, simp}⟩,
+  intro hyl, have : y ∈ l ∩ (x-ₛy).inside, simp, exact ⟨hyl, by {rw [segment_inside, segment_pt2], simp}⟩,
   rw hlxy at this, exact this
 end
 
@@ -311,7 +353,7 @@ private lemma same_side_line_trans_noncollinear {l : set B.pts} (hl : l ∈ B.li
 noncollinear a b c → same_side_line l a b → same_side_line l b c → same_side_line l a c :=
 begin
   unfold same_side_line, intros h hlab hlbc,
-  rw segment_comm at hlbc,
+  rw segment_inside_comm at hlbc,
   intro hlac,
   replace h : noncollinear a c b,
     unfold noncollinear collinear, unfold noncollinear collinear at h,
@@ -338,21 +380,21 @@ begin
   cases is_between_extend (show d ≠ a, by {intro hda, rw hda at hdm, exact hdm ham}) with e hdae,
   have hlae : same_side_line l a e,
     intro hlae, cases hlae with f hf,
-    have hflae : f ∈ l ∧ f ∈ (a~e),
+    have hflae : f ∈ l ∧ f ∈ (a-ₗe),
       simp at hf,
       exact ⟨hf.1, segment_in_line a e hf.2⟩,
-    have hdlae : d ∈ l ∧ d ∈ (a~e),
+    have hdlae : d ∈ l ∧ d ∈ (a-ₗe),
       simp at hf,
       split, exact hdl,
       rcases is_between_collinear hdae with ⟨n, hn, hdn, han, hen⟩,
       have := (two_pt_one_line (line_in_lines (is_between_not_eq hdae).2.2) hn ((is_between_not_eq hdae).2.2) ⟨pt_left_in_line a e, pt_right_in_line a e⟩ ⟨han, hen⟩),
       rw this, exact hdn,
-    have hneq : l ≠ (a~e),
+    have hneq : l ≠ (a-ₗe),
       intro hf, have := (same_side_line_not_in hl hlab).1, rw hf at this, exact this (pt_left_in_line a e),
     have hdf : d = f,
       from two_line_one_pt hl (line_in_lines (is_between_not_eq hdae).2.2) hneq hdlae.1 hdlae.2 hflae.1 hflae.2,
     rw hdf at hdae,
-    unfold segment at hf, simp at hf,
+    rw segment_inside at hf, simp at hf,
     have := is_between_not_eq hdae,
     rcases hf.2 with hf | hf | hf,
     exact this.1 hf, exact this.2.1 hf,
@@ -361,7 +403,7 @@ begin
     rintros ⟨n, hn, hbn, han, hen⟩,
     have hem : e ∈ m,
       rw two_pt_one_line hm hn hab ⟨ham, hbm⟩ ⟨han, hbn⟩, exact hen,
-    have hd : d ∈ (a~e),
+    have hd : d ∈ (a-ₗe),
       rcases is_between_collinear hdae with ⟨n, hn, hdn, han, hen⟩,
       have := (two_pt_one_line (line_in_lines (is_between_not_eq hdae).2.2) hn ((is_between_not_eq hdae).2.2) ⟨pt_left_in_line a e, pt_right_in_line a e⟩ ⟨han, hen⟩),
       rw this, exact hdn,
@@ -383,28 +425,28 @@ begin
 end
 
 def same_side_pt (o a b : B.pts) : Prop :=
-o ∉ (a-b) ∧ collinear o a b
+o ∉ (a-ₛb) ∧ collinear o a b
 
 def diff_side_pt (o a b : B.pts) : Prop :=
-o ∈ (a-b) ∧ collinear o a b ∧ a ≠ o ∧ b ≠ o
+o ∈ (a-ₛb) ∧ collinear o a b ∧ a ≠ o ∧ b ≠ o
 
 lemma same_side_pt_not_eq {o a b : B.pts} (hoab : same_side_pt o a b) : a ≠ o ∧ b ≠ o :=
 begin
-  unfold same_side_pt segment at hoab,
+  unfold same_side_pt at hoab, rw in_segment at hoab,
   split,
-  intro hao, rw hao at hoab,
+  intro hao, rw [hao, segment_pt1] at hoab,
   simp at hoab, exact hoab,
-  intro hbo, rw hbo at hoab,
+  intro hbo, rw [hbo, segment_pt2] at hoab,
   simp at hoab, exact hoab
 end
 
 theorem line_separation
-{p a b : B.pts} (hpab : collinear p a b) (hap : a ≠ p) (hbp : b ≠ p)  : 
+{p a b : B.pts} (hpab : collinear p a b) (hap : a ≠ p) (hbp : b ≠ p) : 
 (same_side_pt p a b ∨ diff_side_pt p a b) ∧
 ¬(same_side_pt p a b ∧ diff_side_pt p a b) :=
 begin
   unfold same_side_pt diff_side_pt,
-  split, by_cases hp : p ∈ a-b,
+  split, by_cases hp : p ∈ (a-ₛb),
   right, exact ⟨hp, hpab, hap, hbp⟩,
   left, exact ⟨hp, hpab⟩,
   push_neg,
@@ -432,8 +474,8 @@ by rw [←not_iff_not.mpr (not_same_side_pt hpab ha hb), not_not]
 
 lemma same_side_pt_refl {a b : B.pts} (hab : a ≠ b) : same_side_pt a b b :=
 begin
-  split, rw segment_singleton, exact hab,
-  exact ⟨a~b, line_in_lines hab, pt_left_in_line a b, pt_right_in_line a b, pt_right_in_line a b⟩
+  split, rw in_segment_singleton, exact hab,
+  exact ⟨a-ₗb, line_in_lines hab, pt_left_in_line a b, pt_right_in_line a b, pt_right_in_line a b⟩
 end
 
 lemma same_side_pt_symm {a b c : B.pts} :
@@ -441,14 +483,14 @@ same_side_pt a b c → same_side_pt a c b :=
 begin
   unfold same_side_pt,
   intro habc, split,
-  rw segment_comm, exact habc.1,
+  rw in_segment_comm, exact habc.1,
   rcases habc.2 with ⟨l, hl, hal, hbl, hcl⟩,
   exact ⟨l, hl, hal, hcl, hbl⟩
 end
 
 lemma same_side_line_pt {a b c : B.pts} : same_side_pt a b c
 ↔ collinear a b c ∧ a ≠ b ∧ a ≠ c
-∧ ∀ {l : set B.pts}, l ∈ B.lines → a ∈ l → l ≠ (a~b) → same_side_line l b c :=
+∧ ∀ {l : set B.pts}, l ∈ B.lines → a ∈ l → l ≠ (a-ₗb) → same_side_line l b c :=
 begin
   split, intro habc, split, exact habc.2,
   have hab := (same_side_pt_not_eq habc).1.symm,
@@ -462,24 +504,24 @@ begin
     exact two_line_one_pt hl (line_in_lines hab) hlab hal (pt_left_in_line a b) hbl (pt_right_in_line a b),
   exact same_side_line_refl hl hbl,
   rintros ⟨x, hxl, hxbc⟩,
-  have hxab : x ∈ (a~b),
+  have hxab : x ∈ (a-ₗb),
     rcases habc.2 with ⟨l, hl, hal, hbl, hcl⟩,
     rw (two_pt_one_line (line_in_lines hab) hl hab ⟨pt_left_in_line a b, pt_right_in_line a b⟩ ⟨hal, hbl⟩),
     rw (two_pt_one_line hl (line_in_lines hbc) hbc ⟨hbl, hcl⟩ ⟨pt_left_in_line b c, pt_right_in_line b c⟩),
     exact (segment_in_line b c) hxbc,
   rw ←(two_line_one_pt hl (line_in_lines hab) hlab hal (pt_left_in_line a b) hxl hxab) at hxbc,
-  unfold segment at hxbc, simp at hxbc,
-  unfold same_side_pt segment at habc, simp at habc,
+  rw segment_inside at hxbc, simp at hxbc,
+  unfold same_side_pt at habc, rw in_segment at habc, simp at habc,
   exact habc.1 hxbc,
   rintro ⟨habc, h⟩,
-  have : ∃ l ∈ B.lines, a ∈ l ∧ l ≠ (a~b),
+  have : ∃ l ∈ B.lines, a ∈ l ∧ l ≠ (a-ₗb),
     rcases noncollinear_exist h.1 with ⟨d, habd⟩,
-    use (a~d),
+    use (a-ₗd),
     have had : a ≠ d, from (noncollinear_not_eq habd).2.2.symm,
     split, exact line_in_lines had,
     split, exact pt_left_in_line a d,
     intro hadab,
-    exact habd ⟨a~b, line_in_lines h.1, pt_left_in_line a b, pt_right_in_line a b, by {rw ←hadab, exact pt_right_in_line a d}⟩,
+    exact habd ⟨a-ₗb, line_in_lines h.1, pt_left_in_line a b, pt_right_in_line a b, by {rw ←hadab, exact pt_right_in_line a d}⟩,
   rcases this with ⟨l, hl, hal, hlab⟩,
   have key := h.2.2 hl hal hlab,
   split,
@@ -500,7 +542,7 @@ begin
   split, exact habc.2.1,
   split, exact hacd.2.2.1,
   intros l hl hal hlab,
-  have : (a~c) = (a~b),
+  have : (a-ₗc) = (a-ₗb),
     rcases habc.1 with ⟨l, hl, hal, hbl, hcl⟩,
     rw two_pt_one_line (line_in_lines habc.2.1) hl habc.2.1 ⟨pt_left_in_line a b, pt_right_in_line a b⟩ ⟨hal, hbl⟩,
     rw two_pt_one_line (line_in_lines hacd.2.1) hl hacd.2.1 ⟨pt_left_in_line a c, pt_right_in_line a c⟩ ⟨hal, hcl⟩,
@@ -511,7 +553,7 @@ end
 lemma is_between_diff_side_pt {a b c : B.pts} :
 B.is_between a b c ↔ diff_side_pt b a c :=
 begin
-  unfold diff_side_pt segment,
+  unfold diff_side_pt, rw in_segment,
   split, intro habc,
   simp, split, right, right, exact habc,
   rcases is_between_collinear habc with ⟨l, hl, hal, hbl, hcl⟩,
@@ -527,23 +569,24 @@ lemma is_between_same_side_pt {a b c : B.pts} :
 B.is_between a b c ↔ same_side_pt a b c ∧ same_side_pt c a b :=
 begin
   split, intro habc,
-  unfold same_side_pt segment,
+  unfold same_side_pt, rw in_segment,
   simp, split; split,
   intro hf, rcases hf with hab | hac | hbac,
   exact (is_between_not_eq habc).1 hab,
   exact (is_between_not_eq habc).2.1 hac,
   exact (collinear_between (is_between_collinear habc)).2.2.1 ⟨habc, hbac⟩,
   exact (is_between_collinear habc),
-  intro hf, rcases hf with hca | hcb | hacb,
+  intro hf, rcases hf with hacb | hca | hcb,
+  exact (collinear_between (is_between_collinear habc)).2.1 ⟨habc, hacb⟩,
   exact (is_between_not_eq habc).2.1 hca.symm,
   exact (is_between_not_eq habc).2.2 hcb.symm,
-  exact (collinear_between (is_between_collinear habc)).2.1 ⟨habc, hacb⟩,
   rcases is_between_collinear habc with ⟨l, hl, hal, hbl, hcl⟩,
   exact ⟨l, hl, hcl, hal, hbl⟩,
-  unfold same_side_pt segment, simp, push_neg,
+  unfold same_side_pt, rw in_segment, simp, push_neg,
   intros h₁ habc h₂ hcab,
   rcases (collinear_between habc).1 with h | h | h,
-  exact h, exact absurd h h₂.2.2, exact absurd h h₁.2.2
+  exact h, rw in_segment at h₂, simp at h₂, push_neg at h₂,
+  exact absurd h h₂.2.2, exact absurd h h₁.2.2
 end
 
 lemma is_between_trans {a b c d : B.pts} :
@@ -567,26 +610,61 @@ begin
   exact this hbcd habc
 end
 
-def ray (o a : B.pts) : set B.pts :=
-{x : B.pts | same_side_pt o a x} ∪ {o}
-
-lemma ray_singleton (a : B.pts) : ray a a = {a} :=
+lemma is_between_trans' {a b c d : B.pts} :
+B.is_between a b d → B.is_between b c d → B.is_between a b c ∧ B.is_between a c d :=
 begin
-  ext1, unfold ray same_side_pt, simp,
-  intro hf, unfold segment at hf, simp at hf, exfalso, exact hf
+  have : ∀ {a b c d : B.pts}, B.is_between a b d → B.is_between b c d → B.is_between a b c ,
+    intros a b c d habd hbcd,
+    rcases is_between_collinear habd with ⟨l, hl, hal, hbl, hdl⟩,
+    rcases is_between_collinear hbcd with ⟨m, hm, hbm, hcm ,hdm⟩,
+    rw two_pt_one_line hm hl (is_between_not_eq habd).2.2 ⟨hbm, hdm⟩ ⟨hbl, hdl⟩ at hcm,
+    rw [is_between_diff_side_pt, ←not_same_side_pt ⟨l, hl, hbl, hal, hcm⟩ (is_between_not_eq habd).1 (is_between_not_eq hbcd).1.symm],
+    intro hbac, have hbad := same_side_pt_trans hbac (is_between_same_side_pt.mp hbcd).1,
+    rw [is_between_diff_side_pt, ←not_same_side_pt ⟨l, hl, hbl, hal, hdl⟩] at habd,
+    exact habd hbad, exact habd.2.2.1, exact habd.2.2.2,
+  intros habd hbcd,
+  have habc := this habd hbcd,
+  exact ⟨habc, (is_between_trans habc hbcd).2⟩
 end
 
-lemma segment_in_ray (o a : B.pts) : (o-a) ⊆ ray o a :=
+structure ray := (vertex : B.pts) (inside : set B.pts)
+(in_eq : ∃ a : B.pts, inside = {x : B.pts | same_side_pt vertex a x} ∪ {vertex})
+
+def two_pt_ray (o a : B.pts) : ray := ⟨o, {x : B.pts | same_side_pt o a x} ∪ {o}, ⟨a, rfl⟩⟩
+
+namespace ray
+
+def mem (x : B.pts) (s : @ray B) : Prop := x ∈ s.inside
+
+instance : has_mem B.pts ray := ⟨ray.mem⟩
+
+end ray
+
+lemma ray_singleton (a : B.pts) : (two_pt_ray a a).inside = {a} :=
 begin
-  unfold ray segment,
+  ext1, unfold two_pt_ray same_side_pt, simp,
+  intro hf, rw [in_segment, segment_pt1] at hf, simp at hf, exfalso, exact hf
+end
+
+lemma in_ray_singleton (x a : B.pts) : x ∈ two_pt_ray a a ↔ x = a :=
+begin
+  unfold two_pt_ray ray.mem, split,
+  intro h, cases h with h h,
+  simp at h, exfalso, exact (same_side_pt_not_eq h).1 rfl, exact h,
+  intro h, right, exact h
+end
+
+lemma segment_in_ray (o a : B.pts) : (o-ₛa).inside ⊆ (two_pt_ray o a).inside :=
+begin
+  unfold two_pt_ray, rw segment_inside,
   intros x hx, simp at hx, simp,
   rcases hx with hx | hx | hx,
-  rw hx, simp,
+  rw [hx, segment_pt1], simp,
   rw hx, by_cases hao : a = o, rw hao, left, refl,
   right, split,
-  rw segment_singleton, simp, exact ne.symm hao,
-  exact ⟨(a~o), line_in_lines hao, pt_right_in_line a o, pt_left_in_line a o, pt_left_in_line a o⟩,
-  right, unfold same_side_pt segment, simp, split,
+  rw segment_pt2, rw in_segment_singleton, exact ne.symm hao,
+  exact ⟨(a-ₗo), line_in_lines hao, pt_right_in_line a o, pt_left_in_line a o, pt_left_in_line a o⟩,
+  right, unfold same_side_pt, rw in_segment, simp, split,
   intro hf, rcases hf with hf | hf | hf,
   rw hf at hx, exact (is_between_not_eq hx).2.1 rfl,
   exact (is_between_not_eq hx).1 hf,
@@ -595,56 +673,80 @@ begin
   exact ⟨l, hl, hol, hal, hxl⟩
 end
 
-lemma ray_in_line (o a : B.pts) : ray o a ⊆ (o~a) :=
+lemma ray_in_line (o a : B.pts) : (two_pt_ray o a).inside ⊆ (o-ₗa) :=
 begin
-  unfold ray same_side_pt, intros x hx,
+  unfold two_pt_ray same_side_pt, intros x hx,
   simp at hx, cases hx with hx hx,
   rw hx, exact pt_left_in_line o a,
-  have hoa : o ≠ a, intro hoa, rw hoa at hx, unfold segment at hx, simp at hx, exact hx,
+  have hoa : o ≠ a, intro hoa, rw hoa at hx, rw [in_segment, segment_pt1] at hx, simp at hx, exact hx,
   rcases hx.2 with ⟨l, hl, hol, hal, hxl⟩,
   rw (two_pt_one_line (line_in_lines hoa) hl hoa ⟨pt_left_in_line o a, pt_right_in_line o a⟩ ⟨hol, hal⟩), exact hxl
 end
 
 --Any good names lol
-lemma t_shape_ray {a b : B.pts} {e : B.pts} (hab : a ≠ b) (heab : e ∉ (a~b)) :
-∀ x ∈ ray b e, x ≠ b → same_side_line (a~b) e x :=
+lemma t_shape_ray {a b : B.pts} {e : B.pts} (hab : a ≠ b) (heab : e ∉ (a-ₗb)) :
+∀ x ∈ two_pt_ray b e, x ≠ b → same_side_line (a-ₗb) e x :=
 begin
   intros x hxbe hxb, rintros ⟨f, hfab, hfex⟩,
-  have heb : e ≠ b, intro heb, rw [heb, ray_singleton] at hxbe, simp at hxbe, exact hxb hxbe,
-  have hfeb : f ∈ (e~b),
-    have hxeb : x ∈ (e~b),
+  have heb : e ≠ b, intro heb, rw [heb, in_ray_singleton] at hxbe, exact hxb hxbe,
+  have hfeb : f ∈ (e-ₗb),
+    have hxeb : x ∈ (e-ₗb),
       rw line_comm, from (ray_in_line b e) hxbe,
     by_cases hex : e = x, rw [←hex, segment_singleton] at hfex, simp at hfex, rw hfex, exact pt_left_in_line e b,
     rw (two_pt_one_line (line_in_lines heb) (line_in_lines hex) hex ⟨pt_left_in_line e b, hxeb⟩ ⟨pt_left_in_line e x, pt_right_in_line e x⟩),
     exact (segment_in_line e x) hfex,
-  have hebab : (e~b) ≠ (a~b),
+  have hebab : (e-ₗb) ≠ (a-ₗb),
     intro hebab, have heeb := pt_left_in_line e b, rw hebab at heeb, exact heab heeb,
   rw (two_line_one_pt (line_in_lines heb) (line_in_lines hab) hebab hfeb hfab (pt_right_in_line e b) (pt_right_in_line a b)) at hfex,
-  unfold segment at hxbe hfex, simp at hxbe hfex,
+  rw segment_inside at hfex, unfold two_pt_ray at hxbe, simp at hxbe hfex,
   rcases hfex with hfex | hfex | hfex, exact heb.symm hfex, exact hxb.symm hfex,
-  rcases hxbe with hxbe | hxbe | hxbe,
-  unfold same_side_pt segment at hxbe, simp at hxbe, push_neg at hxbe, exact hxbe.1.2.2 hfex,
-  exact hxb rfl
+  rcases hxbe with hxbe | hxbe,
+  exact hxb hxbe,
+  simp at hxbe, unfold same_side_pt at hxbe, rw in_segment at hxbe, simp at hxbe, push_neg at hxbe, exact hxbe.1.2.2 hfex
 end
 
-lemma t_shape_segment {a b : B.pts} {e : B.pts} (hab : a ≠ b) (heab : e ∉ (a~b)) :
-∀ x ∈ (b-e), x ≠ b → same_side_line (a~b) e x :=
+lemma t_shape_segment {a b : B.pts} {e : B.pts} (hab : a ≠ b) (heab : e ∉ (a-ₗb)) :
+∀ x ∈ (b-ₛe), x ≠ b → same_side_line (a-ₗb) e x :=
 λ x hxbe hxb, t_shape_ray hab heab x ((segment_in_ray b e) hxbe) hxb
 
-def angle (a o b : B.pts) : set B.pts := (ray o a) ∪ ray o b
+structure angle := (ray1 : @ray B) (ray2 : @ray B)
 
-notation `∠` := angle
+def angle_vertex (α : @angle B) : B.pts := α.ray1.vertex
 
-def inside_angle {a o b : B.pts} (O := angle a o b) (p : B.pts) : Prop := 
-same_side_line (o~a) b p ∧ same_side_line (o~b) a p
+noncomputable def angle_pt1 (α : @angle B) : B.pts :=
+by {choose a ha using α.ray1.in_eq, exact a}
 
-lemma crossbar {a b c d : B.pts} (BAC := angle b a c) (hbac : noncollinear b a c)
-(hd : inside_angle BAC d) : ray a d $ (b-c) :=
+noncomputable def angle_pt2 (α : @angle B) : B.pts :=
+by {choose a ha using α.ray2.in_eq, exact a}
+
+namespace angle
+
+def inside (α : @angle B) : set B.pts :=
+{p : B.pts | same_side_line ((angle_vertex α)-ₗ(angle_pt1 α)) (angle_pt2 α) p
+          ∧ same_side_line ((angle_vertex α)-ₗ(angle_pt2 α)) (angle_pt1 α) p}
+
+def mem (x : B.pts) (s : @angle B) : Prop := x ∈ s.inside
+
+instance : has_mem B.pts (angle) := ⟨angle.mem⟩
+
+end angle
+
+def three_pt_angle (a o b : B.pts) : angle := ⟨two_pt_ray o a, two_pt_ray o b⟩
+
+notation `∠` := three_pt_angle
+
+lemma collinear_angle {α : @angle B} {p : B.pts} (hp : p ∈ α.ray1) : α = ∠ p (angle_vertex α) (angle_pt2 α) := sorry
+
+lemma crossbar (α : @angle B) {d : B.pts} (hd : d ∈ α.inside)
+(hbac : noncollinear (angle_pt1 α) (angle_vertex α) (angle_pt2 α)) :
+(two_pt_ray (angle_vertex α) d).inside $ ((angle_pt1 α)-ₛ(angle_pt2 α)).inside :=
 begin
+  unfold angle.inside at hd, simp at hd,
+  set b := (angle_pt1 α), set a := (angle_vertex α), set c := (angle_pt2 α),
   by_cases hac : a = c,
-    rw hac, use c, unfold ray segment, simp,
+    rw hac, use c, unfold two_pt_ray, rw [segment_inside, segment_pt1, segment_pt2], simp,
   by_cases hab : a = b,
-    rw hab, use b, unfold ray segment, simp,
+    rw hab, use b, unfold two_pt_ray, rw [segment_inside, segment_pt1, segment_pt2], simp,
   cases is_between_extend (ne.symm hac) with e hcae,
   have had : a ≠ d,
     intro had, rw ←had at hd, have hf := (same_side_line_not_in (line_in_lines hab) hd.1).2,
@@ -658,49 +760,49 @@ begin
     exact hbac ⟨l, hl, hbl, ham, hcl⟩,
   have hae : a ≠ e,
     intro hae, rw hae at hcae, exact (is_between_not_eq hcae).2.2 rfl,
-  have h₁ : (((a~d) $ (e-b)) ∨ ((a~d) $ (c-b))) ∧ ¬(((a~d) $ (e-b)) ∧ ((a~d) $ (c-b))),
+  have h₁ : (((a-ₗd) $ (e-ₛb).inside) ∨ ((a-ₗd) $ (c-ₛb).inside)) ∧ ¬(((a-ₗd) $ (e-ₛb).inside) ∧ ((a-ₗd) $ (c-ₛb).inside)),
     apply pasch hecb (line_in_lines had),
     intro haed,
-    have hf : d ∈ (a~d), from pt_right_in_line a d,
+    have hf : d ∈ (a-ₗd), from pt_right_in_line a d,
     rcases is_between_collinear hcae with ⟨m, hm, hcm, ham, hem⟩,
     rw ←(two_pt_one_line hm (line_in_lines had) hae ⟨ham, hem⟩ ⟨pt_left_in_line a d, haed⟩) at hf,
     rw (two_pt_one_line hm (line_in_lines hac) hac ⟨ham, hcm⟩ ⟨pt_left_in_line a c, pt_right_in_line a c⟩) at hf,
-    unfold inside_angle same_side_line at hd, apply hd.2, use d, unfold segment, exact ⟨hf, by simp⟩,
+    unfold same_side_line at hd, apply hd.2, use d, rw [segment_inside, segment_pt1, segment_pt2], exact ⟨hf, by simp⟩,
     intro hacd,
-    have hf : d ∈ (a~d), from pt_right_in_line a d,
+    have hf : d ∈ (a-ₗd), from pt_right_in_line a d,
     rw (two_pt_one_line (line_in_lines had) (line_in_lines hac) hac ⟨pt_left_in_line a d, hacd⟩ ⟨pt_left_in_line a c, pt_right_in_line a c⟩) at hf,
-    unfold inside_angle same_side_line at hd, apply hd.2, use d, unfold segment, exact ⟨hf, by simp⟩,
+    unfold same_side_line at hd, apply hd.2, use d, rw [segment_inside, segment_pt1, segment_pt2], exact ⟨hf, by simp⟩,
     intro habd,
-    have hf : d ∈ (a~d), from pt_right_in_line a d,
+    have hf : d ∈ (a-ₗd), from pt_right_in_line a d,
     rw (two_pt_one_line (line_in_lines had) (line_in_lines hab) hab ⟨pt_left_in_line a d, habd⟩ ⟨pt_left_in_line a b, pt_right_in_line a b⟩) at hf,
-    unfold inside_angle same_side_line at hd, apply hd.1, use d, unfold segment, exact ⟨hf, by simp⟩,
+    unfold same_side_line at hd, apply hd.1, use d, rw [segment_inside, segment_pt1, segment_pt2], exact ⟨hf, by simp⟩,
     use a, split, exact pt_left_in_line a d,
-    unfold segment, simp, right, right, rw is_between_symm at hcae, exact hcae,
-  have hbeab : ∀ x ∈ (b-e), x ≠ b → same_side_line (a~b) e x,
-    have heab : e ∉ (a~b),
-      have heac : e ∈ (a~c),
+    rw segment_inside, simp, right, right, rw is_between_symm at hcae, exact hcae,
+  have hbeab : ∀ x ∈ (b-ₛe), x ≠ b → same_side_line (a-ₗb) e x,
+    have heab : e ∉ (a-ₗb),
+      have heac : e ∈ (a-ₗc),
         rcases (is_between_collinear hcae) with ⟨l, hl, hcl, hal, hel⟩,
         rw (two_pt_one_line (line_in_lines hac) hl hac ⟨pt_left_in_line a c, pt_right_in_line a c⟩ ⟨hal, hcl⟩),
         exact hel,
-      intro heab, have habac : (a~b) = (a~c), from two_pt_one_line (line_in_lines hab) (line_in_lines hac) hae ⟨pt_left_in_line a b, heab⟩ ⟨pt_left_in_line a c, heac⟩,
-      exact hbac ⟨(a~b), line_in_lines hab, pt_right_in_line a b, pt_left_in_line a b, by {rw habac, exact pt_right_in_line a c}⟩,
+      intro heab, have habac : (a-ₗb) = (a-ₗc), from two_pt_one_line (line_in_lines hab) (line_in_lines hac) hae ⟨pt_left_in_line a b, heab⟩ ⟨pt_left_in_line a c, heac⟩,
+      exact hbac ⟨(a-ₗb), line_in_lines hab, pt_right_in_line a b, pt_left_in_line a b, by {rw habac, exact pt_right_in_line a c}⟩,
     exact t_shape_segment hab heab,
-  have haeac : (a~e) = (a~c),
+  have haeac : (a-ₗe) = (a-ₗc),
     rcases (is_between_collinear hcae) with ⟨l, hl, hcl, hal, hel⟩,
     rw (two_pt_one_line (line_in_lines hae) hl hae ⟨pt_left_in_line a e, pt_right_in_line a e⟩ ⟨hal, hel⟩),
     rw (two_pt_one_line (line_in_lines hac) hl hac ⟨pt_left_in_line a c, pt_right_in_line a c⟩ ⟨hal, hcl⟩),
-  have hbeac : ∀ x ∈ (b-e), x ≠ e → same_side_line (a~c) b x,
-    rw [segment_comm, ←haeac],
-    have hbae : b ∉ (a~e),
-      rw haeac, intro hf, exact hbac ⟨(a~c), line_in_lines hac, hf, pt_left_in_line a c, pt_right_in_line a c⟩, 
-    exact t_shape_segment hae hbae,
-  have hadab : ∀ x ∈ ray a d, x ≠ a → same_side_line (a~b) d x,
-    have hdba : d ∉ (b~a), rw line_comm, from (same_side_line_not_in (line_in_lines hab) hd.1).2,
+  have hbeac : ∀ x ∈ (b-ₛe), x ≠ e → same_side_line (a-ₗc) b x,
+    have hbae : b ∉ (a-ₗe),
+      rw haeac, intro hf, exact hbac ⟨(a-ₗc), line_in_lines hac, hf, pt_left_in_line a c, pt_right_in_line a c⟩, 
+    intros x hxbe hxe, rw in_segment_comm at hxbe, rw ←haeac,
+    exact t_shape_segment hae hbae x hxbe hxe,
+  have hadab : ∀ x ∈ two_pt_ray a d, x ≠ a → same_side_line (a-ₗb) d x,
+    have hdba : d ∉ (b-ₗa), rw line_comm, from (same_side_line_not_in (line_in_lines hab) hd.1).2,
     rw line_comm a b, exact t_shape_ray (ne.symm hab) hdba,
-  have hdbac : same_side_line (a~c) d b, from same_side_line_symm (line_in_lines hac) hd.2,
-  have h₂ : ¬((a~d) $ (e-b)),
+  have hdbac : same_side_line (a-ₗc) d b, from same_side_line_symm (line_in_lines hac) hd.2,
+  have h₂ : ¬((a-ₗd) $ (e-ₛb).inside),
     have hdcab := same_side_line_symm (line_in_lines hab) hd.1,
-    rintros ⟨f, hf⟩, rw segment_comm at hf, simp at hf,
+    rintros ⟨f, hf⟩, rw segment_inside_comm at hf, simp at hf,
     have hfb : f ≠ b,
       intro hfb, rw hfb at hf, have := pt_right_in_line a d,
       rw (two_pt_one_line (line_in_lines had) (line_in_lines hab) hab ⟨pt_left_in_line a d, hf.1⟩ ⟨pt_left_in_line a b, pt_right_in_line a b⟩) at this,
@@ -712,29 +814,29 @@ begin
     have hfa : f ≠ a,
       intro hfa, rw hfa at hf, have := pt_right_in_line e b,
       have heb : e ≠ b, from (noncollinear_not_eq hecb).2.2.symm,
-      rw segment_comm at hf,
+      rw segment_inside_comm at hf,
       rw (two_pt_one_line (line_in_lines heb) (line_in_lines hae) hae ⟨segment_in_line e b hf.2, pt_left_in_line e b⟩ ⟨pt_left_in_line a e, pt_right_in_line a e⟩) at this,
       rw haeac at this,
-      exact hbac ⟨(a~c) ,line_in_lines hac, this, pt_left_in_line a c, pt_right_in_line a c⟩,
+      exact hbac ⟨(a-ₗc) ,line_in_lines hac, this, pt_left_in_line a c, pt_right_in_line a c⟩,
     specialize hbeab f hf.2 hfb,
     specialize hbeac f hf.2 hfe,
     have hdfac := same_side_line_trans (line_in_lines hac) hdbac hbeac,
-    have hfad : f ∈ ray a d,
-      unfold ray, simp, right, unfold same_side_pt, split,
+    have hfad : f ∈ two_pt_ray a d,
+      unfold two_pt_ray, left, unfold same_side_pt, split,
       intro hadf, apply hdfac,
       exact ⟨a, pt_left_in_line a c, hadf⟩,
-      exact ⟨(a~d), line_in_lines had, pt_left_in_line a d, pt_right_in_line a d, hf.1⟩,
+      exact ⟨(a-ₗd), line_in_lines had, pt_left_in_line a d, pt_right_in_line a d, hf.1⟩,
     specialize hadab f hfad hfa,
     have hedab := same_side_line_trans (line_in_lines hab) hbeab (same_side_line_symm (line_in_lines hab) hadab),
     have hecab := same_side_line_trans (line_in_lines hab) hedab hdcab,
     apply hecab, use a, split,
     exact pt_left_in_line a b,
-    unfold segment, simp, right, right, exact (is_between_symm c a e).mp hcae,
+    rw segment_inside, simp, right, right, exact (is_between_symm c a e).mp hcae,
     cases h₁.1 with h₁ h₁,
     exact absurd h₁ h₂,
   rcases h₁ with ⟨f, hfad, hfcb⟩,
-  have : b ∉ (a~c), from λ hf, hbac ⟨(a~c), line_in_lines hac, hf, pt_left_in_line a c, pt_right_in_line a c⟩,
-  have hcbac : ∀ x ∈ (c-b), x ≠ c → same_side_line (a~c) b x,
+  have : b ∉ (a-ₗc), from λ hf, hbac ⟨(a-ₗc), line_in_lines hac, hf, pt_left_in_line a c, pt_right_in_line a c⟩,
+  have hcbac : ∀ x ∈ (c-ₛb), x ≠ c → same_side_line (a-ₗc) b x,
     from t_shape_segment hac this,
   have hfc : f ≠ c,
     intro hfc, rw hfc at hfad, have := pt_right_in_line a d,
@@ -743,92 +845,172 @@ begin
   specialize hcbac f hfcb hfc,
   have hdfac := same_side_line_trans (line_in_lines hac) hdbac hcbac,
   use f, split,
-  unfold ray same_side_pt, simp, right, split,
+  unfold two_pt_ray same_side_pt, simp, right, split,
   intro hf, apply hdfac, use a, exact ⟨pt_left_in_line a c, hf⟩,
-  exact ⟨(a~d), line_in_lines had, pt_left_in_line a d, pt_right_in_line a d, hfad⟩,
-  rw segment_comm, exact hfcb 
+  exact ⟨(a-ₗd), line_in_lines had, pt_left_in_line a d, pt_right_in_line a d, hfad⟩,
+  rw segment_inside_comm, exact hfcb
 end
 
 structure incidence_order_congruence_geometry extends incidence_order_geometry :=
---Can I specify that set pts here is always segment?
-(line_congr : set pts → set pts → Prop)
+(line_congr : segment → segment → Prop)
 --For an arbitrary segment and a ray, we find a unique congruent segment on the ray
-(C1 : ∀ a b c d : pts, ∃ e : pts, is_between c d e ∧ line_congr (a-b) (c-e)
-∧ ∀ x : pts, is_between c d x → line_congr (a-b) (c-x) → x = e)
+(C1 : ∀ (a b : pts) (l : segment), ∃ c : pts, same_side_pt a b c ∧
+line_congr l (a-ₛc) ∧ ∀ x : pts, same_side_pt a b x → line_congr l (a-ₛx) → x = c)
 --This is equivalent to congruency being an equivalent relation
-(C2 : ∀ a b c d e f : pts,
-(line_congr (a-b) (c-d) → line_congr (a-b) (e-f) → line_congr (c-d) (e-f))
-∧ line_congr (a-b) (a-b))
+(C2 : ∀ s₁ s₂ s₃ : segment,
+(line_congr s₁ s₂ → line_congr s₁ s₃ → line_congr s₂ s₃) ∧ line_congr s₁ s₁)
 --This axiom deals with addition of segments.
-(C3 : ∀ a b c d e f: pts, is_between a b c → is_between d e f → line_congr (a-b) (d-e)
-                        → line_congr (b-c) (e-f) → line_congr (a-c) (d-f))
---Same question
-(angle_congr : set pts → set pts → Prop)
+(C3 : ∀ {a b c d e f: pts}, is_between a b c → is_between d e f → line_congr (a-ₛb) (d-ₛe)
+                        → line_congr (b-ₛc) (e-ₛf) → line_congr (a-ₛc) (d-ₛf))
+(angle_congr : angle → angle → Prop)
 --Given any angle and a ray, we find a pt that together with the ray forms a congruent angle
 --Also, this pt is unique on its side w.r.t the ray
-(C4 : ∀ a b c d f : pts, ∃ e : pts, angle_congr (∠b a c) (∠e d f)
-∧ ∀ x : pts, same_side_line ↑(line d f) e x → angle_congr (∠b a c) (∠x d f) → x = e)
+(C4 : ∀ (α : angle) (a b : pts), ∃ c : pts, angle_congr α (∠c a b)
+∧ ∀ x : pts, same_side_line (↑(line a b)) c x → angle_congr α (∠x a b) → x = c)
 --Similar to C2
-(C5 : ∀ a b c d e f g h i : pts,
-angle_congr (∠a b c) (∠d e f) → angle_congr (∠a b c) (∠g h i) → angle_congr (∠d e f) (∠g h i)
-∧ angle_congr (∠a b c) (∠a b c))
+(C5 : ∀ α β γ : angle, (angle_congr α β → angle_congr α γ → angle_congr β γ) ∧ angle_congr α α)
 --SAS!!!
-(C6 : ∀ a b c d e f, line_congr (a-b) (d-e) → line_congr (a-c) (d-f) → angle_congr (∠b a c) (∠e d f)
-→ line_congr (b-c) (e-f) ∧ angle_congr (∠a b c) (∠d e f) ∧ angle_congr (∠b c a) (∠e f d))
+(C6 : ∀ a b c d e f, line_congr (a-ₛb) (d-ₛe) → line_congr (a-ₛc) (d-ₛf) → angle_congr (∠b a c) (∠e d f)
+→ line_congr (b-ₛc) (e-ₛf) ∧ angle_congr (∠a b c) (∠d e f) ∧ angle_congr (∠b c a) (∠e f d))
 
 instance : has_coe incidence_order_congruence_geometry incidence_order_geometry :=
 ⟨incidence_order_congruence_geometry.to_incidence_order_geometry⟩
 
-variable {C : incidence_order_congruence_geometry}
+variables {C : incidence_order_congruence_geometry}
 
-local notation a`~`b := (line a b : set C.pts)
+local notation a`≅ₛ`b := C.line_congr a b
 
-local infix `≅ₗ` : 50 := λ a b, C.line_congr a b
+lemma extend_congr_unique (a b : C.pts) (l : segment) :
+∃ c : C.pts, same_side_pt a b c ∧ (l ≅ₛ (a-ₛc))
+∧ ∀ x : C.pts, same_side_pt a b x ∧ (l ≅ₛ (a-ₛx)) → x = c :=
+by {simp, exact C.C1 a b l}
 
-local infix `≅ₐ` : 50 := λ a b, C.angle_congr a b
+lemma line_congr_refl (s : segment) : s ≅ₛ s := (C.C2 s s s).2
 
-lemma extend_congr_unique (a b c d : C.pts)
-: ∃ e : C.pts, C.is_between c d e ∧ (a-b) ≅ₗ (c-e)
-∧ ∀ x : C.pts, C.is_between c d x → (a-b) ≅ₗ (c-x) → x = e := C.C1 a b c d
+lemma line_congr_symm {s₁ s₂ : segment} :
+(s₁ ≅ₛ s₂) → (s₂ ≅ₛ s₁) := λ h, (C.C2 s₁ s₂ s₁).1 h (line_congr_refl s₁)
 
-def triangle (a b c : C.pts) : set C.pts :=
-(a-b) ∪ (a-c) ∪ (b-c)
+lemma line_congr_trans {s₁ s₂ s₃ : segment} : 
+(s₁ ≅ₛ s₂) → (s₂ ≅ₛ s₃) → (s₁ ≅ₛ s₃) := λ h₁ h₂, (C.C2 s₂ s₁ s₃).1 (line_congr_symm h₁) h₂
 
-notation `Δ` := triangle
-
-def tri_congr {a b c d e f : C.pts} (ABC := Δ a b c) (DEF := Δ d e f) : Prop :=
-(a-b) ≅ₗ (d-e) ∧ (a-c) ≅ₗ (d-f) ∧ (b-c) ≅ₗ (e-f) ∧
-(∠a b c) ≅ₐ (∠d e f) ∧ (∠a c b) ≅ₐ (∠d f e) ∧ (∠b a c) ≅ₐ (∠e d f)
-
-infix `≅ₜ` : 50 := λ a b, tri_congr a b
-
-lemma line_congr_refl (a b : C.pts) : (a-b) ≅ₗ (a-b) := (C.C2 a b a b a b).2
-
-lemma line_congr_symm {a b c d : C.pts} :
-(a-b) ≅ₗ (c-d) → (c-d) ≅ₗ (a-b) := λ h, (C.C2 a b c d a b).1 h (line_congr_refl a b)
-
-lemma line_congr_trans {a b c d e f : C.pts} : 
-(a-b) ≅ₗ (c-d) → (c-d) ≅ₗ (e-f) → (a-b) ≅ₗ (e-f) := λ h₁ h₂, (C.C2 c d a b e f).1 (line_congr_symm h₁) h₂
-
---For short, given (a-b) and (c-d), their sum is the extension of (a-b) for length of (c-d)
-noncomputable def segment_add (a b c d : C.pts) : 
-{ L : set C.pts // a ≠ b → ∃ e : C.pts, L = (a-e) ∧ C.is_between a b e ∧ (b-e) ≅ₗ (c-d) } :=
+noncomputable def segment_add (m n : segment) : 
+{ L : segment // (m.pt1 = m.pt2 → L = (m.pt1-ₛm.pt1)) ∧
+(m.pt1 ≠ m.pt2 → ∃ p : C.pts, L = (m.pt1-ₛp) ∧ C.is_between m.pt1 m.pt2 p ∧ ((m.pt2-ₛp) ≅ₛ n)) } :=
 begin
-  by_cases hab : a = b, use {a},
+  set a := m.pt1 with hm₁, set b := m.pt2 with hm₂, set c := n.pt1 with hn₁, set d := n.pt2 with hn₂,
+  by_cases hab : a = b,
+  use (a-ₛa), exact ⟨λ h, rfl, λ h, absurd hab h⟩, 
   choose e habe using is_between_extend hab,
-  choose f hbef hcdbf hf using extend_congr_unique c d b e,
-  use (a-f), intro hab, use f,
-  exact ⟨rfl, (is_between_trans habe hbef).1, line_congr_symm hcdbf⟩
+  choose f hbef hcdbf hf using extend_congr_unique b e (c-ₛd),
+  use (a-ₛf), split, intro h, exact absurd h hab,
+  intro hab, use f, split, exact rfl,
+  rcases is_between_collinear habe with ⟨l, hl, hal, hbl, hel⟩,
+  rcases hbef.2 with ⟨m, hm, hbm, hem, hfm⟩,
+  rw ←two_pt_one_line hl hm (same_side_pt_not_eq hbef).1 ⟨hel, hbl⟩ ⟨hem, hbm⟩ at hfm,
+  split, rw [is_between_diff_side_pt, ←not_same_side_pt], intro hbaf,
+  rw [is_between_diff_side_pt, ←not_same_side_pt] at habe,
+  exact habe (same_side_pt_trans hbaf (same_side_pt_symm hbef)),
+  exact habe.2.1, exact hab, exact (same_side_pt_not_eq hbef).1,
+  exact ⟨l, hl, hbl, hal, hfm⟩, exact hab, exact (same_side_pt_not_eq hbef).2,
+  rw [hn₁, hn₂, segment_rw] at hcdbf, exact line_congr_symm hcdbf
 end
 
-lemma congr_sum_segment {a b c d a' b' c' d' : C.pts} (hab : a ≠ b) (ha'b' : a' ≠ b') :
-(a-b) ≅ₗ (a'-b') → (c-d) ≅ₗ (c'-d') → segment_add a b c d ≅ₗ segment_add a' b' c' d' :=
+notation a`+ₗ`b := segment_add a b
+
+lemma congr_sum_segment {m m' n n' : segment} (hmpt : m.pt1 ≠ m.pt2) (hm'pt : m'.pt1 ≠ m'.pt2) :
+(m ≅ₛ m') → (n ≅ₛ n') → ((m +ₗ n) ≅ₛ (m' +ₗ n')) :=
 begin
-  intros haba'b' hcdc'd',
-  rcases (segment_add a b c d).2 hab with ⟨e, hae, habe, hbecd⟩, simp at hae, rw hae,
-  rcases (segment_add a' b' c' d').2 ha'b' with ⟨e', ha'e', ha'b'e', hb'e'c'd'⟩, simp at ha'e', rw ha'e',
-  have hbeb'e' := line_congr_trans (line_congr_trans hbecd hcdc'd') (line_congr_symm hb'e'c'd'),
-  exact C.C3 a b e a' b' e' habe ha'b'e' haba'b' hbeb'e'
+  intros hmm' hnn',
+  rcases (m +ₗ n).2.2 hmpt with ⟨a, hm₁a, hm₁m₂a, hm₂an₁n₂⟩,
+  rcases (m' +ₗ n').2.2 hm'pt with ⟨b, hn₁b, hm₁m₂b', hm₂bn₁n₂'⟩,
+  simp at hm₁a hn₁b, rw [hm₁a, hn₁b],
+  have := line_congr_trans (line_congr_trans hm₂an₁n₂ hnn') (line_congr_symm hm₂bn₁n₂'),
+  rw [←segment_rw m, ←segment_rw m'] at hmm',
+  exact C.C3 hm₁m₂a hm₁m₂b' hmm' this
 end
 
-def lt_segment {a b c d : C.pts} : ∃ e : C.pts, C.is_between c e d ∧ (a-b) ≅ₗ (c-e)
+lemma congr_sub_segment {a b c d e f : C.pts} (habc : C.is_between a b c) (hdef : same_side_pt d e f)
+(habde : (a-ₛb)≅ₛ(d-ₛe)) (hacdf : (a-ₛc)≅ₛ(d-ₛf)) : C.is_between d e f ∧ ((b-ₛc)≅ₛ(e-ₛf)) :=
+begin
+  rcases is_between_extend (same_side_pt_not_eq hdef).1.symm with ⟨x, hdex⟩,
+  rcases extend_congr_unique e x (b-ₛc) with ⟨f', hexf', hbcef', hu⟩, simp at *,
+  have hdef' : C.is_between d e f',
+    rcases is_between_collinear hdex with ⟨l, hl, hdl, hel, hxl⟩,
+    rcases hexf'.2 with ⟨m, hm, hem, hxm, hf'm⟩,
+    rw (two_pt_one_line hm hl (same_side_pt_not_eq hexf').1 ⟨hxm, hem⟩ ⟨hxl, hel⟩) at hf'm,
+    rw [is_between_diff_side_pt, ←not_same_side_pt ⟨l, hl, hel, hdl, hf'm⟩ (is_between_not_eq hdex).1 (same_side_pt_not_eq hexf').2],
+    rw [is_between_diff_side_pt, ←not_same_side_pt ⟨l, hl, hel, hdl, hxl⟩ (same_side_pt_not_eq hdef).1.symm (same_side_pt_not_eq hexf').1] at hdex,
+    intro hedf', exact hdex (same_side_pt_trans hedf' (same_side_pt_symm hexf')),
+  have hacdf' := C.C3 habc hdef' habde hbcef',
+  have hff' : f = f',
+    rcases extend_congr_unique d e (a-ₛc) with ⟨f'', -, -, hf''⟩, simp at hf'',
+    rw [hf'' f hdef hacdf, hf'' f' (is_between_same_side_pt.mp hdef').1 hacdf'],
+  rw hff', exact ⟨hdef', hbcef'⟩
+end
+
+def segment_lt (m n : segment) : Prop :=
+∃ a : C.pts, C.is_between n.pt1 a n.pt2 ∧ (m ≅ₛ (n.pt1-ₛa))
+
+local notation a`<ₗ`b := @segment_lt C a b
+
+lemma segment_lt_congr {m n l : segment} (hmn : m ≅ₛ n) :
+((m <ₗ l) → (n <ₗ l)) ∧ ((l <ₗ m) → (l <ₗ n)) :=
+begin
+  unfold segment_lt, split,
+  rintros ⟨a, hl₁al₂, hm⟩,
+  exact ⟨a, hl₁al₂, line_congr_trans (line_congr_symm hmn) hm⟩,
+  rintros ⟨a, hm₁am₂, hl⟩,
+  rcases extend_congr_unique n.pt1 n.pt2 (m.pt1-ₛa) with ⟨b, hnb, hm₁an₁b, -⟩,
+  use b, split,
+  rw [←segment_rw m, ←segment_rw n] at hmn,
+  exact (congr_sub_segment hm₁am₂ (same_side_pt_symm hnb) hm₁an₁b hmn).1,
+  exact line_congr_trans hl hm₁an₁b
+end
+
+lemma segment_lt_trans {m n l : segment} :
+(m <ₗ n) → (n <ₗ l) → (m <ₗ l) :=
+begin
+  unfold segment_lt,
+  rintros ⟨a, hna, hm⟩, rintros ⟨b, hlb, hn⟩,
+  rcases (segment_lt_congr hn).2 ⟨a, hna, hm⟩ with ⟨c, hlc, hm'⟩,
+  unfold two_pt_segment at hlc, simp at hlc,
+  rw (show (l.pt1 -ₛ b).pt1 = l.pt1, by unfold two_pt_segment) at hm',
+  use c, rw is_between_symm at hlb hlc,
+  exact ⟨(is_between_symm _ _ _).mp (is_between_trans' hlb hlc).2, hm'⟩
+end
+
+lemma segment_tri (m n : segment) :
+(m <ₗ n) ∨ (m ≅ₛ n) ∨ (n <ₗ m) :=
+begin
+  rcases extend_congr_unique n.pt1 n.pt2 m with ⟨a, hna, hm, -⟩,
+  by_cases ha : a = n.pt2,
+  rw [ha, segment_rw] at hm, right, left, exact hm,
+  rcases hna.2 with ⟨l, hl, hn₁l, hn₂l, hal⟩,
+  cases (line_separation ⟨l, hl, hn₂l, hn₁l, hal⟩ (same_side_pt_not_eq hna).1.symm ha).1 with hna' hna',
+  left, use a, split, rw is_between_same_side_pt, exact ⟨same_side_pt_symm hna, hna'⟩, exact hm,
+  right, right, rw ←is_between_diff_side_pt at hna',
+  rcases extend_congr_unique m.pt1 m.pt2 n with ⟨b, hmb, hn, -⟩,
+  use b, split,
+  rw ←segment_rw n at hn, rw ←segment_rw m at hm,
+  exact (congr_sub_segment hna' (same_side_pt_symm hmb) hn (line_congr_symm hm)).1,
+  exact hn
+end
+
+local notation a`≅ₐ`b := C.angle_congr a b
+
+lemma angle_congr_refl (α : angle) : α ≅ₐ α := (C.C5 α α α).2
+
+lemma angle_congr_symm {α β : angle} :
+(α ≅ₐ β) → (β ≅ₐ α) := λ h, (C.C5 α β α).1 h (angle_congr_refl α)
+
+lemma angle_congr_trans {α β γ : angle} : 
+(α ≅ₐ β) → (β ≅ₐ γ) → (α ≅ₐ γ) := λ h₁ h₂, (C.C5 β α γ).1 (angle_congr_symm h₁) h₂
+
+def supplementary (α β : @angle C.to_incidence_order_geometry) : Prop :=
+(angle_vertex α) = angle_vertex β ∧ (angle_pt1 α) = angle_pt1 β ∧ diff_side_pt (angle_vertex α) (angle_pt2 α) (angle_pt2 β)
+
+lemma supplementary_congr {α β α' β' : angle}
+(hαβ : supplementary α β) (hγε : supplementary α' β') (hαα' : α ≅ₐ α') : β ≅ₐ β' :=
+begin
+  
+end
