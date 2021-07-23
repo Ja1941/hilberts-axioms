@@ -165,7 +165,14 @@ end
 def segment (a b : B.pts) : set B.pts :=
 {c : B.pts | B.is_between a c b} ∪ {a, b}
 
-notation a`-`b := segment a b
+notation a`-ₛ`b := segment a b
+
+#check segment
+
+variable f : ∀ {a b c d : B.pts}, set B.pts → set B.pts → Prop
+variables a b c d : B.pts
+#check (a-ₛb)
+#check f (a-ₛb) (c-ₛd)
 
 lemma segment_comm (a b : B.pts) : a-b = b-a :=
 begin
