@@ -926,14 +926,6 @@ def two_pt_ray (o a : B.pts) : ray := ⟨o, {x : B.pts | same_side_pt o a x} ∪
 
 lemma two_pt_ray_vertex (o a :B.pts) : (two_pt_ray o a).vertex = o := rfl
 
-namespace ray
-
-def mem (x : B.pts) (s : @ray B) : Prop := x ∈ s.inside
-
-instance : has_mem B.pts ray := ⟨ray.mem⟩
-
-end ray
-
 lemma ray_unique {r₁ r₂ : ray} (hr₁r₂ : r₁.vertex = r₂.vertex) :
 (∃ x : B.pts, x ≠ r₁.vertex ∧ x ∈ r₁.inside ∩ r₂.inside) → r₁ = r₂ :=
 begin
@@ -990,14 +982,6 @@ begin
   cases r.in_eq with x hx, use x, unfold two_pt_ray,
   induction r with v I hI, simp,
   simp at hx, rw hx
-end
-
-lemma in_ray_singleton (x a : B.pts) : x ∈ two_pt_ray a a ↔ x = a :=
-begin
-  unfold two_pt_ray ray.mem, split,
-  intro h, cases h with h h,
-  simp at h, exfalso, exact (same_side_pt_not_eq h).1 rfl, exact h,
-  intro h, right, exact h
 end
 
 lemma ray_singleton_iff_eq {o a p : B.pts} : (two_pt_ray o a).inside = {p} ↔ o = a ∧ o = p :=
@@ -1264,11 +1248,30 @@ begin
   right, exact ⟨h₃, h₂ h₃⟩
 end
 
+lemma noncollinear_angle_eq {a o b a' o' b' : B.pts} (haob : noncollinear a o b) :
+(∠ a o b) = (∠ a' o' b') → noncollinear a' o' b' :=
+begin
+  intro he, rintros ⟨l, hl, ha'l, ho'l, hb'l⟩,
+  unfold three_pt_angle at he, simp at he,
+  have : (two_pt_ray o' a').inside ∪ (two_pt_ray o' b').inside ⊆ l,
+    intros x hx, unfold two_pt_ray at hx, simp at hx, rcases hx with (hx | hx) | hx,
+    rw hx, exact ho'l,
+    rcases hx.2 with ⟨m, hm, ho'm, ha'm, hxm⟩,
+    rw two_pt_one_line hm hl (same_side_pt_not_eq hx).1 ⟨ha'm, ho'm⟩ ⟨ha'l, ho'l⟩ at hxm, exact hxm,
+    rcases hx.2 with ⟨m, hm, ho'm, hb'm, hxm⟩,
+    rw two_pt_one_line hm hl (same_side_pt_not_eq hx).1 ⟨hb'm, ho'm⟩ ⟨hb'l, ho'l⟩ at hxm, exact hxm,
+  rw ←he.1 at this, apply haob, use l, split, exact hl,
+  split, apply this, left, exact pt_right_in_ray o a,
+  split, apply this, left, exact pt_left_in_ray o a,
+  apply this, right, exact pt_right_in_ray o b
+end
+
 lemma three_pt_angle_eq_iff {a o b a' o' b' : B.pts}
-(haob : noncollinear a o b) (ha'o'b' : noncollinear a' o' b') : (∠ a o b) = (∠ a' o' b') ↔ o = o'
+(haob : noncollinear a o b) : (∠ a o b) = (∠ a' o' b') ↔ o = o'
 ∧ ((same_side_pt o a a' ∧ same_side_pt o b b') ∨ (same_side_pt o a b' ∧ same_side_pt o b a')) :=
 begin
   split; intro h,
+  have ha'o'b' := noncollinear_angle_eq haob h,
   cases three_pt_angle_ray haob with h₁ h₁;
   cases three_pt_angle_ray ha'o'b' with h₂ h₂;
   rw ←h at h₂,
@@ -1309,13 +1312,68 @@ begin
   rw [ray_same_side_pt h.1, ray_same_side_pt h.2], rw [ray_same_side_pt h.1, ray_same_side_pt h.2, union_comm]
 end
 
-def inside_angle (p : B.pts) (a o b : B.pts): Prop :=
-same_side_line (o-ₗa) b p ∧ same_side_line (o-ₗb) a p
+lemma angle_three_pt (α : angle) : ∃ a b : B.pts, α = ∠ a α.vertex b :=
+begin
+  cases ray_reconstruct (r1 α).1 with a ha,
+  cases ray_reconstruct (r2 α).1 with b hb,
+  cases (r1 α).2, rw h.1 at ha, clear h w, rw (r2 α).2.2.1 at hb,
+  use [a, b],
+  suffices : α.inside = (∠ a α.vertex b).inside,
+    unfold three_pt_angle, induction α, simp at *,
+    rw this, unfold three_pt_angle,
+  unfold three_pt_angle, simp, rw [←ha, ←hb],
+  exact (r2 α).2.2.2
+end
+
+def inside_angle (p : B.pts) (α : @angle B) : Prop :=
+∀ a b : B.pts, α = ∠ a α.vertex b → same_side_line (α.vertex-ₗa) b p ∧ same_side_line (α.vertex-ₗb) a p
+
+lemma inside_three_pt_angle {p a o b : B.pts} (haob : noncollinear a o b) :
+inside_angle p (∠ a o b) ↔ same_side_line (o-ₗa) b p ∧ same_side_line (o-ₗb) a p :=
+begin
+  have : ∀ {a o b a' b' p : B.pts}, noncollinear a o b → (∠ a o b) = (∠ a' o b')
+  → same_side_line ↑(line o a') b' p ∧ same_side_line ↑(line o b') a' p
+  → same_side_pt o a a' ∧ same_side_pt o b b' → same_side_line (o-ₗa) b p ∧ same_side_line (o-ₗb) a p,
+    intros a o b a' b' p haob he hp h,
+    have ha'ob' := noncollinear_angle_eq haob he,
+    rw two_pt_one_line (line_in_lines (same_side_pt_not_eq h.1).1.symm) (line_in_lines (same_side_pt_not_eq h.1).2.symm),
+    rw two_pt_one_line (line_in_lines (same_side_pt_not_eq h.2).1.symm) (line_in_lines (same_side_pt_not_eq h.2).2.symm),
+    split, apply same_side_line_symm (line_in_lines (same_side_pt_not_eq h.1).2.symm),
+    apply same_side_line_trans (line_in_lines (same_side_pt_not_eq h.1).2.symm) (same_side_line_symm (line_in_lines (same_side_pt_not_eq h.1).2.symm) hp.1),
+    rw line_comm, refine t_shape_ray _ _ _ _ _, exact (same_side_pt_not_eq h.1).2,
+    intro hf, exact ha'ob' ⟨(a'-ₗo), line_in_lines (same_side_pt_not_eq h.1).2, pt_left_in_line a' o, pt_right_in_line a' o, hf⟩,
+    unfold two_pt_ray, simp, right, exact same_side_pt_symm h.2,
+    exact (same_side_pt_not_eq h.2).1,
+    apply same_side_line_symm (line_in_lines (same_side_pt_not_eq h.2).2.symm),
+    apply same_side_line_trans (line_in_lines (same_side_pt_not_eq h.2).2.symm) (same_side_line_symm (line_in_lines (same_side_pt_not_eq h.2).2.symm) hp.2),
+    rw line_comm, refine t_shape_ray _ _ _ _ _, exact (same_side_pt_not_eq h.2).2,
+    intro hf, exact ha'ob' ⟨(b'-ₗo), line_in_lines (same_side_pt_not_eq h.2).2, hf, pt_right_in_line b' o, pt_left_in_line b' o⟩,
+    unfold two_pt_ray, simp, right, exact same_side_pt_symm h.1,
+    exact (same_side_pt_not_eq h.1).1,
+    exact (same_side_pt_not_eq h.2).1, exact ⟨pt_right_in_line o b, pt_left_in_line o b⟩,
+    split, apply ray_in_line o b', left, exact same_side_pt_symm h.2, exact pt_left_in_line o b',
+    exact (same_side_pt_not_eq h.1).1, exact ⟨pt_right_in_line o a, pt_left_in_line o a⟩,
+    split, apply ray_in_line o a', left, exact same_side_pt_symm h.1, exact pt_left_in_line o a',
+  split; intro hp,
+  rcases angle_three_pt (∠ a o b) with ⟨a', b', he⟩,
+  rw three_pt_angle_vertex at he, specialize hp a' b', rw three_pt_angle_vertex at hp,
+  specialize hp he,
+  cases ((three_pt_angle_eq_iff haob).1 he).2,
+  exact this haob he hp h,
+  rw @angle_symm B a' _ _ at he, rw and_comm at hp, exact this haob he hp h,
+  intros a' b' he, rw three_pt_angle_vertex, rw three_pt_angle_vertex at he,
+  cases ((three_pt_angle_eq_iff haob).1 he).2,
+  apply this (noncollinear_angle_eq haob he) he.symm hp,
+  split; apply same_side_pt_symm, exact h.1, exact h.2,
+  rw @angle_symm B a' _ _ at he, rw and_comm,
+  apply this (noncollinear_angle_eq haob he) he.symm hp,
+  split; apply same_side_pt_symm, exact h.1, exact h.2
+end
 
 lemma crossbar {a b c d : B.pts} (hbac : noncollinear b a c)
-(hd : inside_angle d b a c) : (two_pt_ray a d).inside $ (b-ₛc).inside :=
+(hd : inside_angle d (∠ b a c)) : (two_pt_ray a d).inside $ (b-ₛc).inside :=
 begin
-  unfold inside_angle at hd,
+  rw inside_three_pt_angle at hd,
   by_cases hac : a = c,
     rw hac, use c, unfold two_pt_ray, unfold two_pt_segment, simp,
   by_cases hab : a = b,
@@ -1369,7 +1427,7 @@ begin
       rw haeac, intro hf, exact hbac ⟨(a-ₗc), line_in_lines hac, hf, pt_left_in_line a c, pt_right_in_line a c⟩, 
     intros x hxbe hxe, rw segment_symm at hxbe, rw ←haeac,
     exact t_shape_segment hae hbae x hxbe hxe,
-  have hadab : ∀ x ∈ two_pt_ray a d, x ≠ a → same_side_line (a-ₗb) d x,
+  have hadab : ∀ x ∈ (two_pt_ray a d).inside, x ≠ a → same_side_line (a-ₗb) d x,
     have hdba : d ∉ (b-ₗa), rw line_comm, from (same_side_line_not_in (line_in_lines hab) hd.1).2,
     rw line_comm a b, exact t_shape_ray (ne.symm hab) hdba,
   have hdbac : same_side_line (a-ₗc) d b, from same_side_line_symm (line_in_lines hac) hd.2,
@@ -1394,7 +1452,7 @@ begin
     specialize hbeab f hf.2 hfb,
     specialize hbeac f hf.2 hfe,
     have hdfac := same_side_line_trans (line_in_lines hac) hdbac hbeac,
-    have hfad : f ∈ two_pt_ray a d,
+    have hfad : f ∈ (two_pt_ray a d).inside,
       unfold two_pt_ray, left, unfold same_side_pt, split,
       intro hadf, apply hdfac,
       exact ⟨a, pt_left_in_line a c, hadf⟩,
@@ -1421,7 +1479,7 @@ begin
   unfold two_pt_ray same_side_pt, simp, right, split,
   intro hf, apply hdfac, use a, exact ⟨pt_left_in_line a c, hf⟩,
   exact ⟨(a-ₗd), line_in_lines had, pt_left_in_line a d, pt_right_in_line a d, hfad⟩,
-  rw segment_symm, exact hfcb
+  rw segment_symm, exact hfcb, exact hbac
 end
 
 structure incidence_order_congruence_geometry extends incidence_order_geometry :=
@@ -1439,7 +1497,7 @@ segment_congr l (a-ₛc) ∧ ∀ x : pts, same_side_pt a b x → segment_congr l
 --Given any angle and a ray, we find a pt that together with the ray forms a congruent angle
 --Also, this pt is unique on its side w.r.t the ray
 (C4 : ∀ (α : angle) (a b : pts), ∀ p : pts, ∃ c : pts, angle_congr α (∠c a b) ∧ same_side_line (↑(line a b)) c p
-∧ ∀ x : pts, same_side_line (↑(line a b)) c x → angle_congr α (∠x a b) → x ∈ two_pt_ray a c)
+∧ ∀ x : pts, same_side_line (↑(line a b)) c x → angle_congr α (∠x a b) → x ∈ (two_pt_ray a c).inside)
 --Similar to C2
 (C5 : ∀ α β γ : angle, (angle_congr α β → angle_congr α γ → angle_congr β γ) ∧ angle_congr α α)
 --SAS!!!
@@ -1659,10 +1717,10 @@ begin
   have h₁' : angle_nontrivial (∠ b' a' c'), rw ←hbac, exact h₁,
   have h₂' : angle_nontrivial (∠ b' a' d'), rw ←hbad, exact h₂,
   rw nontrivial_iff_noncollinear at h₁ h₁' h₂ h₂',
-  have haa' : a = a', from ((three_pt_angle_eq_iff h₁ h₁').1 hbac).1,
+  have haa' : a = a', from ((three_pt_angle_eq_iff h₁).1 hbac).1,
   rw ←haa' at hc'a'd',
-  cases ((three_pt_angle_eq_iff h₁ h₁').1 hbac).2 with H₁ H₁;
-  cases ((three_pt_angle_eq_iff h₂ h₂').1 hbad).2 with H₂ H₂,
+  cases ((three_pt_angle_eq_iff h₁).1 hbac).2 with H₁ H₁;
+  cases ((three_pt_angle_eq_iff h₂).1 hbad).2 with H₂ H₂,
   split,
   rw [is_between_diff_side_pt, ←not_same_side_pt], intro hacd,
   rw [is_between_diff_side_pt, ←not_same_side_pt] at hc'a'd',
@@ -1813,21 +1871,22 @@ begin
 end
 
 lemma congr_angle_add {a b c d a' b' c' d' : C.pts}
-(hd : inside_angle d b a c) (hb'c' : diff_side_line (a'-ₗd') b' c')
+(hd : inside_angle d (∠ b a c)) (hb'c' : diff_side_line (a'-ₗd') b' c')
 (hbac : noncollinear b a c) (hb'a'c' : noncollinear b' a' c')
 (h₁ : ∠ b a d ≅ₐ ∠ b' a' d') (h₂ : ∠ d a c ≅ₐ ∠ d' a' c') :
-inside_angle d' b' a' c' ∧ (∠ b a c ≅ₐ ∠ b' a' c') :=
+inside_angle d' (∠ b' a' c') ∧ (∠ b a c ≅ₐ ∠ b' a' c') :=
 begin
   have hab := (noncollinear_not_eq hbac).1.symm,
   have hac := (noncollinear_not_eq hbac).2.1,
   have hbc := (noncollinear_not_eq hbac).2.2.symm,
-  have wtlg : ∃ p : C.pts, inside_angle p b a c ∧ ∠ b a d = ∠ b a p ∧ ∠ d a c = ∠ p a c ∧ C.is_between b p c,
+  have wtlg : ∃ p : C.pts, inside_angle p (∠ b a c) ∧ ∠ b a d = ∠ b a p ∧ ∠ d a c = ∠ p a c ∧ C.is_between b p c,
     cases crossbar hbac hd with p hp, use p,
+    rw inside_three_pt_angle hbac at hd,
     by_cases hdp : d = p,
       rw ←hdp at hp, unfold two_pt_segment at hp, simp at hp, rcases hp.2 with hp | hp | hp,
       rw hp at hd, exact absurd (pt_right_in_line a b) (same_side_line_not_in (line_in_lines hab) hd.1).2,
       rw hp at hd, exact absurd (pt_right_in_line a c) (same_side_line_not_in (line_in_lines hac) hd.2).2,
-      rw ←hdp, exact ⟨hd, rfl, rfl, hp⟩,
+      rw ←hdp, exact ⟨(inside_three_pt_angle hbac).2 hd, rfl, rfl, hp⟩,
     have had : a ≠ d,
       have := same_side_line_not_in (line_in_lines hab) hd.1,
       intro had, rw ←had at this, exact this.2 (pt_left_in_line a b),
@@ -1852,7 +1911,7 @@ begin
       exact had hx, exact hap hx,
       rw [is_between_diff_side_pt, ←not_same_side_pt hadp.2 had.symm hap.symm] at hx,
       exact hx hadp,
-    split, split,
+    split, rw inside_three_pt_angle hbac, split,
     exact same_side_line_trans (line_in_lines hab) hd.1 this,
     have : same_side_line (a-ₗc) d p,
       rintros ⟨x, hx⟩,
@@ -1882,6 +1941,7 @@ begin
     exact absurd this (same_side_line_not_in (line_in_lines hac) hd.2).2,
     exact hp,
   rcases wtlg with ⟨p, hp, hp₁, hp₂, hbpc⟩, rw hp₁ at h₁, rw hp₂ at h₂, clear hd hp₁ hp₂ d,
+  rw inside_three_pt_angle hbac at hp,
   rename [p d, hp hd, hbpc hbdc],
   rcases congr_angle_add_prep (a-ₛb) (angle_congr_refl (∠ b' a' d')) with ⟨b'', hb''a'd', ha'b''ab, ha'b'b''⟩,
   rcases congr_angle_add_prep (a-ₛd) (angle_congr_refl (∠ d' a' b'')) with ⟨d'', hd''a'b', ha'd''ad, ha'd'd''⟩,
@@ -2001,17 +2061,17 @@ begin
     exact (tri_congr_angle hacd).2.1,
   have : (∠ b' a' c') = (∠ b'' a' c''),
     rw [angle_same_side b' ha'c'c'', angle_symm, angle_same_side c'' ha'b'b'', angle_symm],
-  rw [this, angle_symm, @angle_symm C.to_incidence_order_geometry b'' _ _],
-  split, rotate, exact (tri_congr_angle hcab).2.1,
+  split, rotate,
+  rw [this, angle_symm, @angle_symm C.to_incidence_order_geometry b'' _ _], exact (tri_congr_angle hcab).2.1,
   have hc'' : c'' ∉ (a'-ₗb''),
     from λhc'', hb''a'c'' ⟨(a'-ₗb''), line_in_lines ha'b'', pt_right_in_line a' b'', pt_left_in_line a' b'', hc''⟩,
   have hb'' : b'' ∉ (a'-ₗc''),
     from λhb'', hb''a'c'' ⟨(a'-ₗc''), line_in_lines ha'c'', hb'', pt_left_in_line a' c'', pt_right_in_line a' c''⟩,
-  have hd'' : inside_angle d'' b'' a' c'',
+  have hd'' : same_side_line (a'-ₗb'') c'' d'' ∧ same_side_line (a'-ₗc'') b'' d'',
     split,
     exact t_shape_ray ha'b'' hc'' d'' (by {unfold two_pt_ray, simp, right, exact same_side_pt_symm (is_between_same_side_pt.1 hb''d''c'').1}) (is_between_not_eq hb''d''c'').1.symm,
     exact t_shape_ray ha'c'' hb'' d'' (by {unfold two_pt_ray, simp, right, exact (is_between_same_side_pt.1 hb''d''c'').2}) (is_between_not_eq hb''d''c'').2.2,
-  split,
+  rw inside_three_pt_angle hb'a'c', split,
   rw two_pt_one_line (line_in_lines ha'b') (line_in_lines ha'b''),
   have hc'c'' : same_side_line (a'-ₗb'') c' c'',
     rw line_comm, apply same_side_line_symm (line_in_lines ha'b''.symm), refine t_shape_ray ha'b''.symm _ _ _ _,
