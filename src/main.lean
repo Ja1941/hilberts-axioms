@@ -197,14 +197,14 @@ begin
   exact hal
 end
 
-lemma noncollinear_in12 {a b c : I.pts} : noncollinear a b c → a ≠ b → c ∉ (a-ₗb) :=
-λ habc hab hc, habc ⟨(a-ₗb), line_in_lines hab, pt_left_in_line a b, pt_right_in_line a b, hc⟩
+lemma noncollinear_in12 {a b c : I.pts} : noncollinear a b c → c ∉ (a-ₗb) :=
+λ habc hc, habc ⟨(a-ₗb), line_in_lines (noncollinear_not_eq habc).1, pt_left_in_line a b, pt_right_in_line a b, hc⟩
 
-lemma noncollinear_in13 {a b c : I.pts} : noncollinear a b c → a ≠ c → b ∉ (a-ₗc) :=
-λ habc hac hb, habc ⟨(a-ₗc), line_in_lines hac, pt_left_in_line a c, hb, pt_right_in_line a c⟩
+lemma noncollinear_in13 {a b c : I.pts} : noncollinear a b c → b ∉ (a-ₗc) :=
+λ habc hb, habc ⟨(a-ₗc), line_in_lines (noncollinear_not_eq habc).2.2.symm, pt_left_in_line a c, hb, pt_right_in_line a c⟩
 
-lemma noncollinear_in23 {a b c : I.pts} : noncollinear a b c → b ≠ c → a ∉ (b-ₗc) :=
-λ habc hbc ha, habc ⟨(b-ₗc), line_in_lines hbc, ha, pt_left_in_line b c, pt_right_in_line b c⟩
+lemma noncollinear_in23 {a b c : I.pts} : noncollinear a b c → a ∉ (b-ₗc) :=
+λ habc ha, habc ⟨(b-ₗc), line_in_lines (noncollinear_not_eq habc).2.1, ha, pt_left_in_line b c, pt_right_in_line b c⟩
 
 structure incidence_order_geometry extends incidence_geometry :=
 (is_between : pts → pts → pts → Prop)
@@ -1932,9 +1932,68 @@ def tri_congr (t₁ t₂ : @triangle C) : Prop :=
 
 notation a`≅ₜ`b := tri_congr a b
 
+lemma tri_congr_refl (t : @triangle C) : t ≅ₜ t :=
+⟨segment_congr_refl _, segment_congr_refl _, segment_congr_refl _,
+angle_congr_refl _, angle_congr_refl _, angle_congr_refl _⟩
+
+lemma tri_congr_symm {t₁ t₂ : @triangle C} : (t₁ ≅ₜ t₂) → (t₂ ≅ₜ t₁) :=
+λh, ⟨segment_congr_symm h.1, segment_congr_symm h.2.1, segment_congr_symm h.2.2.1,
+angle_congr_symm h.2.2.2.1, angle_congr_symm h.2.2.2.2.1, angle_congr_symm h.2.2.2.2.2⟩
+
+lemma tri_congr_trans {t₁ t₂ t₃ : @triangle C} : (t₁ ≅ₜ t₂) → (t₂ ≅ₜ t₃) → (t₁ ≅ₜ t₃) :=
+λh₁ h₂, ⟨segment_congr_trans h₁.1 h₂.1, segment_congr_trans h₁.2.1 h₂.2.1, segment_congr_trans h₁.2.2.1 h₂.2.2.1,
+angle_congr_trans h₁.2.2.2.1 h₂.2.2.2.1, angle_congr_trans h₁.2.2.2.2.1 h₂.2.2.2.2.1, angle_congr_trans h₁.2.2.2.2.2 h₂.2.2.2.2.2⟩
+
 def three_pt_triangle (a b c : C.pts) : triangle := ⟨a, b, c⟩
 
 notation `Δ` := three_pt_triangle
+
+lemma three_pt_triangle_v1 (a b c : C.pts) : (Δ a b c).v1 = a := rfl
+
+lemma three_pt_triangle_v2 (a b c : C.pts) : (Δ a b c).v2 = b := rfl
+
+lemma three_pt_triangle_v3 (a b c : C.pts) : (Δ a b c).v3 = c := rfl
+
+lemma tri_congr12 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ b a c) ≅ₜ (Δ b' a' c')) :=
+begin
+  unfold tri_congr, rw [three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3, three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3],
+  rw [segment_symm, @segment_symm C.to_incidence_order_geometry a' b'],
+  rw [@angle_symm C.to_incidence_order_geometry a c b, @angle_symm C.to_incidence_order_geometry a' c' b'],
+  tauto
+end
+
+lemma tri_congr13 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ c b a) ≅ₜ (Δ c' b' a')) :=
+begin
+  unfold tri_congr, rw [three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3, three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3],
+  rw [segment_symm, @segment_symm C.to_incidence_order_geometry a' b'],
+  rw [@segment_symm C.to_incidence_order_geometry a c, @segment_symm C.to_incidence_order_geometry a' c'],
+  rw [@segment_symm C.to_incidence_order_geometry b c, @segment_symm C.to_incidence_order_geometry b' c'],
+  rw [@angle_symm C.to_incidence_order_geometry b a c, @angle_symm C.to_incidence_order_geometry b' a' c'],
+  rw [@angle_symm C.to_incidence_order_geometry a c b, @angle_symm C.to_incidence_order_geometry a' c' b'],
+  rw [@angle_symm C.to_incidence_order_geometry a b c, @angle_symm C.to_incidence_order_geometry a' b' c'],
+  tauto
+end
+
+lemma tri_congr23 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ a c b) ≅ₜ (Δ a' c' b')) :=
+begin
+  unfold tri_congr, rw [three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3, three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3],
+  rw [segment_symm, @segment_symm C.to_incidence_order_geometry a' b'],
+  rw [@segment_symm C.to_incidence_order_geometry a c, @segment_symm C.to_incidence_order_geometry a' c'],
+  rw [@segment_symm C.to_incidence_order_geometry b c, @segment_symm C.to_incidence_order_geometry b' c'],
+  rw [@angle_symm C.to_incidence_order_geometry b a c, @angle_symm C.to_incidence_order_geometry b' a' c'],
+  rw [@angle_symm C.to_incidence_order_geometry a c b, @angle_symm C.to_incidence_order_geometry a' c' b'],
+  rw [@angle_symm C.to_incidence_order_geometry a b c, @angle_symm C.to_incidence_order_geometry a' b' c'],
+  tauto
+end
+
+lemma tri_congr123 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ b c a) ≅ₜ (Δ b' c' a')) := λh, tri_congr23 (tri_congr12 h)
+
+lemma tri_congr132 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ c a b) ≅ₜ (Δ c' a' b')) := λh, tri_congr23 (tri_congr13 h)
 
 lemma tri_congr_side {a b c a' b' c': C.pts} (h : (Δ a b c) ≅ₜ (Δ a' b' c')) :
 ((a-ₛb) ≅ₛ (a'-ₛb')) ∧ ((a-ₛc) ≅ₛ (a'-ₛc')) ∧ ((b-ₛc) ≅ₛ (b'-ₛc')) :=
@@ -2838,4 +2897,53 @@ begin
   exact ⟨habd, noncollinear13 hdbc, noncollinear13 habc⟩,
     rw is_between_symm at hace,
   exact ⟨hace, noncollinear13 hecb, noncollinear123 habc⟩
+end
+
+lemma SSS {ABC DEF : @triangle C} (habc : noncollinear ABC.v1 ABC.v2 ABC.v3)
+(ha'b'c' : noncollinear DEF.v1 DEF.v2 DEF.v3) (haba'b' : (ABC.v1-ₛABC.v2) ≅ₛ (DEF.v1-ₛDEF.v2))
+(haca'c' : (ABC.v1-ₛABC.v3) ≅ₛ (DEF.v1-ₛDEF.v3)) (hbcb'c' : (ABC.v2-ₛABC.v3) ≅ₛ (DEF.v2-ₛDEF.v3)) :
+ABC ≅ₜ DEF :=
+begin
+  set a := ABC.v1 with ha, set b := ABC.v2 with hb, set c := ABC.v3 with hc,
+  set a' := DEF.v1, set b' := DEF.v2, set c' := DEF.v3,
+  have hab := (noncollinear_not_eq habc).1,
+  have hac := (noncollinear_not_eq habc).2.2.symm,
+  cases is_between_extend hab.symm with x hbax,
+  rcases extend_congr_angle (∠ b' a' c') a c x with ⟨y, hy, hacyx, -⟩,
+  rcases extend_congr_segment a y (a'-ₛb') with ⟨d, hayd, ha'b'ad, -⟩,
+  have had := (same_side_pt_not_eq hayd).2.symm,
+  have hacbd : diff_side_line (a-ₗc) b d,
+    have h₁ : diff_side_line (a-ₗc) b x,
+      refine (diff_side_pt_line (is_between_diff_side_pt.1 hbax)).2.2.2 _ _,
+      exact line_in_lines hac,
+      split, exact pt_left_in_line a c, split, exact noncollinear_in13 habc,
+      apply noncollinear_in13,
+      exact collinear_trans' (collinear12 (is_between_collinear hbax)) habc (is_between_not_eq hbax).2.2,
+    have h₂ : same_side_line (a-ₗc) y d,
+      rw line_symm, refine t_shape_ray hac.symm _ _ _ _,
+      rw line_symm, exact (same_side_line_not_in (line_in_lines hac) hacyx).1,
+      left, exact hayd, exact had.symm,
+    exact diff_side_same_side_line (line_in_lines hac) (diff_side_same_side_line (line_in_lines hac) h₁ (same_side_line_symm (line_in_lines hac) hacyx)) h₂,
+  have hadc : noncollinear a d c,
+    intro hadc, exact hacbd.2.2 ((collinear_in13 hadc) hac),
+  have hadca'b'c' : ((Δ a d c) ≅ₜ (Δ a' b' c')),
+    apply SAS; unfold three_pt_triangle; simp,
+    exact hadc, exact ha'b'c',
+    exact segment_congr_symm ha'b'ad, exact haca'c',
+    have : ∠ y a c = ∠ d a c,
+      rw [angle_symm, @angle_symm C.to_incidence_order_geometry d _ _],
+      exact angle_eq_same_side c hayd,
+    rw this at hy, exact angle_congr_symm hy,
+  refine tri_congr_trans _ hadca'b'c',
+  apply tri_congr12, rw [←ha, ←hb, ←hc],
+  apply SAS; unfold three_pt_triangle; simp,
+  exact noncollinear12 habc, exact noncollinear12 hadc,
+  rw segment_symm at haba'b', rw @segment_symm C.to_incidence_order_geometry d a,
+  exact segment_congr_trans haba'b' (segment_congr_symm (tri_congr_side hadca'b'c').1),
+  exact segment_congr_trans hbcb'c' (segment_congr_symm (tri_congr_side hadca'b'c').2.2),
+/-
+  refine (congr_angle_add _ _ _ _ _).2, exact b, exact d,
+  have hd : inside_angle d (∠ a b c),
+    cases hacbd.1 with o ho,
+-/
 end
