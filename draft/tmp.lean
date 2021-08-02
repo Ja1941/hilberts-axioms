@@ -35,7 +35,7 @@ local notation a`-ₗ`b := (line a b : set I.pts)
 
 def intersect (m n : set I.pts) : Prop := (m ∩ n).nonempty
 
-notation m`$`n := intersect m n
+notation m`♥`n := intersect m n
 
 lemma line_in_lines {a b : I.pts} (hab : a ≠ b) :
 (a-ₗb) ∈ I.lines := (line a b).2.1 hab
@@ -134,6 +134,78 @@ begin
   exact hf ⟨l, hl, key.1, key.2, key.1⟩
 end
 
+lemma collinear12 {a b c : I.pts} : collinear a b c → collinear b a c :=
+by {rintros ⟨l, hl, habc⟩, use l, tauto}
+
+lemma noncollinear12 {a b c : I.pts} : noncollinear a b c → noncollinear b a c :=
+by {unfold noncollinear, contrapose!, exact collinear12}
+
+lemma collinear13 {a b c : I.pts} : collinear a b c → collinear c b a :=
+by {rintros ⟨l, hl, habc⟩, use l, tauto}
+
+lemma noncollinear13 {a b c : I.pts} : noncollinear a b c → noncollinear c b a :=
+by {unfold noncollinear, contrapose!, exact collinear13}
+
+lemma collinear23 {a b c : I.pts} : collinear a b c → collinear a c b :=
+by {rintros ⟨l, hl, habc⟩, use l, tauto}
+
+lemma noncollinear23 {a b c : I.pts} : noncollinear a b c → noncollinear a c b :=
+by {unfold noncollinear, contrapose!, exact collinear23}
+
+lemma collinear123 {a b c : I.pts} : collinear a b c → collinear b c a :=
+λh, collinear23 (collinear12 h)
+
+lemma collinear132 {a b c : I.pts} : collinear a b c → collinear c a b :=
+λh, collinear23 (collinear13 h)
+
+lemma noncollinear123 {a b c : I.pts} : noncollinear a b c → noncollinear b c a :=
+by {unfold noncollinear, contrapose!, exact collinear132}
+
+lemma noncollinear132 {a b c : I.pts} : noncollinear a b c → noncollinear c a b :=
+by {unfold noncollinear, contrapose!, exact collinear123}
+
+lemma collinear_trans {a b c d : I.pts} (habc : collinear a b c) (habd : collinear a b d) :
+a ≠ b → collinear a c d :=
+begin
+  rcases habc with ⟨l, hl, hal, hbl, hcl⟩, rcases habd with ⟨m, hm, ham, hbm, hdm⟩,
+  intro hab, rw two_pt_one_line hm hl hab ⟨ham, hbm⟩ ⟨hal, hbl⟩ at hdm,
+  exact ⟨l, hl, hal, hcl, hdm⟩
+end
+
+lemma collinear_trans' {a b c d : I.pts} (habc : collinear a b c) (habd : noncollinear a b d) :
+a ≠ c → noncollinear a c d :=
+λhac hacd, habd (collinear_trans (collinear23 habc) hacd hac)
+
+lemma collinear_in12 {a b c : I.pts} : collinear a b c → a ≠ b → c ∈ (a-ₗb) :=
+begin
+  rintros ⟨l, hl, hal, hbl, hcl⟩, intro hab,
+  rw two_pt_one_line hl (line_in_lines hab) hab ⟨hal, hbl⟩ ⟨pt_left_in_line a b, pt_right_in_line a b⟩ at hcl,
+  exact hcl
+end
+
+lemma collinear_in13 {a b c : I.pts} : collinear a b c → a ≠ c → b ∈ (a-ₗc) :=
+begin
+  rintros ⟨l, hl, hal, hbl, hcl⟩, intro hac,
+  rw two_pt_one_line hl (line_in_lines hac) hac ⟨hal, hcl⟩ ⟨pt_left_in_line a c, pt_right_in_line a c⟩ at hbl,
+  exact hbl
+end
+
+lemma collinear_in23 {a b c : I.pts} : collinear a b c → b ≠ c → a ∈ (b-ₗc) :=
+begin
+  rintros ⟨l, hl, hal, hbl, hcl⟩, intro hbc,
+  rw two_pt_one_line hl (line_in_lines hbc) hbc ⟨hbl, hcl⟩ ⟨pt_left_in_line b c, pt_right_in_line b c⟩ at hal,
+  exact hal
+end
+
+lemma noncollinear_in12 {a b c : I.pts} : noncollinear a b c → c ∉ (a-ₗb) :=
+λ habc hc, habc ⟨(a-ₗb), line_in_lines (noncollinear_not_eq habc).1, pt_left_in_line a b, pt_right_in_line a b, hc⟩
+
+lemma noncollinear_in13 {a b c : I.pts} : noncollinear a b c → b ∉ (a-ₗc) :=
+λ habc hb, habc ⟨(a-ₗc), line_in_lines (noncollinear_not_eq habc).2.2.symm, pt_left_in_line a c, hb, pt_right_in_line a c⟩
+
+lemma noncollinear_in23 {a b c : I.pts} : noncollinear a b c → a ∉ (b-ₗc) :=
+λ habc ha, habc ⟨(b-ₗc), line_in_lines (noncollinear_not_eq habc).2.1, ha, pt_left_in_line b c, pt_right_in_line b c⟩
+
 structure incidence_order_geometry extends incidence_geometry :=
 (is_between : pts → pts → pts → Prop)
 -- If B is between A and C, then they are on a same line
@@ -143,7 +215,7 @@ structure incidence_order_geometry extends incidence_geometry :=
 (B2 : ∀ a b : pts, a ≠ b → ∃ c : pts, is_between a b c)
 -- Given any collinear three points, exactly one of them is between the other two.
 (B3 : ∀ (a b c : pts) (l ∈ lines), a ∈ l ∧ b ∈ l ∧ c ∈ l →
-(is_between a b c ∨ is_between a c b ∨ is_between b a c)
+(a ≠ b → a ≠ c → is_between a b c ∨ is_between a c b ∨ is_between b a c)
 ∧ ¬(is_between a b c ∧ is_between a c b)
 ∧ ¬(is_between a b c ∧ is_between b a c)
 ∧ ¬(is_between a c b ∧ is_between b a c))
@@ -175,7 +247,7 @@ lemma is_between_extend {a b : B.pts} (h : a ≠ b) :
 ∃ c : B.pts, B.is_between a b c := B.B2 a b h
 
 lemma collinear_between {a b c : B.pts} (habc : collinear a b c) :
-(B.is_between a b c ∨ B.is_between a c b ∨ B.is_between b a c)
+(a ≠ b → a ≠ c → B.is_between a b c ∨ B.is_between a c b ∨ B.is_between b a c)
 ∧ ¬(B.is_between a b c ∧ B.is_between a c b)
 ∧ ¬(B.is_between a b c ∧ B.is_between b a c)
 ∧ ¬(B.is_between a c b ∧ B.is_between b a c) :=
@@ -234,8 +306,8 @@ begin
 end
 
 lemma pasch {a b c : B.pts} (habc : noncollinear a b c) {l : set B.pts} (hl : l ∈ B.lines) :
-a ∉ l → b ∉ l → c ∉ l → (l $ (a-ₛb).inside) →
-((l $ (a-ₛc).inside) ∨ (l $ (b-ₛc).inside)) ∧ ¬((l $ (a-ₛc).inside) ∧ (l $ (b-ₛc).inside)) :=
+a ∉ l → b ∉ l → c ∉ l → (l ♥ (a-ₛb).inside) →
+((l ♥ (a-ₛc).inside) ∨ (l ♥ (b-ₛc).inside)) ∧ ¬((l ♥ (a-ₛc).inside) ∧ (l ♥ (b-ₛc).inside)) :=
 begin
   intros ha hb hc hlab,
   have hd : ∃ d : B.pts, B.is_between a d b ∧ d ∈ l,
@@ -304,7 +376,7 @@ begin
     have hc := pt_left_in_line c e, rw two_pt_one_line (line_in_lines hce) hl hbe ⟨hbce, pt_right_in_line c e⟩ ⟨hbl, hel⟩ at hc,
     rw two_pt_one_line hl hm hcd ⟨hc, hdl⟩ ⟨hcm, hdm⟩ at hbl,
     exact habc ⟨m, hm, ham, hbl, hcm⟩,
-  have intersect : (↑(line c e)$(a-ₛd).inside),
+  have intersect : (↑(line c e)♥(a-ₛd).inside),
     use c, split, exact pt_left_in_line c e,
     unfold two_pt_segment, simp, right, right, exact hacd,
   cases (pasch hadb (line_in_lines hce) this.1 this.2.1 this.2.2 intersect).1 with key hf,
@@ -326,10 +398,10 @@ begin
   exfalso, exact (collinear_between (is_between_collinear hbde)).2.1 ⟨hbde, hdxb⟩
 end
 
-def same_side_line (l : set B.pts) (a b : B.pts) : Prop := ¬(l $ (a-ₛb).inside)
+def same_side_line (l : set B.pts) (a b : B.pts) : Prop := ¬(l ♥ (a-ₛb).inside)
 
 def diff_side_line (l : set B.pts) (a b : B.pts) : Prop :=
-(l $ (a-ₛb).inside) ∧ a ∉ l ∧ b ∉ l
+(l ♥ (a-ₛb).inside) ∧ a ∉ l ∧ b ∉ l
 
 theorem plane_separation
 {l : set B.pts} (hl : l ∈ B.lines) {a b : B.pts} (ha : a ∉ l) (hb : b ∉ l) :
@@ -537,6 +609,14 @@ begin
   exact ⟨l, hl, hal, hcl, hbl⟩
 end
 
+lemma diff_side_pt_symm {a b c : B.pts} :
+diff_side_pt a b c → diff_side_pt a c b :=
+begin
+  unfold diff_side_pt, rw segment_symm,
+  rintros ⟨ha, habc, h⟩,
+  exact ⟨ha, collinear23 habc, h.symm⟩
+end
+
 lemma same_side_pt_line {a b c : B.pts} : same_side_pt a b c
 → collinear a b c ∧ a ≠ b ∧ a ≠ c
 ∧ ∀ {l : set B.pts}, l ∈ B.lines → a ∈ l ∧ b ∉ l ∧ c ∉ l → same_side_line l b c :=
@@ -629,7 +709,7 @@ begin
   exact ⟨l, hl, hcl, hal, hbl⟩,
   unfold same_side_pt, unfold two_pt_segment, simp, push_neg,
   intros h₁ habc h₂ hcab,
-  rcases (collinear_between habc).1 with h | h | h,
+  rcases (collinear_between habc).1 h₁.1 h₁.2.1 with h | h | h,
   exact h, exact absurd h h₂.2.2, exact absurd h h₁.2.2
 end
 
@@ -733,7 +813,7 @@ end
 lemma same_side_pt_between {a b c : B.pts} :
 same_side_pt a b c → B.is_between a b c ∨ B.is_between a c b :=
 begin
-  intro habc, rcases (collinear_between habc.2).1 with h | h | h,
+  intro habc, rcases (collinear_between habc.2).1 (same_side_pt_not_eq habc).1.symm (same_side_pt_not_eq habc).2.symm  with h | h | h,
   left, exact h, right, exact h,
   rw [is_between_diff_side_pt, ←not_same_side_pt habc.2] at h, exact absurd habc h,
   exact (same_side_pt_not_eq habc).1,
@@ -787,7 +867,7 @@ begin
     rw ←hxz at hz, unfold two_pt_segment at hz, simp at hz,
     rcases hz.2 with hzb | hzc | hz,
     exact (is_between_not_eq this).2.2 hzb, rw ←hzc at hlac, exact hlac.2.2 hz.1,
-    rcases (collinear_between ⟨m, hm, ham, hbm, hcm⟩).1 with habc | hacb | hbac,
+    rcases (collinear_between ⟨m, hm, ham, hbm, hcm⟩).1 hab hac with habc | hacb | hbac,
     exact (collinear_between (is_between_collinear this)).2.1 ⟨this, (is_between_trans' habc hz).1⟩,
     exact (collinear_between (is_between_collinear hy)).2.1 ⟨hy, (is_between_trans' hacb (by {rw is_between_symm, exact hz})).1⟩,
     exact (collinear_between (is_between_collinear this)).2.2.1 ⟨this, by {rw is_between_symm, exact (is_between_trans' hbac hy).1}⟩,
@@ -796,6 +876,26 @@ begin
   rw not_same_side_line hl h₁.2.1 h₂.2.2 at h₃,
   unfold diff_side_line at h₁ h₂ h₃,
   exact (pasch habc hl h₁.2.1 h₁.2.2 h₂.2.2 h₁.1).2 ⟨h₃.1, h₂.1⟩
+end
+
+lemma diff_side_pt_cancel {a b c d : B.pts} :
+diff_side_pt a b c → diff_side_pt a b d → same_side_pt a c d :=
+begin
+  intros habc habd,
+  replace habc := diff_side_pt_line habc,
+  replace habd := diff_side_pt_line habd,
+  have hacd := collinear_trans habc.1 habd.1 habc.2.1,
+  apply same_side_line_pt, split,
+  exact hacd,
+  split, exact habc.2.2.1, split, exact habd.2.2.1,
+  rcases line_pt_exist hacd habc.2.2.1 habd.2.2.1 with ⟨l, hl, hal, hcl, hdl⟩,
+  have hbl : b ∉ l,
+    intro hbl,
+    rw two_pt_one_line hl (line_in_lines habc.2.1) habc.2.1 at hcl, exact hcl (collinear_in12 habc.1 habc.2.1),
+    exact ⟨hal, hbl⟩, exact ⟨pt_left_in_line a b, pt_right_in_line a b⟩,
+  have h₁ := habc.2.2.2 hl ⟨hal, hbl, hcl⟩,
+  have h₂ := habd.2.2.2 hl ⟨hal, hbl, hdl⟩,
+  exact ⟨l, hl, hal, hcl, hdl, diff_side_line_cancel hl (diff_side_line_symm hl h₁) h₂⟩
 end
 
 lemma diff_side_same_side_line {l : set B.pts} (hl : l ∈ B.lines) {a b c : B.pts} :
@@ -807,6 +907,18 @@ begin
   exact hlab (same_side_line_trans hl hlac (same_side_line_symm hl hlbc)),
   exact hlab.2.1, exact hlab.2.2
 end
+
+lemma diff_side_same_side_pt {a b c d : B.pts} :
+diff_side_pt a b c → same_side_pt a b d → diff_side_pt a c d :=
+begin
+  intros habc habd,
+  rw ←not_same_side_pt, rw ←not_same_side_pt at habc,
+  intro hacd, exact habc (same_side_pt_trans habd (same_side_pt_symm hacd)),
+  exact habc.2.1, exact habc.2.2.1, exact habc.2.2.2,
+  exact collinear_trans habc.2.1 habd.2 habc.2.2.1.symm,
+  exact habc.2.2.2, exact (same_side_pt_not_eq habd).2
+end
+
 
 private lemma two_pt_segment_pt_prep {a b a' b' : B.pts} :
 (a-ₛb) = (a'-ₛb') → a = a' → b = b' :=
@@ -826,7 +938,7 @@ begin
       unfold two_pt_segment, simp, right, right, exact hbxb',
     rw [segment_symm, haba'b'] at hx, simp at hx, exact (is_between_not_eq hbxb').2.2 hx,
   by_cases habb' : collinear a b b',
-    rcases (collinear_between habb').1 with h | h | h,
+    rcases (collinear_between habb').1 hab hab' with h | h | h,
     cases (two_pt_between (is_between_not_eq h).2.2) with x hbxb',
     have haxb' := (is_between_trans' h hbxb').2,
     have h₁ : x ∈ (a-ₛb').inside,
@@ -1500,7 +1612,7 @@ begin
 end
 
 lemma crossbar {a b c d : B.pts}
-(hd : inside_angle d (∠ b a c)) : (two_pt_ray a d).inside $ (b-ₛc).inside :=
+(hd : inside_angle d (∠ b a c)) : (two_pt_ray a d).inside ♥ (b-ₛc).inside :=
 begin
   have hbac := hd.2, rw nontrivial_iff_noncollinear at hbac,
   rw inside_three_pt_angle at hd,
@@ -1521,7 +1633,7 @@ begin
     exact hbac ⟨l, hl, hbl, ham, hcl⟩,
   have hae : a ≠ e,
     intro hae, rw hae at hcae, exact (is_between_not_eq hcae).2.2 rfl,
-  have h₁ : (((a-ₗd) $ (e-ₛb).inside) ∨ ((a-ₗd) $ (c-ₛb).inside)) ∧ ¬(((a-ₗd) $ (e-ₛb).inside) ∧ ((a-ₗd) $ (c-ₛb).inside)),
+  have h₁ : (((a-ₗd) ♥ (e-ₛb).inside) ∨ ((a-ₗd) ♥ (c-ₛb).inside)) ∧ ¬(((a-ₗd) ♥ (e-ₛb).inside) ∧ ((a-ₗd) ♥ (c-ₛb).inside)),
     apply pasch hecb (line_in_lines had),
     intro haed,
     have hf : d ∈ (a-ₗd), from pt_right_in_line a d,
@@ -1561,7 +1673,7 @@ begin
     have hdba : d ∉ (b-ₗa), rw line_symm, from (same_side_line_not_in (line_in_lines hab) hd.1).2,
     rw line_symm a b, exact t_shape_ray (ne.symm hab) hdba,
   have hdbac : same_side_line (a-ₗc) d b, from same_side_line_symm (line_in_lines hac) hd.2.1,
-  have h₂ : ¬((a-ₗd) $ (e-ₛb).inside),
+  have h₂ : ¬((a-ₗd) ♥ (e-ₛb).inside),
     have hdcab := same_side_line_symm (line_in_lines hab) hd.1,
     rintros ⟨f, hf⟩, rw segment_symm at hf, simp at hf,
     have hfb : f ≠ b,
@@ -1631,7 +1743,7 @@ segment_congr l (a-ₛc) ∧ ∀ x : pts, same_side_pt a b x → segment_congr l
 --Similar to C2
 (C5 : ∀ α β γ : angle, (angle_congr α β → angle_congr α γ → angle_congr β γ) ∧ angle_congr α α)
 --SAS!!!
-(C6 : ∀ {a b c d e f : pts}, segment_congr (a-ₛb) (d-ₛe) → segment_congr (a-ₛc) (d-ₛf) → angle_congr (∠b a c) (∠e d f)
+(C6 : ∀ {a b c d e f : pts}, noncollinear a b c → noncollinear d e f → segment_congr (a-ₛb) (d-ₛe) → segment_congr (a-ₛc) (d-ₛf) → angle_congr (∠b a c) (∠e d f)
 → segment_congr (b-ₛc) (e-ₛf) ∧ angle_congr (∠a b c) (∠d e f) ∧ angle_congr (∠a c b) (∠d f e))
 
 instance : has_coe incidence_order_congruence_geometry incidence_order_geometry :=
@@ -1820,9 +1932,68 @@ def tri_congr (t₁ t₂ : @triangle C) : Prop :=
 
 notation a`≅ₜ`b := tri_congr a b
 
+lemma tri_congr_refl (t : @triangle C) : t ≅ₜ t :=
+⟨segment_congr_refl _, segment_congr_refl _, segment_congr_refl _,
+angle_congr_refl _, angle_congr_refl _, angle_congr_refl _⟩
+
+lemma tri_congr_symm {t₁ t₂ : @triangle C} : (t₁ ≅ₜ t₂) → (t₂ ≅ₜ t₁) :=
+λh, ⟨segment_congr_symm h.1, segment_congr_symm h.2.1, segment_congr_symm h.2.2.1,
+angle_congr_symm h.2.2.2.1, angle_congr_symm h.2.2.2.2.1, angle_congr_symm h.2.2.2.2.2⟩
+
+lemma tri_congr_trans {t₁ t₂ t₃ : @triangle C} : (t₁ ≅ₜ t₂) → (t₂ ≅ₜ t₃) → (t₁ ≅ₜ t₃) :=
+λh₁ h₂, ⟨segment_congr_trans h₁.1 h₂.1, segment_congr_trans h₁.2.1 h₂.2.1, segment_congr_trans h₁.2.2.1 h₂.2.2.1,
+angle_congr_trans h₁.2.2.2.1 h₂.2.2.2.1, angle_congr_trans h₁.2.2.2.2.1 h₂.2.2.2.2.1, angle_congr_trans h₁.2.2.2.2.2 h₂.2.2.2.2.2⟩
+
 def three_pt_triangle (a b c : C.pts) : triangle := ⟨a, b, c⟩
 
 notation `Δ` := three_pt_triangle
+
+lemma three_pt_triangle_v1 (a b c : C.pts) : (Δ a b c).v1 = a := rfl
+
+lemma three_pt_triangle_v2 (a b c : C.pts) : (Δ a b c).v2 = b := rfl
+
+lemma three_pt_triangle_v3 (a b c : C.pts) : (Δ a b c).v3 = c := rfl
+
+lemma tri_congr12 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ b a c) ≅ₜ (Δ b' a' c')) :=
+begin
+  unfold tri_congr, rw [three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3, three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3],
+  rw [segment_symm, @segment_symm C.to_incidence_order_geometry a' b'],
+  rw [@angle_symm C.to_incidence_order_geometry a c b, @angle_symm C.to_incidence_order_geometry a' c' b'],
+  tauto
+end
+
+lemma tri_congr13 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ c b a) ≅ₜ (Δ c' b' a')) :=
+begin
+  unfold tri_congr, rw [three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3, three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3],
+  rw [segment_symm, @segment_symm C.to_incidence_order_geometry a' b'],
+  rw [@segment_symm C.to_incidence_order_geometry a c, @segment_symm C.to_incidence_order_geometry a' c'],
+  rw [@segment_symm C.to_incidence_order_geometry b c, @segment_symm C.to_incidence_order_geometry b' c'],
+  rw [@angle_symm C.to_incidence_order_geometry b a c, @angle_symm C.to_incidence_order_geometry b' a' c'],
+  rw [@angle_symm C.to_incidence_order_geometry a c b, @angle_symm C.to_incidence_order_geometry a' c' b'],
+  rw [@angle_symm C.to_incidence_order_geometry a b c, @angle_symm C.to_incidence_order_geometry a' b' c'],
+  tauto
+end
+
+lemma tri_congr23 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ a c b) ≅ₜ (Δ a' c' b')) :=
+begin
+  unfold tri_congr, rw [three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3, three_pt_triangle_v1, three_pt_triangle_v1, three_pt_triangle_v2, three_pt_triangle_v2, three_pt_triangle_v3, three_pt_triangle_v3],
+  rw [segment_symm, @segment_symm C.to_incidence_order_geometry a' b'],
+  rw [@segment_symm C.to_incidence_order_geometry a c, @segment_symm C.to_incidence_order_geometry a' c'],
+  rw [@segment_symm C.to_incidence_order_geometry b c, @segment_symm C.to_incidence_order_geometry b' c'],
+  rw [@angle_symm C.to_incidence_order_geometry b a c, @angle_symm C.to_incidence_order_geometry b' a' c'],
+  rw [@angle_symm C.to_incidence_order_geometry a c b, @angle_symm C.to_incidence_order_geometry a' c' b'],
+  rw [@angle_symm C.to_incidence_order_geometry a b c, @angle_symm C.to_incidence_order_geometry a' b' c'],
+  tauto
+end
+
+lemma tri_congr123 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ b c a) ≅ₜ (Δ b' c' a')) := λh, tri_congr23 (tri_congr12 h)
+
+lemma tri_congr132 {a b c a' b' c': C.pts} :
+((Δ a b c) ≅ₜ (Δ a' b' c')) → ((Δ c a b) ≅ₜ (Δ c' a' b')) := λh, tri_congr23 (tri_congr13 h)
 
 lemma tri_congr_side {a b c a' b' c': C.pts} (h : (Δ a b c) ≅ₜ (Δ a' b' c')) :
 ((a-ₛb) ≅ₛ (a'-ₛb')) ∧ ((a-ₛc) ≅ₛ (a'-ₛc')) ∧ ((b-ₛc) ≅ₛ (b'-ₛc')) :=
@@ -1838,9 +2009,10 @@ begin
   exact ⟨h.2.2.2.1, h.2.2.2.2.1, h.2.2.2.2.2⟩
 end
 
-lemma SAS {ABC DEF : @triangle C} (hs₁ : (ABC.v1-ₛABC.v2) ≅ₛ (DEF.v1-ₛDEF.v2)) (hs₂ : (ABC.v1-ₛABC.v3) ≅ₛ (DEF.v1-ₛDEF.v3))
+lemma SAS {ABC DEF : @triangle C} (h₁ : noncollinear ABC.v1 ABC.v2 ABC.v3) (h₂ : noncollinear DEF.v1 DEF.v2 DEF.v3)
+(hs₁ : (ABC.v1-ₛABC.v2) ≅ₛ (DEF.v1-ₛDEF.v2)) (hs₂ : (ABC.v1-ₛABC.v3) ≅ₛ (DEF.v1-ₛDEF.v3))
 (ha : (∠ABC.v2 ABC.v1 ABC.v3 ≅ₐ ∠DEF.v2 DEF.v1 DEF.v3)) : ABC ≅ₜ DEF :=
-⟨hs₁, hs₂, (C.C6 hs₁ hs₂ ha).1, ha, (C.C6 hs₁ hs₂ ha).2.1, (C.C6 hs₁ hs₂ ha).2.2⟩
+⟨hs₁, hs₂, (C.C6 h₁ h₂ hs₁ hs₂ ha).1, ha, (C.C6 h₁ h₂ hs₁ hs₂ ha).2.1, (C.C6 h₁ h₂ hs₁ hs₂ ha).2.2⟩
 
 lemma supplementary_congr {a b c d a' b' c' d' : C.pts}
 (h : supplementary (∠b a c) (∠b a d)) (h' : supplementary (∠b' a' c') (∠b' a' d')) :
@@ -1862,11 +2034,15 @@ begin
   rename [x b', y c', z d'],
   have h₁ : ((Δ a b c) ≅ₜ (Δ a' b' c')),
     apply SAS; unfold three_pt_triangle; simp,
+    rintros ⟨l, hl, habcl⟩, apply nontrivial_iff_noncollinear.1 h.2.1, use l, tauto,
+    rintros ⟨l, hl, habcl'⟩, apply nontrivial_iff_noncollinear.1 h'.2.1, use l, tauto,
     exact haba'b', exact haca'c', exact hbac,
   have hcad := is_between_diff_side_pt.2 (is_between_diff_side_pt.1 (three_pt_angle_supplementary.1 h).1),
   have hc'a'd' := is_between_diff_side_pt.2 (is_between_diff_side_pt.1 (three_pt_angle_supplementary.1 h').1),
   have h₂ : ((Δ c b d) ≅ₜ (Δ c' b' d')),
     apply SAS; unfold three_pt_triangle; simp,
+    exact noncollinear23 (collinear_trans' (is_between_collinear hcad) (noncollinear13 (nontrivial_iff_noncollinear.1 h.2.1)) (is_between_not_eq hcad).2.1),
+    exact noncollinear23 (collinear_trans' (is_between_collinear hc'a'd') (noncollinear13 (nontrivial_iff_noncollinear.1 h'.2.1)) (is_between_not_eq hc'a'd').2.1),
     rw [segment_symm, @segment_symm C.to_incidence_order_geometry c' _],
     exact (tri_congr_side h₁).2.2,
     refine congr_segment_add hcad hc'a'd' _ _,
@@ -1878,6 +2054,8 @@ begin
     exact (tri_congr_angle h₁).2.2,
   have h₃ : ((Δ d b a) ≅ₜ (Δ d' b' a')),
     apply SAS; unfold three_pt_triangle; simp,
+    exact noncollinear12 (noncollinear23 (nontrivial_iff_noncollinear.1 h.2.2)),
+    exact noncollinear12 (noncollinear23 (nontrivial_iff_noncollinear.1 h'.2.2)),
     rw [segment_symm, @segment_symm C.to_incidence_order_geometry d' _], exact (tri_congr_side h₂).2.2,
     rw [segment_symm, @segment_symm C.to_incidence_order_geometry d' _], exact hada'd',
     rw ←angle_eq_same_side b (is_between_same_side_pt.1 hcad).2,
@@ -2093,26 +2271,6 @@ begin
   rcases congr_angle_add_prep1 (a-ₛb) (angle_congr_refl (∠ b' a' d')) with ⟨b'', hb''a'd', ha'b''ab, ha'b'b''⟩,
   rcases congr_angle_add_prep1 (a-ₛd) (angle_congr_refl (∠ d' a' b'')) with ⟨d'', hd''a'b', ha'd''ad, ha'd'd''⟩,
   rcases congr_angle_add_prep1 (a-ₛc) (angle_congr_refl (∠ c' a' d')) with ⟨c'', hc''a'd', ha'c''ac, ha'c'c''⟩,
-  replace h₁ : (∠ b a d ≅ₐ ∠ b'' a' d''),
-    apply angle_congr_trans (angle_congr_trans h₁ (angle_congr_symm hb''a'd')), rw angle_symm,
-    apply angle_congr_trans (angle_congr_symm hd''a'b'), rw angle_symm, exact angle_congr_refl _,
-  replace h₂ : (∠ d a c ≅ₐ ∠ d'' a' c''),
-    apply angle_congr_trans h₂, rw angle_symm, apply angle_congr_trans (angle_congr_symm hc''a'd'),
-    rw [angle_eq_same_side c'' ha'd'd'', angle_symm], exact angle_congr_refl _,
-  have habd : ((Δ a b d) ≅ₜ (Δ a' b'' d'')),
-    apply SAS; unfold three_pt_triangle; simp,
-    exact segment_congr_symm ha'b''ab, exact segment_congr_symm ha'd''ad, exact h₁,
-  have hacd : ((Δ a c d) ≅ₜ (Δ a' c'' d'')),
-    apply SAS; unfold three_pt_triangle; simp,
-    exact segment_congr_symm ha'c''ac, exact segment_congr_symm ha'd''ad,
-    rw angle_symm, apply angle_congr_trans h₂, rw angle_symm, exact angle_congr_refl _,
-  have hb''d'' : b'' ≠ d'',
-    intro hb''d'', rw ←hb''d'' at ha'd'd'',
-    rcases (same_side_pt_trans ha'b'b'' (same_side_pt_symm ha'd'd'')).2 with ⟨l, hl, ha'l, hb'l, hd'l⟩,
-    have ha'd' := (same_side_pt_not_eq ha'd'd'').1.symm,
-    rw two_pt_one_line hl (line_in_lines ha'd') ha'd' ⟨ha'l, hd'l⟩ ⟨pt_left_in_line a' d', pt_right_in_line a' d'⟩ at hb'l,
-    exact hb'c'.2.1 hb'l,
-  cases is_between_extend hb''d'' with x hb''xd'',
   have ha'b' := (same_side_pt_not_eq ha'b'b'').1.symm,
   have ha'b'' := (same_side_pt_not_eq ha'b'b'').2.symm,
   have ha'd'' := (same_side_pt_not_eq ha'd'd'').2.symm,
@@ -2126,6 +2284,41 @@ begin
     rw two_pt_one_line hl hn ha'd'' ⟨ha'l, hd''l⟩ ⟨ha'n, hd''n⟩ at hb'm,
     rw two_pt_one_line hn (line_in_lines ha'd') ha'd' ⟨ha'n, hd'n⟩ ⟨pt_left_in_line a' d', pt_right_in_line a' d'⟩ at hb'm,
     exact hb'c'.2.1 hb'm,
+  have ha'c'' := (same_side_pt_not_eq ha'c'c'').2.symm,
+  have ha'd'' := (same_side_pt_not_eq ha'd'd'').2.symm,
+  have ha'd' := (same_side_pt_not_eq ha'd'd'').1.symm,
+  have ha'd''c'' : noncollinear a' d'' c'',
+    rintros ⟨l, hl, ha'l, hd''l, hc''l⟩,
+    rcases ha'c'c''.2 with ⟨m, hm, ha'm, hc'm, hc''m⟩,
+    rcases ha'd'd''.2 with ⟨n, hn, ha'n, hd'n, hd''n⟩,
+    rw two_pt_one_line hm hl ha'c'' ⟨ha'm, hc''m⟩ ⟨ha'l, hc''l⟩ at hc'm,
+    rw two_pt_one_line hl hn ha'd'' ⟨ha'l, hd''l⟩ ⟨ha'n, hd''n⟩ at hc'm,
+    rw two_pt_one_line hn (line_in_lines ha'd') ha'd' ⟨ha'n, hd'n⟩ ⟨pt_left_in_line a' d', pt_right_in_line a' d'⟩ at hc'm,
+    exact hb'c'.2.2 hc'm,
+  replace h₁ : (∠ b a d ≅ₐ ∠ b'' a' d''),
+    apply angle_congr_trans (angle_congr_trans h₁ (angle_congr_symm hb''a'd')), rw angle_symm,
+    apply angle_congr_trans (angle_congr_symm hd''a'b'), rw angle_symm, exact angle_congr_refl _,
+  replace h₂ : (∠ d a c ≅ₐ ∠ d'' a' c''),
+    apply angle_congr_trans h₂, rw angle_symm, apply angle_congr_trans (angle_congr_symm hc''a'd'),
+    rw [angle_eq_same_side c'' ha'd'd'', angle_symm], exact angle_congr_refl _,
+  have habd : ((Δ a b d) ≅ₜ (Δ a' b'' d'')),
+    apply SAS; unfold three_pt_triangle; simp,
+    intro habd, exact (same_side_line_not_in (line_in_lines hab) hd.1).2 (collinear_in12 habd hab),
+    exact noncollinear23 ha'd''b'',
+    exact segment_congr_symm ha'b''ab, exact segment_congr_symm ha'd''ad, exact h₁,
+  have hacd : ((Δ a c d) ≅ₜ (Δ a' c'' d'')),
+    apply SAS; unfold three_pt_triangle; simp,
+    intro hacd, exact (same_side_line_not_in (line_in_lines hac) hd.2.1).2 (collinear_in12 hacd hac),
+    exact noncollinear23 ha'd''c'',
+    exact segment_congr_symm ha'c''ac, exact segment_congr_symm ha'd''ad,
+    rw angle_symm, apply angle_congr_trans h₂, rw angle_symm, exact angle_congr_refl _,
+  have hb''d'' : b'' ≠ d'',
+    intro hb''d'', rw ←hb''d'' at ha'd'd'',
+    rcases (same_side_pt_trans ha'b'b'' (same_side_pt_symm ha'd'd'')).2 with ⟨l, hl, ha'l, hb'l, hd'l⟩,
+    have ha'd' := (same_side_pt_not_eq ha'd'd'').1.symm,
+    rw two_pt_one_line hl (line_in_lines ha'd') ha'd' ⟨ha'l, hd'l⟩ ⟨pt_left_in_line a' d', pt_right_in_line a' d'⟩ at hb'l,
+    exact hb'c'.2.1 hb'l,
+  cases is_between_extend hb''d'' with x hb''xd'',
   have ha'd''x : noncollinear a' d'' x,
     rintros ⟨l, hl, ha'l, hd''l, hxl⟩,
     rcases is_between_collinear hb''xd'' with ⟨m, hm, hb''m, hd''m, hxm⟩,
@@ -2154,17 +2347,6 @@ begin
       exact ⟨ha'd''x, ha'd''b''⟩,
     rw supplementary_symm at h₂, apply angle_congr_symm,
     exact supplementary_congr h₁ h₂ (tri_congr_angle habd).2.2,
-  have ha'c'' := (same_side_pt_not_eq ha'c'c'').2.symm,
-  have ha'd'' := (same_side_pt_not_eq ha'd'd'').2.symm,
-  have ha'd' := (same_side_pt_not_eq ha'd'd'').1.symm,
-  have ha'd''c'' : noncollinear a' d'' c'',
-    rintros ⟨l, hl, ha'l, hd''l, hc''l⟩,
-    rcases ha'c'c''.2 with ⟨m, hm, ha'm, hc'm, hc''m⟩,
-    rcases ha'd'd''.2 with ⟨n, hn, ha'n, hd'n, hd''n⟩,
-    rw two_pt_one_line hm hl ha'c'' ⟨ha'm, hc''m⟩ ⟨ha'l, hc''l⟩ at hc'm,
-    rw two_pt_one_line hl hn ha'd'' ⟨ha'l, hd''l⟩ ⟨ha'n, hd''n⟩ at hc'm,
-    rw two_pt_one_line hn (line_in_lines ha'd') ha'd' ⟨ha'n, hd'n⟩ ⟨pt_left_in_line a' d', pt_right_in_line a' d'⟩ at hc'm,
-    exact hb'c'.2.2 hc'm,
   have hx : x ∉ (a'-ₗd''),
     intro hx, exact ha'd''x ⟨(a'-ₗd''), line_in_lines ha'd'', pt_left_in_line a' d'', pt_right_in_line a' d'', hx⟩,
   have : same_side_line (a'-ₗd'') x c'',
@@ -2198,6 +2380,7 @@ begin
   have hb''d''c'' := is_between_same_side_pt_is_between hb''xd'' hd''xc'',
   have hcab : ((Δ c a b) ≅ₜ (Δ c'' a' b'')),
     apply SAS; unfold three_pt_triangle; simp,
+    exact noncollinear13 hbac, exact noncollinear13 hb''a'c'',
     rw [segment_symm, @segment_symm C.to_incidence_order_geometry c'' _], exact segment_congr_symm ha'c''ac,
     rw is_between_symm at hb''d''c'' hbdc, refine congr_segment_add hbdc hb''d''c'' _ _,
     exact (tri_congr_side hacd).2.2,
@@ -2628,3 +2811,239 @@ begin
   rw ←hβ, rw angle_symm at hy, exact angle_congr_symm hy
 end
 
+def is_right_angle (α : @angle C.to_incidence_order_geometry) : Prop :=
+angle_nontrivial α ∧ ∀ β : angle, supplementary α β → (α ≅ₐ β)
+
+lemma three_pt_angle_is_right_angle {a o b c : C.pts} (hboc : C.is_between b o c) :
+is_right_angle (∠ a o b) ↔ ((∠ a o b) ≅ₐ (∠ a o c)) ∧ angle_nontrivial (∠ a o b) :=
+begin
+  unfold is_right_angle,
+  split; intro h, split,
+  apply h.2, rw three_pt_angle_supplementary,
+  have haob := nontrivial_iff_noncollinear.1 h.1,
+  split, exact hboc, split, exact haob,
+  exact noncollinear132 (collinear_trans' (collinear12 (is_between_collinear hboc)) (noncollinear12 (noncollinear13 haob)) (is_between_not_eq hboc).2.2),
+  exact h.1,
+  split, exact h.2,
+  intros β hβ, rcases hβ.1 with ⟨o', a', b', c', haoba'ob', ha'oc', hb'oc'⟩,
+  have haob := nontrivial_iff_noncollinear.1 h.2,
+  have haoc := noncollinear132 (collinear_trans' (collinear12 (is_between_collinear hboc)) (noncollinear12 (noncollinear13 haob)) (is_between_not_eq hboc).2.2),
+  have hoo' := ((three_pt_angle_eq_iff haob).1 haoba'ob').1, rw ←hoo' at *,
+  cases ((three_pt_angle_eq_iff haob).1 haoba'ob').2 with H H,
+  rw ha'oc',
+  have : (∠ a o c) = (∠ a' o c'),
+    rw three_pt_angle_eq_iff haoc, simp, left,
+    split, exact H.1,
+    apply diff_side_pt_cancel (is_between_diff_side_pt.1 hboc),
+    rw is_between_diff_side_pt at hb'oc',
+    exact diff_side_pt_symm (diff_side_same_side_pt hb'oc' (same_side_pt_symm H.2)),
+  rw ←this, exact h.1,
+  rw ha'oc', apply angle_congr_trans h.1, rw angle_symm,
+  refine vertical_angle_congr _ _ _,
+  exact noncollinear13 haoc,
+  rw is_between_diff_side_pt, rw is_between_diff_side_pt at hboc,
+  exact diff_side_same_side_pt hboc H.2,
+  rw is_between_diff_side_pt, rw is_between_diff_side_pt at hb'oc',
+  exact diff_side_pt_symm (diff_side_same_side_pt hb'oc' (same_side_pt_symm H.1))
+end
+
+lemma right_angle_congr {α β : @angle C.to_incidence_order_geometry}
+(hα : is_right_angle α) (hβ : is_right_angle β) : α = β :=
+begin
+  sorry
+end
+
+theorem isoceles {a b c : C.pts} (habc : noncollinear a b c) :
+((a-ₛb) ≅ₛ (a-ₛc)) → ((∠ a b c) ≅ₐ (∠ a c b)) :=
+begin
+  intro habac,
+  have hab := (noncollinear_not_eq habc).1,
+  have hac := (noncollinear_not_eq habc).2.2.symm,
+  cases is_between_extend hab with d habd,
+  cases is_between_extend hac with x hacx,
+  rcases extend_congr_segment c x (b-ₛd) with ⟨e, hcxe, hbdce, -⟩,
+  have hace := is_between_same_side_pt_is_between hacx hcxe, clear hcxe hacx x,
+  have had := (is_between_not_eq habd).2.1,
+  have hae := (is_between_not_eq hace).2.1,
+  have hadc := collinear_trans' (is_between_collinear habd) habc had,
+  have haeb := collinear_trans' (is_between_collinear hace) (noncollinear23 habc) hae,
+  have hadcaeb : ((Δ a d c) ≅ₜ (Δ a e b)),
+    apply SAS; unfold three_pt_triangle; simp,
+    exact hadc, exact haeb,
+    exact congr_segment_add habd hace habac hbdce,
+    exact segment_congr_symm habac,
+    rw [angle_symm, ←angle_eq_same_side c (is_between_same_side_pt.1 habd).1],
+    rw [angle_symm, @angle_symm C.to_incidence_order_geometry e _ _],
+    rw angle_eq_same_side b (is_between_same_side_pt.1 hace).1, exact angle_congr_refl _,
+  have hbd := (is_between_not_eq habd).2.2,
+  have hce := (is_between_not_eq hace).2.2,
+  have hdbc := collinear_trans' (collinear132 (is_between_collinear habd)) (noncollinear12 hadc) hbd.symm,
+  have hecb := collinear_trans' (collinear132 (is_between_collinear hace)) (noncollinear12 haeb) hce.symm,
+  have hdbcecb : ((Δ d b c) ≅ₜ (Δ e c b)),
+    apply SAS; unfold three_pt_triangle; simp,
+    exact hdbc, exact hecb,
+    rw [segment_symm, @segment_symm C.to_incidence_order_geometry e _], exact hbdce,
+    exact (tri_congr_side hadcaeb).2.2,
+    rw [angle_symm, ←angle_eq_same_side c (is_between_same_side_pt.1 habd).2],
+    rw [@angle_symm C.to_incidence_order_geometry _ e _, ←angle_eq_same_side b (is_between_same_side_pt.1 hace).2],
+    rw [angle_symm, @angle_symm C.to_incidence_order_geometry b _ _],
+    exact (tri_congr_angle hadcaeb).2.1,
+  have key := (tri_congr_angle hdbcecb).2.1,
+  rw [angle_symm, @angle_symm C.to_incidence_order_geometry e _ _] at key,
+  rw [angle_symm, @angle_symm C.to_incidence_order_geometry a _ _],
+  refine supplementary_congr _ _ key;
+  rw three_pt_angle_supplementary,
+  rw is_between_symm at habd,
+  exact ⟨habd, noncollinear13 hdbc, noncollinear13 habc⟩,
+    rw is_between_symm at hace,
+  exact ⟨hace, noncollinear13 hecb, noncollinear123 habc⟩
+end
+
+lemma SSS {ABC DEF : @triangle C} (habc : noncollinear ABC.v1 ABC.v2 ABC.v3)
+(ha'b'c' : noncollinear DEF.v1 DEF.v2 DEF.v3) (haba'b' : (ABC.v1-ₛABC.v2) ≅ₛ (DEF.v1-ₛDEF.v2))
+(haca'c' : (ABC.v1-ₛABC.v3) ≅ₛ (DEF.v1-ₛDEF.v3)) (hbcb'c' : (ABC.v2-ₛABC.v3) ≅ₛ (DEF.v2-ₛDEF.v3)) :
+ABC ≅ₜ DEF :=
+begin
+  set a := ABC.v1 with ha, set b := ABC.v2 with hb, set c := ABC.v3 with hc,
+  set a' := DEF.v1, set b' := DEF.v2, set c' := DEF.v3,
+  have hab := (noncollinear_not_eq habc).1,
+  have hac := (noncollinear_not_eq habc).2.2.symm,
+  have hbc := (noncollinear_not_eq habc).2.1,
+  cases is_between_extend hab.symm with x hbax,
+  rcases extend_congr_angle (∠ b' a' c') a c x with ⟨y, hy, hacyx, -⟩,
+  rcases extend_congr_segment a y (a'-ₛb') with ⟨d, hayd, ha'b'ad, -⟩,
+  have had := (same_side_pt_not_eq hayd).2.symm,
+  have hacbd : diff_side_line (a-ₗc) b d,
+    have h₁ : diff_side_line (a-ₗc) b x,
+      refine (diff_side_pt_line (is_between_diff_side_pt.1 hbax)).2.2.2 _ _,
+      exact line_in_lines hac,
+      split, exact pt_left_in_line a c, split, exact noncollinear_in13 habc,
+      apply noncollinear_in13,
+      exact collinear_trans' (collinear12 (is_between_collinear hbax)) habc (is_between_not_eq hbax).2.2,
+    have h₂ : same_side_line (a-ₗc) y d,
+      rw line_symm, refine t_shape_ray hac.symm _ _ _ _,
+      rw line_symm, exact (same_side_line_not_in (line_in_lines hac) hacyx).1,
+      left, exact hayd, exact had.symm,
+    exact diff_side_same_side_line (line_in_lines hac) (diff_side_same_side_line (line_in_lines hac) h₁ (same_side_line_symm (line_in_lines hac) hacyx)) h₂,
+  have hadc : noncollinear a d c,
+    intro hadc, exact hacbd.2.2 ((collinear_in13 hadc) hac),
+  have hadca'b'c' : ((Δ a d c) ≅ₜ (Δ a' b' c')),
+    apply SAS; unfold three_pt_triangle; simp,
+    exact hadc, exact ha'b'c',
+    exact segment_congr_symm ha'b'ad, exact haca'c',
+    have : ∠ y a c = ∠ d a c,
+      rw [angle_symm, @angle_symm C.to_incidence_order_geometry d _ _],
+      exact angle_eq_same_side c hayd,
+    rw this at hy, exact angle_congr_symm hy,
+  clear hbax hacyx x hy hayd y,
+  refine tri_congr_trans _ hadca'b'c',
+  apply tri_congr12, rw [←ha, ←hb, ←hc],
+  apply SAS; unfold three_pt_triangle; simp,
+  exact noncollinear12 habc, exact noncollinear12 hadc,
+  rw segment_symm at haba'b', rw @segment_symm C.to_incidence_order_geometry d a,
+  exact segment_congr_trans haba'b' (segment_congr_symm (tri_congr_side hadca'b'c').1),
+  exact segment_congr_trans hbcb'c' (segment_congr_symm (tri_congr_side hadca'b'c').2.2),
+  have had := (noncollinear_not_eq hadc).1,
+  have hcd := (noncollinear_not_eq hadc).2.1.symm,
+  have h₁ : ((c-ₛb) ≅ₛ (c-ₛd)),
+    rw segment_symm, apply segment_congr_trans hbcb'c',
+    rw @segment_symm C.to_incidence_order_geometry c d, exact segment_congr_symm (tri_congr_side hadca'b'c').2.2,
+  have h₂ : ((a-ₛb) ≅ₛ (a-ₛd)),
+    apply segment_congr_trans haba'b', exact segment_congr_symm (tri_congr_side hadca'b'c').1,
+  have hbd : b ≠ d,
+    intro hbd, rw hbd at hacbd, rw ←not_same_side_line (line_in_lines hac) at hacbd,
+    exact hacbd (same_side_line_refl (line_in_lines hac) (noncollinear_in13 hadc)),
+    exact noncollinear_in13 hadc, exact noncollinear_in13 hadc,
+  cases hacbd.1 with o ho,
+  have hbod : C.is_between b o d,
+    cases ho.2, exact h,
+    cases h, rw h at ho, exact absurd ho.1 (noncollinear_in13 habc),
+    simp at h, rw h at ho, exact absurd ho.1 (noncollinear_in13 hadc),
+  by_cases hao : a = o,
+    rw ←hao at ho, rw ←hao at hbod,
+    have hbad : C.is_between b a d,
+      cases ho.2, exact h, cases h, exact absurd h hab, exact absurd h had,
+    rw is_between_same_side_pt at hbad,
+    rw [angle_symm, angle_eq_same_side c hbad.1],
+    rw [@angle_symm C.to_incidence_order_geometry a _ _, ←angle_eq_same_side c hbad.2],
+    apply isoceles,
+    intro hcbd, exact (noncollinear12 hadc) ((collinear_trans (collinear132 (is_between_collinear hbod)) (collinear13 hcbd)) hbd.symm),
+    exact h₁,
+  by_cases hco : c = o,
+    rw ←hco at ho, rw ←hco at hbod,
+    have hbad : C.is_between b c d,
+      cases ho.2, exact h, cases h, exact absurd h hbc.symm, exact absurd h hcd,
+    rw is_between_same_side_pt at hbad,
+    rw [angle_eq_same_side a hbad.1, ←angle_eq_same_side a hbad.2],
+    apply isoceles,
+    intro habd, exact (noncollinear123 hadc) ((collinear_trans (collinear132 (is_between_collinear hbod)) (collinear13 habd)) hbd.symm),
+    exact h₂,
+  have hoac : collinear o a c, from ⟨(a-ₗc), line_in_lines hac, ho.1, pt_left_in_line a c, pt_right_in_line a c⟩,
+  have hbo := (is_between_not_eq hbod).1,
+  have hdo := (is_between_not_eq hbod).2.2.symm,
+  have hobc : noncollinear o b c,
+    from λhobc, habc (collinear123 (collinear_trans (collinear132 hoac) (collinear132 hobc) hco)),
+  have hocd : noncollinear o c d,
+    from λhocd, hobc (collinear_trans (collinear123 (is_between_collinear hbod)) (collinear23 hocd) hdo.symm),
+  have hoab : noncollinear o a b,
+    from λhoab, habc (collinear_trans (collinear12 hoab) (collinear12 hoac) hao),
+  have hoad : noncollinear o a d,
+    from λhoad, hoab (collinear_trans (collinear23 hoad) (collinear123 (is_between_collinear hbod)) hdo.symm),
+  have H₁ : ((∠ o b c) ≅ₐ (∠ o d c)),
+    rw [angle_symm, angle_eq_same_side c (is_between_same_side_pt.1 hbod).1],
+    rw [@angle_symm C.to_incidence_order_geometry o d c ,←angle_eq_same_side c (is_between_same_side_pt.1 hbod).2],
+    apply isoceles,
+    intro hcbd, exact (noncollinear132 hocd) ((collinear_trans (collinear132 (is_between_collinear hbod)) (collinear13 hcbd)) hbd.symm),
+    exact h₁,
+  have H₂ : ((∠ o b a) ≅ₐ (∠ o d a)),
+    rw [angle_symm, angle_eq_same_side a (is_between_same_side_pt.1 hbod).1],
+    rw [@angle_symm C.to_incidence_order_geometry o d a ,←angle_eq_same_side a (is_between_same_side_pt.1 hbod).2],
+    apply isoceles,
+    intro habd, exact (noncollinear13 hoab) (collinear_trans (collinear123 habd) (collinear23 (is_between_collinear hbod)) hbd),
+    exact h₂,
+  rcases (collinear_between hoac).1 (ne.symm hao) (ne.symm hco) with h | h | h,
+  have ha₁ : inside_angle a (∠ o b c),
+    rw inside_three_pt_angle,
+    split, refine t_shape_segment hbo _ _ _ _,
+    rw line_symm, exact noncollinear_in12 hobc,
+    left, exact h, exact hao,
+    split, refine t_shape_segment hbc _ _ _ _,
+    exact noncollinear_in23 hobc, left, rw is_between_symm at h, exact h,
+    exact hac, exact hobc,
+  have ha₂ : same_side_line (d-ₗo) a c,
+    apply same_side_line_symm (line_in_lines hdo), refine t_shape_segment hdo _ _ _ _,
+    rw line_symm, exact noncollinear_in13 hocd,
+    left, exact h, exact hao,
+  exact (congr_angle_sub ha₁ ha₂ hdo H₁ H₂).2,
+  have hc₁ : inside_angle c (∠ o b a),
+    rw inside_three_pt_angle,
+    split, refine t_shape_segment hbo _ _ _ _,
+    rw line_symm, exact noncollinear_in13 hoab,
+    left, exact h, exact hco,
+    split, refine t_shape_segment hab.symm _ _ _ _,
+    rw line_symm, exact noncollinear_in23 hoab, left, rw is_between_symm at h, exact h,
+    exact hac.symm, exact noncollinear23 hoab,
+  have hc₂ : same_side_line (d-ₗo) c a,
+    apply same_side_line_symm (line_in_lines hdo), refine t_shape_segment hdo _ _ _ _,
+    rw line_symm, exact noncollinear_in13 hoad,
+    left, exact h, exact hco,
+  rw [angle_symm, @angle_symm C.to_incidence_order_geometry a],
+  exact (congr_angle_sub hc₁ hc₂ hdo H₂ H₁).2,
+  have ho₁ : inside_angle o (∠ a b c),
+    rw inside_three_pt_angle,
+    split, refine t_shape_segment hab.symm _ _ _ _,
+    rw line_symm, exact noncollinear_in12 habc,
+    left, exact h,
+    exact ne.symm hao,
+    split, refine t_shape_segment hbc _ _ _ _,
+    exact noncollinear_in23 habc,
+    left, rw is_between_symm at h, exact h,
+    exact ne.symm hco, exact habc,
+  have ho₂ : diff_side_line (d-ₗo) a c,
+    use o, exact ⟨pt_right_in_line d o, by {left, exact h}⟩,
+    split, rw line_symm, exact noncollinear_in13 hoad,
+    rw line_symm, exact noncollinear_in13 hocd,
+  refine (congr_angle_add ho₁ ho₂ hdo _ _).2,
+  rw [angle_symm, @angle_symm C.to_incidence_order_geometry a _ _], exact H₂,
+  exact H₁
+end
