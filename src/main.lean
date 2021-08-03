@@ -281,15 +281,15 @@ def two_pt_segment (a b : pts) : segment := ⟨{x : pts | is_between a x b} ∪ 
 
 notation a`-ₛ`b := two_pt_segment a b
 
-noncomputable def p1 (α : @segment B) :
+noncomputable def p1 (α : segment) :
 {a : pts // ∃ b : pts, α.inside = {x : pts | is_between a x b} ∪ {a, b}} :=
 by {choose a h using α.in_eq, exact ⟨a, h⟩}
 
-noncomputable def p2 (α : @segment B) :
+noncomputable def p2 (α : segment) :
 {b : pts // α.inside = {x : pts | is_between (p1 α).1 x b} ∪ {(p1 α).1, b}} :=
 by {choose b h using (p1 α).2, exact ⟨b, h⟩}
 
-lemma segment_rw (s : @segment B) : s = ((p1 s).1 -ₛ (p2 s).1) :=
+lemma segment_rw (s : segment) : s = ((p1 s).1 -ₛ (p2 s).1) :=
 begin
   have := (p2 s).2, unfold two_pt_segment,
   induction s with I hI, simp only at this,
@@ -1026,7 +1026,7 @@ begin
     unfold two_pt_segment at this, simp only at this,
     by_contra hf₁, push_neg at hf₁,
     have hf₂ : (p2 (a-ₛb)).val ≠ a ∧ (p2 (a-ₛb)).val ≠ b,
-      have := (segment_rw (a-ₛb)), rw @segment_symm B (p1 (a-ₛb)).val _ at this,
+      have := (segment_rw (a-ₛb)), rw @segment_symm _ (p1 (a-ₛb)).val _ at this,
       split; intro hf, exact hf₁.2 (two_pt_segment_pt_prep this.symm hf),
       rw segment_symm at this,
       have := two_pt_segment_pt_prep this.symm, rw segment_symm at this,
@@ -1140,7 +1140,7 @@ begin
   intro hf, unfold two_pt_segment at hf, simp at hf, exfalso, exact hf
 end
 
-lemma ray_disjoint {s₁ s₂ : @ray B} (hvertex : s₁.vertex = s₂.vertex) :
+lemma ray_disjoint {s₁ s₂ : ray} (hvertex : s₁.vertex = s₂.vertex) :
 s₁ ≠ s₂ → s₁.inside ∩ s₂.inside = {s₁.vertex} :=
 begin
   contrapose!, intro h,
@@ -1264,15 +1264,15 @@ lemma t_shape_segment {a b : pts} {e : pts} (hab : a ≠ b) (heab : e ∉ (a-ₗ
 structure angle := (inside : set pts) (vertex : pts)
 (h_ray : ∃ r₁ r₂ : ray, r₁.vertex = vertex ∧ r₂.vertex = vertex ∧ inside = r₁.inside ∪ r₂.inside)
 
-lemma vertex_in_angle (α : @angle B) : α.vertex ∈ α.inside :=
+lemma vertex_in_angle (α : angle) : α.vertex ∈ α.inside :=
 by {rcases α.h_ray with ⟨r₁, r₂, -, h₁, h₂⟩, rw h₂, cases r₂.in_eq, rw [h, ←h₁], simp}
 
-noncomputable def r1 (α : @angle B) :
+noncomputable def r1 (α : angle) :
 {r₁ : ray // ∃ r₂ : ray, r₁.vertex = α.vertex ∧ r₂.vertex = α.vertex
              ∧ α.inside = r₁.inside ∪ r₂.inside} :=
 by {choose r₁ h using α.h_ray, exact ⟨r₁, h⟩}
 
-noncomputable def r2 (α : @angle B) :
+noncomputable def r2 (α : angle) :
 {r₂ : ray // (r1 α).1.vertex = α.vertex ∧ r₂.vertex = α.vertex
              ∧ α.inside = (r1 α).1.inside ∪ r₂.inside} :=
 by {choose r₂ h using (r1 α).2, exact ⟨r₂, h⟩}
@@ -1282,7 +1282,7 @@ by {use [two_pt_ray o a, two_pt_ray o b], unfold two_pt_ray, simp}⟩
 
 notation `∠` := three_pt_angle
 
-def two_ray_angle {r₁ r₂ : @ray B} (h : r₁.vertex = r₂.vertex) : angle :=
+def two_ray_angle {r₁ r₂ : ray} (h : r₁.vertex = r₂.vertex) : angle :=
 ⟨r₁.inside∪r₂.inside, r₁.vertex, ⟨r₁, r₂, rfl, h.symm.trans rfl, rfl⟩⟩
 
 lemma two_ray_angle_three_pt_angle {a b : pts} {r₁ r₂ : ray} (hr₁r₂ : r₁.vertex = r₂.vertex) :
@@ -1584,7 +1584,7 @@ begin
   exact h ⟨l, hl, hf ha, hf ho, hf hb⟩
 end
 
-def inside_angle (p : pts) (α : @angle B) : Prop :=
+def inside_angle (p : pts) (α : angle) : Prop :=
 (∀ a b : pts, α = ∠ a α.vertex b → same_side_line (α.vertex-ₗa) b p ∧ same_side_line (α.vertex-ₗb) a p)
 ∧ angle_nontrivial α
 
@@ -2003,7 +2003,7 @@ end
 
 structure triangle := (v1 : pts) (v2 : pts) (v3 : pts)
 
-def tri_congr (t₁ t₂ : @triangle C) : Prop :=
+def tri_congr (t₁ t₂ : triangle) : Prop :=
 ((t₁.v1-ₛt₁.v2) ≅ₛ (t₂.v1-ₛt₂.v2)) ∧ ((t₁.v1-ₛt₁.v3) ≅ₛ (t₂.v1-ₛt₂.v3)) ∧ ((t₁.v2-ₛt₁.v3) ≅ₛ (t₂.v2-ₛt₂.v3))
 ∧ ((∠t₁.v2 t₁.v1 t₁.v3 ≅ₐ ∠t₂.v2 t₂.v1 t₂.v3)
 ∧ (∠t₁.v1 t₁.v2 t₁.v3 ≅ₐ ∠t₂.v1 t₂.v2 t₂.v3)
@@ -2011,15 +2011,15 @@ def tri_congr (t₁ t₂ : @triangle C) : Prop :=
 
 notation a`≅ₜ`b := tri_congr a b
 
-lemma tri_congr_refl (t : @triangle C) : t ≅ₜ t :=
+lemma tri_congr_refl (t : triangle) : t ≅ₜ t :=
 ⟨segment_congr_refl _, segment_congr_refl _, segment_congr_refl _,
 angle_congr_refl _, angle_congr_refl _, angle_congr_refl _⟩
 
-lemma tri_congr_symm {t₁ t₂ : @triangle C} : (t₁ ≅ₜ t₂) → (t₂ ≅ₜ t₁) :=
+lemma tri_congr_symm {t₁ t₂ : triangle} : (t₁ ≅ₜ t₂) → (t₂ ≅ₜ t₁) :=
 λh, ⟨segment_congr_symm h.1, segment_congr_symm h.2.1, segment_congr_symm h.2.2.1,
 angle_congr_symm h.2.2.2.1, angle_congr_symm h.2.2.2.2.1, angle_congr_symm h.2.2.2.2.2⟩
 
-lemma tri_congr_trans {t₁ t₂ t₃ : @triangle C} : (t₁ ≅ₜ t₂) → (t₂ ≅ₜ t₃) → (t₁ ≅ₜ t₃) :=
+lemma tri_congr_trans {t₁ t₂ t₃ : triangle} : (t₁ ≅ₜ t₂) → (t₂ ≅ₜ t₃) → (t₁ ≅ₜ t₃) :=
 λh₁ h₂, ⟨segment_congr_trans h₁.1 h₂.1, segment_congr_trans h₁.2.1 h₂.2.1, segment_congr_trans h₁.2.2.1 h₂.2.2.1,
 angle_congr_trans h₁.2.2.2.1 h₂.2.2.2.1, angle_congr_trans h₁.2.2.2.2.1 h₂.2.2.2.2.1, angle_congr_trans h₁.2.2.2.2.2 h₂.2.2.2.2.2⟩
 
@@ -2088,7 +2088,7 @@ begin
   exact ⟨h.2.2.2.1, h.2.2.2.2.1, h.2.2.2.2.2⟩
 end
 
-lemma SAS {ABC DEF : @triangle C} (h₁ : noncollinear ABC.v1 ABC.v2 ABC.v3) (h₂ : noncollinear DEF.v1 DEF.v2 DEF.v3)
+lemma SAS {ABC DEF : triangle} (h₁ : noncollinear ABC.v1 ABC.v2 ABC.v3) (h₂ : noncollinear DEF.v1 DEF.v2 DEF.v3)
 (hs₁ : (ABC.v1-ₛABC.v2) ≅ₛ (DEF.v1-ₛDEF.v2)) (hs₂ : (ABC.v1-ₛABC.v3) ≅ₛ (DEF.v1-ₛDEF.v3))
 (ha : (∠ABC.v2 ABC.v1 ABC.v3 ≅ₐ ∠DEF.v2 DEF.v1 DEF.v3)) : ABC ≅ₜ DEF :=
 ⟨hs₁, hs₂, (C6 h₁ h₂ hs₁ hs₂ ha).1, ha, (C6 h₁ h₂ hs₁ hs₂ ha).2.1, (C6 h₁ h₂ hs₁ hs₂ ha).2.2⟩
@@ -3117,7 +3117,7 @@ begin
   exact ⟨hace, noncollinear13 hecb, noncollinear123 habc⟩
 end
 
-lemma SSS {ABC DEF : @triangle C} (habc : noncollinear ABC.v1 ABC.v2 ABC.v3)
+lemma SSS {ABC DEF : triangle} (habc : noncollinear ABC.v1 ABC.v2 ABC.v3)
 (ha'b'c' : noncollinear DEF.v1 DEF.v2 DEF.v3) (haba'b' : (ABC.v1-ₛABC.v2) ≅ₛ (DEF.v1-ₛDEF.v2))
 (haca'c' : (ABC.v1-ₛABC.v3) ≅ₛ (DEF.v1-ₛDEF.v3)) (hbcb'c' : (ABC.v2-ₛABC.v3) ≅ₛ (DEF.v2-ₛDEF.v3)) :
 ABC ≅ₜ DEF :=
