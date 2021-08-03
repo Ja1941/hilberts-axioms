@@ -37,7 +37,7 @@ begin
   exact ⟨l, λ h, hl, ha, hb⟩
 end
 
-local notation a`-ₗ`b := (line a b : set pts)
+notation a`-ₗ`b := (line a b : set pts)
 
 def intersect [I : incidence_geometry] (m n : set pts) : Prop :=
 (m ∩ n).nonempty
@@ -250,7 +250,7 @@ open incidence_geometry -- because pts is not in the root namespace.
 open incidence_order_geometry -- because of `is_between`
 include B
 
-local notation a`-ₗ`b := (line a b : set pts)
+notation a`-ₗ`b := (line a b : set pts)
 
 lemma is_between_symm (a b c : pts) :
 is_between a b c ↔ is_between c b a := iff.intro (λ h, (B1 _ _ _ h).1) (λ h, (B1 _ _ _ h).1)
@@ -1830,9 +1830,9 @@ variables [C : incidence_order_congruence_geometry]
 
 include C
 
-local notation a`-ₗ`b := (line a b : set pts)
+notation a`-ₗ`b := (line a b : set pts)
 
-local notation a`≅ₛ`b := segment_congr a b
+notation a`≅ₛ`b := segment_congr a b
 
 lemma extend_congr_segment (a b : pts) (l : segment) :
 ∃ c : pts, same_side_pt a b c ∧ (l ≅ₛ (a-ₛc))
@@ -1873,7 +1873,7 @@ end
 def segment_lt (m n : segment) : Prop :=
 ∃ a : pts, is_between (p1 n).1 a (p2 n).1 ∧ (m ≅ₛ ((p1 n).1-ₛa))
 
-local notation a`<ₛ`b := @segment_lt C a b
+notation a`<ₛ`b := segment_lt a b
 
 lemma segment_lt_two_side {m : segment} {a b : pts} (hmab : m <ₛ (a-ₛb)) :
 ∃ x : pts, is_between a x b ∧ (m ≅ₛ (a-ₛx)):=
@@ -1940,7 +1940,7 @@ begin
   exact hn
 end
 
-local notation a`≅ₐ`b := angle_congr a b
+notation a`≅ₐ`b := angle_congr a b
 
 lemma angle_congr_refl (α : angle) : α ≅ₐ α := (C5 α α α).2
 
@@ -2580,7 +2580,7 @@ def angle_lt (α β : angle) : Prop :=
  ∀ a b : C.pts, β = (∠ a β.vertex b)
 → ∃ p : C.pts, inside_angle p (∠ a β.vertex b) ∧ ((∠ a β.vertex p) ≅ₐ α)
 
-local notation a`<ₐ`b := @angle_lt C a b
+notation a`<ₐ`b := angle_lt a b
 
 lemma three_pt_angle_lt {a o b : C.pts} {α : angle} :
 (α <ₐ (∠ a o b)) ↔ ∃ p : C.pts, inside_angle p (∠ a o b) ∧ ((∠ a o p) ≅ₐ α):=
