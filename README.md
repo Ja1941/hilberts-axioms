@@ -6,13 +6,11 @@ Lean theorem prover is a proof assistant developed principally by Leonardo de Mo
 
 Logical foundation of Lean is based on type theory, which works slightly differently from set theory. Every object is associated with a type and functions are mapping from a type to another. More on type theory in Lean can be found in https://leanprover.github.io/theorem_proving_in_lean/.
 
-More information on Lean and its community is in https://leanprover-community.github.io/. You can also join the Zulip chat for Lean community. See https://leanprover-community.github.io/meet.html for more.
-
-If you would like to see more undergrad projects on Lean, refer to Xena project led by Professor Kevin Buzzard at Imperial College London on https://xenaproject.wordpress.com/.
+More information on Lean and its community is in https://leanprover-community.github.io/. You can also join the Zulip chat for Lean community. See https://leanprover-community.github.io/meet.html for more. If you would like to see more undergrad projects on Lean, refer to Xena project led by Professor Kevin Buzzard at Imperial College London on https://xenaproject.wordpress.com/.
 
 ### Project outline
 
-This project develops Euclidean geometry from scratch in Lean, from formalising Hilbert's axioms and defining fundamental objects such as points, lines, segments etc., to proving important theorems in Euclidean geometry such as isosceles theorem, congruence by SSS and many other propositions in Euclid's Elements. For reference, you can look at \textbf{Geometry: Euclid and Beyond} by Robin Hartshorne.
+This project develops Euclidean geometry from scratch in Lean, from formalising Hilbert's axioms and defining fundamental objects such as points, lines, segments etc., to proving important theorems in Euclidean geometry such as isosceles theorem, congruence by SSS and many other propositions in *Elements*. For reference, you can look at *Geometry: Euclid and Beyond* by Robin Hartshorne.
 
 ### How to run the project
 
