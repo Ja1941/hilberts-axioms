@@ -226,6 +226,15 @@ lemma noncollinear_in23 {a b c : pts} : noncollinear a b c → a ∉ (b-ₗc) :=
 λ habc ha, habc ⟨(b-ₗc), line_in_lines (noncollinear_not_eq habc).2.1, ha,
   pt_left_in_line b c, pt_right_in_line b c⟩
 
+lemma collinear_in12' {a b c : pts} : c ∈ (a-ₗb) → collinear a b c :=
+by { intro h, by_contra habc, exact (noncollinear_in12 habc) h }
+
+lemma collinear_in13' {a b c : pts} : b ∈ (a-ₗc) → collinear a b c :=
+by { intro h, by_contra habc, exact (noncollinear_in13 habc) h }
+
+lemma collinear_in23' {a b c : pts} : a ∈ (b-ₗc) → collinear a b c :=
+by { intro h, by_contra habc, exact (noncollinear_in23 habc) h }
+
 end incidence_geometry_API
 
 -- IF (WHEN) YOU MAKE ABOVE INTO ONE FILE, DON'T NEED SECTION
@@ -523,6 +532,20 @@ begin
   intro hyl, have : y ∈ l ∩ (x-ₛy).inside, simp, exact ⟨hyl, by {unfold two_pt_segment, simp}⟩,
   rw hlxy at this, exact this
 end
+
+lemma same_side_line_not_eq {a b x y : pts} :
+same_side_line (a-ₗb) x y → x ≠ a ∧ x ≠ b :=
+begin
+  intro hxy,
+  split; intro hf;
+  rw hf at hxy,
+  exact (same_side_line_not_in hxy).1 (pt_left_in_line a b),
+  exact (same_side_line_not_in hxy).1 (pt_right_in_line a b)
+end
+
+lemma same_side_line_not_eq' {a b x y : pts} :
+same_side_line (a-ₗb) x y → y ≠ a ∧ y ≠ b :=
+λhxy, same_side_line_not_eq (same_side_line_symm hxy)
 
 private lemma same_side_line_trans_noncollinear {l : set pts} (hl : l ∈ lines) {a b c : pts} :
 noncollinear a b c → same_side_line l a b → same_side_line l b c → same_side_line l a c :=
@@ -1638,13 +1661,14 @@ end incidence_order_geometry_API
 congruence and angle congruence. Intuitionally, they correspond to lengths of two segments and
 radians of two angles equal. They subject to the following axioms.
 C1 : Given a segment and two distinct points `a` `b`, we find uniquely find a point `c` on the
-same side with `b` to `a` such that segment `a` `c` is congruent to the segment.
+same side with `b` to `a` such that segment `a` `c` is congruent to the segment. This axiom
+corresponds to I.2 and I.3 in Euclid's Elements.
 C2 : Segment congruence is an equivalence relation.
 C3 : Two segments are congruent if their two parts are congruent.
 C4 : Given a nontrivial angle `α` and points `a` `b`, we can find `c` such that `∠c a b`
      is congruent to `α`. `c` is uniquely defined given one side of line `a` `b`.
 C5 : Angle congruence is an equivalent relation.
-C6 : Two triangles are congruent by SAS.
+C6 : Two triangles are congruent by SAS. This axiom corresponds to I.4 in Euclid's Elements.
 -/
 class hilbert_plane extends incidence_order_geometry :=
 (segment_congr : segment → segment → Prop)
@@ -1686,6 +1710,16 @@ lemma segment_congr_symm {s₁ s₂ : segment} :
 
 lemma segment_congr_trans {s₁ s₂ s₃ : segment} : 
 (s₁ ≅ₛ s₂) → (s₂ ≅ₛ s₃) → (s₁ ≅ₛ s₃) := λ h₁ h₂, C2.1 (segment_congr_symm h₁) h₂
+
+lemma segment_unique_same_side {o a b : pts} (hab : same_side_pt o a b) :
+((o-ₛa) ≅ₛ (o-ₛb)) → a = b :=
+begin
+  intro he,
+  have hoa := (same_side_pt_not_eq hab).1.symm,
+  rcases extend_congr_segment (segment_nontrivial_iff_neq.2 hoa) hoa with ⟨d, hoad, hd, hu⟩,
+  rw hu b hab he, refine hu _ _ _,
+  exact same_side_pt_refl hoa, exact segment_congr_refl _
+end
 
 lemma congr_segment_add {a b c d e f: pts} : is_between a b c → is_between d e f
 → ((a-ₛb) ≅ₛ (d-ₛe)) → ((b-ₛc) ≅ₛ (e-ₛf)) → ((a-ₛc) ≅ₛ (d-ₛf)) :=
@@ -2963,7 +2997,8 @@ begin
   exfalso, exact wlog β α hβ hα h
 end
 
-theorem isoceles {a b c : C.pts} (habc : noncollinear a b c) :
+/--I.5 in Euclid's Elements -/
+theorem isosceles {a b c : pts} (habc : noncollinear a b c) :
 ((a-ₛb) ≅ₛ (a-ₛc)) → ((∠ a b c) ≅ₐ (∠ a c b)) :=
 begin
   intro habac,
@@ -3009,6 +3044,83 @@ begin
   exact ⟨hace, noncollinear13 hecb, noncollinear123 habc⟩
 end
 
+/--I.6 in Euclid's Elements -/
+theorem isosceles' {a b c : pts} (habc : noncollinear a b c) :
+((∠ a b c) ≅ₐ (∠ a c b)) → ((a-ₛb) ≅ₛ (a-ₛc)) :=
+begin
+  have : ∀ {a b c : pts}, noncollinear a b c → ((∠ a b c) ≅ₐ (∠ a c b)) → ¬((a-ₛb) <ₛ (a-ₛc)),
+    intros a b c habc he hf,
+    have hab := (noncollinear_not_eq habc).1,
+    have hbc := (noncollinear_not_eq habc).2.1,
+    rw [segment_symm a c, two_pt_segment_lt] at hf,
+    rcases hf with ⟨d, hcda, habcd⟩,
+    have hcd := (is_between_not_eq hcda).1,
+    have had := (is_between_not_eq hcda).2.2.symm,
+    have hcdb := collinear_trans' (collinear23 (is_between_collinear hcda))
+        (noncollinear132 habc) hcd,
+    have : ((Δ b a c) ≅ₜ (Δ c d b)),
+      apply SAS; unfold three_pt_triangle; simp,
+      exact noncollinear12 habc, exact hcdb,
+      rw segment_symm, exact habcd,
+      rw segment_symm, exact segment_congr_refl _,
+      rw [angle_symm d c b, angle_eq_same_side b (is_between_same_side_pt.1 hcda).1,
+        angle_symm b c a], exact he,
+    have : ((∠ d b c) ≅ₐ (∠ a b c)),
+      refine angle_congr_trans _ (angle_congr_symm he),
+      rw [angle_symm, angle_symm a c b],
+      exact angle_congr_symm (tri_congr_angle this).2.2,
+    apply (angle_tri (angle_nontrivial_iff_noncollinear.2 (noncollinear123 hcdb))
+      (angle_nontrivial_iff_noncollinear.2 habc)).2.1,
+    split,
+    rw [angle_symm a b c, three_pt_angle_lt],
+    use d, split,
+    rw inside_three_pt_angle, split,
+    refine t_shape_segment hbc (noncollinear_in23 habc) _ _ hcd.symm,
+    left, exact hcda,
+    refine t_shape_segment hab.symm _ _ _ had.symm,
+    rw line_symm, exact noncollinear_in12 habc,
+    left, rw is_between_symm at hcda, exact hcda,
+    rw angle_symm, exact angle_congr_refl _,
+    exact this,
+  intro he,
+  have hab := (noncollinear_not_eq habc).1,
+  have hac := (noncollinear_not_eq habc).2.2.symm,
+  rcases (segment_tri (segment_nontrivial_iff_neq.2 hab)
+    (segment_nontrivial_iff_neq.2 hac)).1 with h | h | h,
+  exact absurd h (this habc he),
+  exact h,
+  exact absurd h (this (noncollinear23 habc) (angle_congr_symm he))
+end
+
+/--I.7 in Euclid's Elements -/
+lemma triangle_same_side_line {a b c d : pts} (hab : a ≠ b) (hcd : same_side_line (a-ₗb) c d)
+(hacad : (a-ₛc) ≅ₛ (a-ₛd)) (hbcbd : (b-ₛc) ≅ₛ (b-ₛd)) : c = d :=
+begin
+  have : ∀ {a b c d : pts}, a ≠ b → same_side_line (a-ₗb) c d → ((a-ₛc) ≅ₛ (a-ₛd))
+    → collinear a c d → c = d,
+    intros a b c d hab hcd hacad hacd,
+    cases (line_separation hacd (same_side_line_not_eq hcd).1 (same_side_line_not_eq' hcd).1).1,
+    exact segment_unique_same_side h hacad,
+    exfalso, apply (not_diff_side_line (same_side_line_not_in hcd).1
+      (same_side_line_not_in hcd).2).2 hcd,
+    apply (diff_side_pt_line h).2.2.2 (line_in_lines hab),
+    split, exact pt_left_in_line a b, exact same_side_line_not_in hcd,
+  by_cases hacd : collinear a c d,
+    exact this hab hcd hacad hacd,
+  by_cases hbcd : collinear b c d,
+    rw line_symm at hcd,
+    exact this hab.symm hcd hbcbd hbcd,
+  have hacdadc := isosceles hacd hacad,
+  have hcdbdcb := isosceles hbcd hbcbd,
+  exfalso, apply (angle_tri (angle_nontrivial_iff_noncollinear.2 hbcd)
+    (angle_nontrivial_iff_noncollinear.2 (noncollinear23 hbcd))).2.1,
+  have : ((∠ a d c) <ₐ (∠ b d c)),
+    rw [angle_symm b d c, three_pt_angle_lt],
+    use a, sorry,
+  sorry
+end
+
+/--I.8 in Euclid's Elements -/
 theorem SSS {ABC DEF : triangle} (habc : noncollinear ABC.v1 ABC.v2 ABC.v3)
 (ha'b'c' : noncollinear DEF.v1 DEF.v2 DEF.v3) (haba'b' : (ABC.v1-ₛABC.v2) ≅ₛ (DEF.v1-ₛDEF.v2))
 (haca'c' : (ABC.v1-ₛABC.v3) ≅ₛ (DEF.v1-ₛDEF.v3)) (hbcb'c' : (ABC.v2-ₛABC.v3) ≅ₛ (DEF.v2-ₛDEF.v3)) :
@@ -3082,7 +3194,7 @@ begin
     rw is_between_same_side_pt at hbad,
     rw [angle_symm, angle_eq_same_side c hbad.1],
     rw [angle_symm a _ _, ←angle_eq_same_side c hbad.2],
-    apply isoceles,
+    apply isosceles,
     intro hcbd, exact (noncollinear12 hadc) ((collinear_trans (collinear132 (is_between_collinear hbod)) (collinear13 hcbd)) hbd.symm),
     exact h₁,
   by_cases hco : c = o,
@@ -3091,7 +3203,7 @@ begin
       cases ho.2, exact h, cases h, exact absurd h hbc.symm, exact absurd h hcd,
     rw is_between_same_side_pt at hbad,
     rw [angle_eq_same_side a hbad.1, ←angle_eq_same_side a hbad.2],
-    apply isoceles,
+    apply isosceles,
     intro habd, exact (noncollinear123 hadc) ((collinear_trans (collinear132 (is_between_collinear hbod)) (collinear13 habd)) hbd.symm),
     exact h₂,
   have hoac : collinear o a c, from ⟨(a-ₗc), line_in_lines hac, ho.1, pt_left_in_line a c, pt_right_in_line a c⟩,
@@ -3108,13 +3220,13 @@ begin
   have H₁ : ((∠ o b c) ≅ₐ (∠ o d c)),
     rw [angle_symm, angle_eq_same_side c (is_between_same_side_pt.1 hbod).1],
     rw [angle_symm o d c ,←angle_eq_same_side c (is_between_same_side_pt.1 hbod).2],
-    apply isoceles,
+    apply isosceles,
     intro hcbd, exact (noncollinear132 hocd) ((collinear_trans (collinear132 (is_between_collinear hbod)) (collinear13 hcbd)) hbd.symm),
     exact h₁,
   have H₂ : ((∠ o b a) ≅ₐ (∠ o d a)),
     rw [angle_symm, angle_eq_same_side a (is_between_same_side_pt.1 hbod).1],
     rw [angle_symm o d a ,←angle_eq_same_side a (is_between_same_side_pt.1 hbod).2],
-    apply isoceles,
+    apply isosceles,
     intro habd, exact (noncollinear13 hoab) (collinear_trans (collinear123 habd) (collinear23 (is_between_collinear hbod)) hbd),
     exact h₂,
   rcases (collinear_between hoac).1 (ne.symm hao) (ne.symm hco) hac with h | h | h,
@@ -3164,7 +3276,49 @@ begin
   exact H₁
 end
 
+/--Existence of an isosceles triangle 
+NOTE : Hilbert axioms do not guarantee the existence of an equilateral triangle that occurs 
+frequently to prove, for example, the existence of angle bisector. We prove the existence of
+an isosceles triangle instead which works similarly.
+-/
+lemma isosceles_exist {a b : pts} (hab : a ≠ b)
+: ∃ c : pts, ((a-ₛc) ≅ₛ (b-ₛc)) ∧ noncollinear a b c :=
+begin
+  have : ∀ {a b c : pts}, noncollinear a b c → ((∠ c a b) <ₐ (∠ c b a))
+    → ∃ d : pts, ((a-ₛd) ≅ₛ (b-ₛd)) ∧ noncollinear a b d,
+    intros a b c habc h,
+    have hab := (noncollinear_not_eq habc).1,
+    rw angle_symm c b a at h,
+    rcases (three_pt_angle_lt.1 h) with ⟨d, hdin, hd⟩,
+    cases crossbar hdin with e he,
+    have hae : a ≠ e,
+      intro hae, rw ←hae at he,
+      apply noncollinear_in12 (angle_nontrivial_iff_noncollinear.1
+        (inside_angle_nontrivial' hdin).1),
+      rw line_symm, exact ray_in_line b d he.1,
+    have haeb : noncollinear a e b,
+      from collinear_trans' (collinear_in12' ((segment_in_line a c) he.2))
+        (noncollinear23 habc) hae,
+    use e, split,
+    rw [segment_symm, segment_symm b e], apply isosceles' (noncollinear12 haeb),
+    cases segment_in_ray a c he.2 with hace hea,
+    rw [angle_symm, ←angle_eq_same_side b hace],
+    cases he.1 with hbde heb,
+    rw [angle_symm e b a, ←angle_eq_same_side a hbde],
+    rw angle_symm, exact angle_congr_symm hd,
+    exact absurd heb (noncollinear_not_eq haeb).2.1,
+    exact absurd hea hae.symm,
+    exact noncollinear23 haeb,
+  cases noncollinear_exist hab with c habc,
+  rcases (angle_tri (angle_nontrivial_iff_noncollinear.2 (noncollinear132 habc))
+    (angle_nontrivial_iff_noncollinear.2 (noncollinear13 habc))).1 with h | h | h,
+  exact this habc h,
+  use c, split,
+  rw [segment_symm, segment_symm b c], exact isosceles' (noncollinear132 habc) h,
+  exact habc,
+  cases this (noncollinear12 habc) h with d hd,
+  exact ⟨d, segment_congr_symm hd.1, noncollinear12 hd.2⟩
+end
+
 -- this is a third file
 end hilbert_plane_API
-
-#lint
