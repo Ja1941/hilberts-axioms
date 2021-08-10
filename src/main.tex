@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+\title{format}
+\author{}
+\date{}
+
+\begin{document}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\numberwithin{equation}{section}
+
+\section{Introduction}
+
+\begin{definition}[Geodesic]
+    A geodesic is a curve $\gamma$ that locally minimises the distance. That is, for every point $z_0 \in \gamma$ and $z_1 \in \gamma$ sufficiently close to $z_0$, the segment of $\gamma$ that connects the two points is the shortest curve joining them.
+\end{definition}
+
+\begin{remark}
+    Geodesics might not minimise the distance between two points as it is defined locally. This is true when geodesics are uniquely determined between the two points.
+\end{remark}
+
+\begin{proposition}
+    In $\mathbb{H}$, vertical lines are the unique geodesics from $ai$ to $bi$($b>a$). That is, $d_{\mathbb{H}}(ai, bi) = \log{b/a}$.
+\end{proposition}
+
+\begin{theorem}[Find geodesics in $\mathbb{H}$]
+    For arbitrary two points in $\mathbb{H}$, if they share the same real part, the geodesic is by Prop 1.3 a vertical line. Otherwise, the geodesic is uniquely an arc centred at the real axis.
+\end{theorem}
+
+\end{document}

@@ -1,6 +1,7 @@
 import main
 import data.zmod.basic
 import data.real.basic
+import tactic.interval_cases
 
 open incidence_geometry incidence_order_geometry hilbert_plane
 
@@ -8,7 +9,8 @@ open incidence_geometry incidence_order_geometry hilbert_plane
 
 lemma zmod2_cases (a : zmod 2) : a = 0 ∨ a = 1 :=
 begin
-  cases a with a ha, norm_num at ha, interval_cases a,
+  cases a with a ha, norm_num at ha,
+  interval_cases a,
   left, refl, right, refl
 end
 
