@@ -1,10 +1,15 @@
 import organised.congruence.basic
 import data.zmod.basic
 import data.real.basic
+import group_theory.group_action.defs
 
+-- TODO : prove three axioms.
+section Fano_example
+
+/-- The Fano Plane. -/
 def pts_Fano : Type := {x : zmod 2 × zmod 2 × zmod 2 // x ≠ (0,0,0)}
 
--- Fano plane
+-- Construction of Fano plane structure -- TODO
 example : incidence_geometry :=
 { pts := pts_Fano,
   lines := { S : set pts_Fano | ∃ y : pts_Fano,
@@ -14,6 +19,9 @@ example : incidence_geometry :=
   I3 := sorry
 }
 
+end Fano_example
+
+
 variables u : Type
 example {a b c : u} (h : a ≠ b ∨ a ≠ c) : ∃ x : u, x ≠ a :=
 begin
@@ -21,11 +29,16 @@ begin
   exact h, use b, exact hab.symm
 end
 
-variables {k : Type} [field k] [module k (k × k)] (a b : k × k) (μ₁ μ₂ : k)
+-- affine plane k^2 over a field, modelled as k × k 
+section affine_plane
 
-lemma temp : (0 : k) • (b - a) = (0 : k × k) := zero_mul _
+variables {k : Type} [field k] (a b : k × k) (μ₁ μ₂ : k)
 
-lemma temp' : (1 : k) • (b - a) = (b - a) := one_mul _
+lemma temp' : (1 : k) • (b - a) = (b - a) := one_smul _ (b - a)
+
+example (x : k) : (0 : k) • x = (0 : k) * x := rfl
+
+#check @zero_mul -- has_mul.mul 0 x = 0
 
 #check sub_smul
 
@@ -39,19 +52,8 @@ begin
   sorry
 end
 
-lemma kusa : a = a + (0 : k) • (b - a) :=
-begin
-  rw temp,
-  rw add_zero
-end
-
-lemma kusa' : a = a + (0 : k) • (b - a) :=
-begin
-  rw zero_mul _,
-end
-
 -- affine plane
-def affine_plane (k : Type) [field k] [module k (k × k)] : incidence_geometry :=
+def affine_plane (k : Type) [field k] : incidence_geometry :=
 { pts := k × k,
   lines := {S : set (k × k) | ∃ u₀ u : k × k, u ≠ u₀
     ∧ S = {x : k × k | ∃ μ : k, x = u₀ + μ • (u - u₀)} },
@@ -60,8 +62,8 @@ def affine_plane (k : Type) [field k] [module k (k × k)] : incidence_geometry :
     intros a b hab,
     use {x : k × k | ∃ μ : k, x = a + μ • (b - a)},
     use [a, b], exact ⟨hab.symm, rfl⟩,
-    split, exact ⟨0, by rw [temp, add_zero]⟩,
-    split, exact ⟨1, by {rw temp', simp}⟩,
+    split, exact ⟨0, by simp only [add_zero, zero_smul]⟩,
+    split, exact ⟨1, by simp⟩,
     intros l hl hal hbl,
     rcases hl with ⟨u₀, u, huu₀, hl⟩,
     rw hl, ext, simp,
@@ -81,7 +83,7 @@ def affine_plane (k : Type) [field k] [module k (k × k)] : incidence_geometry :
   begin
     rintros l ⟨u₀, u, huu₀, hl⟩,
     rw hl, use [u, u₀],
-    exact ⟨huu₀, ⟨1, by {rw temp', simp}⟩, ⟨0, by rw [temp, add_zero]⟩⟩
+    exact ⟨huu₀, ⟨1, by {rw temp', simp}⟩, ⟨0, by rw [zero_smul,add_zero]⟩⟩
   end,
   I3 :=
   begin
@@ -110,13 +112,13 @@ def affine_plane (k : Type) [field k] [module k (k × k)] : incidence_geometry :
 
 lemma affine_plane_pts : (affine_plane ℝ).pts = (ℝ × ℝ) := rfl
 
+def is_between
 def r_squared : incidence_order_geometry :=
-{ is_between :=
-  begin
-    intros a b c,
-    rw affine_plane_pts at a b c,
-    exact (∃ k  : ℝ, k < 0 ∧ k • (a - b) = c - b ∧ a ≠ b)
-  end,
+{ is_between := λ a b c, a ≠ b ∧ ∃ k : ℝ, 0 < k ∧  0 
+  -- begin
+  --   rintros ⟨ax,ay⟩ ⟨bx,b_y⟩ ⟨cx,cy⟩,
+  --   exact (∃ k : ℝ, k < 0 ∧ k • (a - b) = c - b ∧ a ≠ b)
+  -- end,
   B1 :=
   begin
     intros a b c h,
