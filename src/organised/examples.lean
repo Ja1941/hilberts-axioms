@@ -81,39 +81,58 @@ def affine_plane (k : Type) [field k] : incidence_geometry :=
 
 end affine_plane
 
-section r_squared
+namespace r_squared
+
+def is_between (a b c : ℝ × ℝ) : Prop :=
+--b ≠ c ∧ ∃ k : ℝ, 0 < k ∧ (a - b) = k • (b - c)
+b ≠ c ∧ ∃ k : ℝ, 0 < k ∧ a + k • c = k • b + b
+
+namespace is_between
+
+variables (a b c : ℝ × ℝ)
+
+example : module ℝ (ℝ × ℝ) := infer_instance
+
+lemma symm (h : is_between a b c) : is_between c b a :=
+begin
+  sorry
+end
+
+end is_between
+
 
 /--Construction of ℝ × ℝ as an incidence order geometry and a Hilbert plane -/
 def r_squared : incidence_order_geometry :=
-{ is_between := λa b c, a ≠ b ∧ ∃ k : ℝ, k < 0 ∧ (a.1 - b.1, a.2 - b.2) = k • (c.1 - b.1, c.2 - b.2),
+{ is_between := λ a b c, a ≠ b ∧ ∃ k : ℝ, k < 0 ∧ (a.1 - b.1, a.2 - b.2) = k • (c.1 - b.1, c.2 - b.2),
   B1 :=
   begin
-    intros a b c h,
-    rcases h with ⟨hab, k, hk, h⟩,
-    split, split,
-    intro hf, rw hf at h, simp at h,
-    split, use 1 / k,
-    split, exact one_div_neg.2 hk,
-    split, rw [←h, smul_smul, one_div_mul_cancel, one_smul],
-    exact ne_of_lt hk,
-    cases h, exact (ne_of_lt hk) h, rw (sub_eq_zero.1 h) at hab, exact hab rfl,
-    split, intro hf, rw hf at hab, exact hab rfl,
-    have : c ≠ b,
-      intro hf, rw hf at h, simp at h,
-      cases h, exact (ne_of_lt hk) h,
-      exact hab (sub_eq_zero.1 h),
-    split,
-    intro hf, rw hf at h, simp at h,
-    have : k = 1,
-      rw ←sub_eq_zero,
-      --have : (k - 1) • (c - b) = 0,
-      sorry,
     sorry,
-    split, exact this.symm,
-    use {x : ℝ × ℝ | ∃ μ : ℝ, x = b + μ • (a - b)},
-    use [b, a], exact ⟨hab, rfl⟩,
-    split, exact ⟨1, by simp⟩, split, exact ⟨0, by simp⟩,
-    use k, simp at h, rw h, simp
+    -- intros a b c h,
+    -- rcases h with ⟨hab, k, hk, h⟩,
+    -- split, split,
+    -- intro hf, rw hf at h, simp at h,
+    -- split, use 1 / k,
+    -- split, exact one_div_neg.2 hk,
+    -- split, rw [←h, smul_smul, one_div_mul_cancel, one_smul],
+    -- exact ne_of_lt hk,
+    -- cases h, exact (ne_of_lt hk) h, rw (sub_eq_zero.1 h) at hab, exact hab rfl,
+    -- split, intro hf, rw hf at hab, exact hab rfl,
+    -- have : c ≠ b,
+    --   intro hf, rw hf at h, simp at h,
+    --   cases h, exact (ne_of_lt hk) h,
+    --   exact hab (sub_eq_zero.1 h),
+    -- split,
+    -- intro hf, rw hf at h, simp at h,
+    -- have : k = 1,
+    --   rw ←sub_eq_zero,
+    --   --have : (k - 1) • (c - b) = 0,
+    --   sorry,
+    -- sorry,
+    -- split, exact this.symm,
+    -- use {x : ℝ × ℝ | ∃ μ : ℝ, x = b + μ • (a - b)},
+    -- use [b, a], exact ⟨hab, rfl⟩,
+    -- split, exact ⟨1, by simp⟩, split, exact ⟨0, by simp⟩,
+    -- use k, simp at h, rw h, simp
   end,
   B2 :=
   begin
