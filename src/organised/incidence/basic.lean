@@ -70,6 +70,7 @@ end
 lemma two_pt_on_one_line {l : set pts} (hl : l ∈ lines) :
 ∃ a b : pts, a ≠ b ∧ a ∈ l ∧ b ∈ l := I2 l hl
 
+-- this would be much better as a ∈ l → b ∈ l → a ∈ m → ... (all before the colon!)
 lemma two_pt_one_line {l m : set pts} (hl : l ∈ lines) (hm : m ∈ lines)
 {a b : pts} (hab : a ≠ b) : a ∈ l ∧ b ∈ l → a ∈ m ∧ b ∈ m → l = m :=
 λ habl habm, (two_pt_line_unique hab hl habl.1 habl.2).trans
@@ -165,11 +166,11 @@ by {unfold noncollinear, contrapose!, exact collinear132}
 lemma noncollinear132 {a b c : pts} : noncollinear a b c → noncollinear c a b :=
 by {unfold noncollinear, contrapose!, exact collinear123}
 
-lemma collinear_trans {a b c d : pts} (habc : collinear a b c) (habd : collinear a b d) :
-a ≠ b → collinear a c d :=
+lemma collinear_trans {a b c d : pts} (habc : collinear a b c) (habd : collinear a b d)
+  (hab : a ≠ b) : collinear a c d :=
 begin
   rcases habc with ⟨l, hl, hal, hbl, hcl⟩, rcases habd with ⟨m, hm, ham, hbm, hdm⟩,
-  intro hab, rw two_pt_one_line hm hl hab ⟨ham, hbm⟩ ⟨hal, hbl⟩ at hdm,
+  rw two_pt_one_line hm hl hab ⟨ham, hbm⟩ ⟨hal, hbl⟩ at hdm,
   exact ⟨l, hl, hal, hcl, hdm⟩
 end
 

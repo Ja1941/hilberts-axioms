@@ -89,25 +89,36 @@ b ≠ c ∧ ∃ k : ℝ, 0 < k ∧ a + k • c = k • b + b
 
 namespace is_between
 
-variables (a b c : ℝ × ℝ)
+variables {a b c : ℝ × ℝ}
 
 example : module ℝ (ℝ × ℝ) := infer_instance
 
-lemma symm (h : is_between a b c) : is_between c b a :=
+lemma one_ne_two (h : is_between a b c) : a ≠ b :=
 begin
-  sorry
+  rintro rfl,
+  rcases h with ⟨hac, k, hkpos, hk⟩,
+  rw [add_comm, add_right_cancel_iff] at hk,
+  exact hac (smul_left_injective _ hkpos.ne.symm hk.symm),
 end
+
+lemma symm (h : is_between a b c) : is_between c b a :=
+⟨h.one_ne_two.symm, begin
+  -- guess it's 1/k?
+  sorry
+end⟩
 
 end is_between
 
 
 /--Construction of ℝ × ℝ as an incidence order geometry and a Hilbert plane -/
 def r_squared : incidence_order_geometry :=
-{ is_between := λ a b c, a ≠ b ∧ ∃ k : ℝ, k < 0 ∧ (a.1 - b.1, a.2 - b.2) = k • (c.1 - b.1, c.2 - b.2),
+{ is_between := is_between,
   B1 :=
   begin
-    sorry,
-    -- intros a b c h,
+    rintros a b c (h : r_squared.is_between a b c),
+    split,
+      split,
+        exact h.one_ne_two.symm,
     -- rcases h with ⟨hab, k, hk, h⟩,
     -- split, split,
     -- intro hf, rw hf at h, simp at h,
