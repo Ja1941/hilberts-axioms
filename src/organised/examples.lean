@@ -1,10 +1,12 @@
 import organised.congruence.basic
 import data.zmod.basic
 import data.real.basic
+import group_theory.group_action.defs
 
---TODO
-section example_Fano
+-- TODO : prove three axioms.
+section Fano_example
 
+/-- The Fano Plane. -/
 def pts_Fano : Type := {x : zmod 2 × zmod 2 × zmod 2 // x ≠ (0,0,0)}
 
 /--Construction of a Fano plane as an incidence geometry -/
@@ -17,7 +19,38 @@ example : incidence_geometry :=
   I3 := sorry
 }
 
-end example_Fano
+end Fano_example
+
+
+variables u : Type
+example {a b c : u} (h : a ≠ b ∨ a ≠ c) : ∃ x : u, x ≠ a :=
+begin
+  wlog hab : a ≠ b using [b c, c b],
+  exact h, use b, exact hab.symm
+end
+
+-- affine plane k^2 over a field, modelled as k × k 
+section affine_plane
+
+variables {k : Type} [field k] (a b : k × k) (μ₁ μ₂ : k)
+
+lemma temp' : (1 : k) • (b - a) = (b - a) := one_smul _ (b - a)
+
+example (x : k) : (0 : k) • x = (0 : k) * x := rfl
+
+#check @zero_mul -- has_mul.mul 0 x = 0
+
+#check sub_smul
+
+lemma temp'' : μ₁ • (a - b) - μ₂ • (a - b) = (μ₁ - μ₂) • (a - b) :=
+begin
+  sorry
+end
+
+lemma temp''' : μ₁ • (a - b) + μ₂ • (a - b) = (μ₁ + μ₂) • (a - b) :=
+begin
+  sorry
+end
 
 section affine_plane
 
@@ -80,7 +113,6 @@ def affine_plane (k : Type) [field k] : incidence_geometry :=
 } 
 
 end affine_plane
-
 namespace r_squared
 
 def is_between (a b c : ℝ × ℝ) : Prop :=
@@ -108,7 +140,6 @@ lemma symm (h : is_between a b c) : is_between c b a :=
 end⟩
 
 end is_between
-
 
 /--Construction of ℝ × ℝ as an incidence order geometry and a Hilbert plane -/
 def r_squared : incidence_order_geometry :=
