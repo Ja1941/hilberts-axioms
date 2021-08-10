@@ -146,4 +146,5 @@ begin
   exact ⟨hbl₂, hal₁, hcl, hr⟩, exact hl
 end
 
-notation a`⊥`b := perpendicular a b
+localized "notation a `⊥` b := perpendicular a b" in perp_notation
+-- type `open_locale perp_notation` to get ⊥ meaning perpendicular not bot.
