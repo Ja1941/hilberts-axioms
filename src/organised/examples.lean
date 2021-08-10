@@ -2,9 +2,12 @@ import organised.congruence.basic
 import data.zmod.basic
 import data.real.basic
 
+--TODO
+section example_Fano
+
 def pts_Fano : Type := {x : zmod 2 × zmod 2 × zmod 2 // x ≠ (0,0,0)}
 
--- Fano plane
+/--Construction of a Fano plane as an incidence geometry -/
 example : incidence_geometry :=
 { pts := pts_Fano,
   lines := { S : set pts_Fano | ∃ y : pts_Fano,
@@ -14,44 +17,12 @@ example : incidence_geometry :=
   I3 := sorry
 }
 
-variables u : Type
-example {a b c : u} (h : a ≠ b ∨ a ≠ c) : ∃ x : u, x ≠ a :=
-begin
-  wlog hab : a ≠ b using [b c, c b],
-  exact h, use b, exact hab.symm
-end
+end example_Fano
 
-variables {k : Type} [field k] [module k (k × k)] (a b : k × k) (μ₁ μ₂ : k)
-
-lemma temp : (0 : k) • (b - a) = (0 : k × k) := zero_mul _
-
-lemma temp' : (1 : k) • (b - a) = (b - a) := one_mul _
-
-#check sub_smul
-
-lemma temp'' : μ₁ • (a - b) - μ₂ • (a - b) = (μ₁ - μ₂) • (a - b) :=
-begin
-  sorry
-end
-
-lemma temp''' : μ₁ • (a - b) + μ₂ • (a - b) = (μ₁ + μ₂) • (a - b) :=
-begin
-  sorry
-end
-
-lemma kusa : a = a + (0 : k) • (b - a) :=
-begin
-  rw temp,
-  rw add_zero
-end
-
-lemma kusa' : a = a + (0 : k) • (b - a) :=
-begin
-  rw zero_mul _,
-end
+section affine_plane
 
 -- affine plane
-def affine_plane (k : Type) [field k] [module k (k × k)] : incidence_geometry :=
+def affine_plane (k : Type) [field k] : incidence_geometry :=
 { pts := k × k,
   lines := {S : set (k × k) | ∃ u₀ u : k × k, u ≠ u₀
     ∧ S = {x : k × k | ∃ μ : k, x = u₀ + μ • (u - u₀)} },
@@ -60,8 +31,8 @@ def affine_plane (k : Type) [field k] [module k (k × k)] : incidence_geometry :
     intros a b hab,
     use {x : k × k | ∃ μ : k, x = a + μ • (b - a)},
     use [a, b], exact ⟨hab.symm, rfl⟩,
-    split, exact ⟨0, by rw [temp, add_zero]⟩,
-    split, exact ⟨1, by {rw temp', simp}⟩,
+    split, exact ⟨0, by simp⟩,
+    split, exact ⟨1, by simp⟩,
     intros l hl hal hbl,
     rcases hl with ⟨u₀, u, huu₀, hl⟩,
     rw hl, ext, simp,
@@ -70,18 +41,18 @@ def affine_plane (k : Type) [field k] [module k (k × k)] : incidence_geometry :
     split; rintros ⟨μ, hx⟩,
     use (μ - μ₁) / (μ₂ - μ₁), rw [ha, hb],
     rw [←sub_sub, ←add_sub, add_comm u₀ (μ₂ • (u - u₀) - u₀), sub_add, sub_self, sub_zero,
-      temp'', smul_smul, div_mul_cancel, add_assoc, temp''', add_comm μ₁ _, sub_add, sub_self,
+      ←sub_smul, smul_smul, div_mul_cancel, add_assoc, ←add_smul, add_comm μ₁ _, sub_add, sub_self,
       sub_zero, hx],
     intro hf, rw sub_eq_zero.1 hf at hb, exact hab (ha.trans hb.symm),
     rw [ha, hb, ←sub_sub, ←add_sub, add_comm u₀ (μ₂ • (u - u₀) - u₀), sub_add, sub_self,
-      sub_zero, temp'', smul_smul, add_assoc, temp'''] at hx,
+      sub_zero, ←sub_smul, smul_smul, add_assoc, ←add_smul] at hx,
     use μ₁ + μ * (μ₂ - μ₁), rw hx
   end,
   I2 :=
   begin
     rintros l ⟨u₀, u, huu₀, hl⟩,
     rw hl, use [u, u₀],
-    exact ⟨huu₀, ⟨1, by {rw temp', simp}⟩, ⟨0, by rw [temp, add_zero]⟩⟩
+    exact ⟨huu₀, ⟨1, by simp⟩, ⟨0, by simp⟩⟩
   end,
   I3 :=
   begin
@@ -96,7 +67,7 @@ def affine_plane (k : Type) [field k] [module k (k × k)] : incidence_geometry :
       intro hμ, rw sub_eq_zero.1 hμ at hb, rw ←ha at hb, simp at hb, exact hb,
     have h₁ : u - u₀ = (1 / (μ₂ - μ₁), 0),
       calc u - u₀ = (1 / (μ₂ - μ₁)) • (μ₂ • (u - u₀) - μ₁ • (u - u₀))
-                  : by rw [temp'', smul_smul, div_mul_cancel 1 hμ, one_smul]
+                  : by rw [←sub_smul, smul_smul, div_mul_cancel 1 hμ, one_smul]
               ... = (1 / (μ₂ - μ₁)) • ((1, 0) - (0, 0)) : by {rw [ha, hb], simp}
               ... = (1 / (μ₂ - μ₁), 0) : by simp,
     have h₂ : u₀ = (-μ₁ / (μ₂ - μ₁), 0),
@@ -108,24 +79,23 @@ def affine_plane (k : Type) [field k] [module k (k × k)] : incidence_geometry :
   end
 } 
 
-lemma affine_plane_pts : (affine_plane ℝ).pts = (ℝ × ℝ) := rfl
+end affine_plane
 
+section r_squared
+
+/--Construction of ℝ × ℝ as an incidence order geometry and a Hilbert plane -/
 def r_squared : incidence_order_geometry :=
-{ is_between :=
-  begin
-    intros a b c,
-    rw affine_plane_pts at a b c,
-    exact (∃ k  : ℝ, k < 0 ∧ k • (a - b) = c - b ∧ a ≠ b)
-  end,
+{ is_between := λa b c, a ≠ b ∧ ∃ k : ℝ, k < 0 ∧ (a.1 - b.1, a.2 - b.2) = k • (c.1 - b.1, c.2 - b.2),
   B1 :=
   begin
     intros a b c h,
-    rcases h with ⟨k, hk, h, hab⟩,
+    rcases h with ⟨hab, k, hk, h⟩,
+    split, split,
+    intro hf, rw hf at h, simp at h,
     split, use 1 / k,
     split, exact one_div_neg.2 hk,
     split, rw [←h, smul_smul, one_div_mul_cancel, one_smul],
     exact ne_of_lt hk,
-    intro hf, rw hf at h, simp at h,
     cases h, exact (ne_of_lt hk) h, rw (sub_eq_zero.1 h) at hab, exact hab rfl,
     split, intro hf, rw hf at hab, exact hab rfl,
     have : c ≠ b,
@@ -134,6 +104,10 @@ def r_squared : incidence_order_geometry :=
       exact hab (sub_eq_zero.1 h),
     split,
     intro hf, rw hf at h, simp at h,
+    have : k = 1,
+      rw ←sub_eq_zero,
+      --have : (k - 1) • (c - b) = 0,
+      sorry,
     sorry,
     split, exact this.symm,
     use {x : ℝ × ℝ | ∃ μ : ℝ, x = b + μ • (a - b)},
@@ -144,13 +118,15 @@ def r_squared : incidence_order_geometry :=
   B2 :=
   begin
     intros a b hab,
-    use [b - a + b, -1],
+    sorry,
+    --use [b - a + b, -1],
   end,
   B3 :=
   begin
     intros a b c l hl habcl,
     rcases hl with ⟨u₀, u, huu₀, hl⟩,
     rw hl at habcl,
+    sorry,
   end,
   B4 :=
   begin
@@ -159,10 +135,7 @@ def r_squared : incidence_order_geometry :=
   ..affine_plane ℝ}
 
 example : hilbert_plane :=
-{ segment_congr :=
-  begin
-    
-  end,
+{ segment_congr := sorry,
   C1 := sorry,
   C2 := sorry,
   C3 := sorry,
@@ -172,3 +145,4 @@ example : hilbert_plane :=
   C6 := sorry,
   ..r_squared }
 
+end r_squared

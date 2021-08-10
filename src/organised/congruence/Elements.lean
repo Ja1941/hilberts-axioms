@@ -542,3 +542,8 @@ begin
   exact ⟨line_in_lines hcd, line_in_lines (noncollinear_neq head).1.symm⟩,
   exact hbe
 end
+
+lemma drop_perpendicular {l : set pts} (hl : l ∈ lines) {a : pts} (hal : a ∉ l) : ∃ b : pts, l ⊥ (a-ₗb) :=
+begin
+  
+end
