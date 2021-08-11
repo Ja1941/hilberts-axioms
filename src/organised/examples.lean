@@ -21,37 +21,6 @@ example : incidence_geometry :=
 
 end Fano_example
 
-
-variables u : Type
-example {a b c : u} (h : a ≠ b ∨ a ≠ c) : ∃ x : u, x ≠ a :=
-begin
-  wlog hab : a ≠ b using [b c, c b],
-  exact h, use b, exact hab.symm
-end
-
--- affine plane k^2 over a field, modelled as k × k 
-section affine_plane
-
-variables {k : Type} [field k] (a b : k × k) (μ₁ μ₂ : k)
-
-lemma temp' : (1 : k) • (b - a) = (b - a) := one_smul _ (b - a)
-
-example (x : k) : (0 : k) • x = (0 : k) * x := rfl
-
-#check @zero_mul -- has_mul.mul 0 x = 0
-
-#check sub_smul
-
-lemma temp'' : μ₁ • (a - b) - μ₂ • (a - b) = (μ₁ - μ₂) • (a - b) :=
-begin
-  sorry
-end
-
-lemma temp''' : μ₁ • (a - b) + μ₂ • (a - b) = (μ₁ + μ₂) • (a - b) :=
-begin
-  sorry
-end
-
 section affine_plane
 
 -- affine plane
@@ -113,10 +82,10 @@ def affine_plane (k : Type) [field k] : incidence_geometry :=
 } 
 
 end affine_plane
+
 namespace r_squared
 
 def is_between (a b c : ℝ × ℝ) : Prop :=
---b ≠ c ∧ ∃ k : ℝ, 0 < k ∧ (a - b) = k • (b - c)
 b ≠ c ∧ ∃ k : ℝ, 0 < k ∧ a + k • c = k • b + b
 
 namespace is_between
@@ -133,11 +102,47 @@ begin
   exact hac (smul_left_injective _ hkpos.ne.symm hk.symm),
 end
 
-lemma symm (h : is_between a b c) : is_between c b a :=
-⟨h.one_ne_two.symm, begin
-  -- guess it's 1/k?
-  sorry
+lemma symm (h : is_between a b c) : is_between c b a := ⟨h.one_ne_two.symm,
+begin
+  rcases h.2 with ⟨k, hkpos, hk⟩,
+  use 1 / k,
+  split, exact one_div_pos.2 hkpos,
+  apply smul_left_injective _ (ne_of_gt hkpos),
+  simp, rw [smul_add, smul_smul, mul_inv_cancel (ne_of_gt hkpos), one_smul, smul_add, smul_smul,
+    mul_inv_cancel (ne_of_gt hkpos), one_smul, add_comm, hk, add_comm],
+  exact prod.no_zero_smul_divisors
 end⟩
+
+lemma two_ne_three (h : is_between a b c) : b ≠ c :=
+(one_ne_two (symm h)).symm
+
+example {a b c : ℝ} : a + b - c = a - c + b := (sub_add_eq_add_sub a c b).symm
+
+lemma one_ne_three (h : is_between a b c) : a ≠ c :=
+begin
+  rcases h.2 with ⟨k, hkpos, hk⟩,
+  intro hac, rw hac at hk,
+  have : (1 + k) • (c - b) = 0,
+    rw [add_smul, one_smul, smul_sub, add_sub, sub_add_eq_add_sub, hk], simp,
+  simp at this, cases this, linarith,
+  exact two_ne_three h (sub_eq_zero.1 this).symm
+end
+
+lemma collinear (h : is_between a b c) : c ∈ {x : ℝ × ℝ | ∃ (μ : ℝ), x = a + μ • (b - a)} :=
+begin
+  rcases h.2 with ⟨k, hkpos, hk⟩,
+  use (k + 1) / k,
+  rw [div_eq_mul_one_div, mul_comm, ←smul_smul, smul_sub, add_smul, one_smul, ←hk, add_comm _ (k • c),
+    ←add_sub, add_smul, one_smul, add_comm _ a, ←sub_sub, sub_self, zero_sub, tactic.ring.add_neg_eq_sub,
+    ←smul_sub, smul_smul, one_div_mul_cancel (ne_of_gt hkpos), one_smul, add_comm, sub_add_cancel],
+end
+
+lemma extend (hab : a ≠ b) : ∃ d : ℝ × ℝ, is_between a b d :=
+begin
+  use [-a + b + b], split,
+  intro hf, simp at hf, apply hab, exact neg_add_eq_zero.1 hf,
+  use 1, simp, ring
+end
 
 end is_between
 
@@ -147,46 +152,21 @@ def r_squared : incidence_order_geometry :=
   B1 :=
   begin
     rintros a b c (h : r_squared.is_between a b c),
-    split,
-      split,
-        exact h.one_ne_two.symm,
-    -- rcases h with ⟨hab, k, hk, h⟩,
-    -- split, split,
-    -- intro hf, rw hf at h, simp at h,
-    -- split, use 1 / k,
-    -- split, exact one_div_neg.2 hk,
-    -- split, rw [←h, smul_smul, one_div_mul_cancel, one_smul],
-    -- exact ne_of_lt hk,
-    -- cases h, exact (ne_of_lt hk) h, rw (sub_eq_zero.1 h) at hab, exact hab rfl,
-    -- split, intro hf, rw hf at hab, exact hab rfl,
-    -- have : c ≠ b,
-    --   intro hf, rw hf at h, simp at h,
-    --   cases h, exact (ne_of_lt hk) h,
-    --   exact hab (sub_eq_zero.1 h),
-    -- split,
-    -- intro hf, rw hf at h, simp at h,
-    -- have : k = 1,
-    --   rw ←sub_eq_zero,
-    --   --have : (k - 1) • (c - b) = 0,
-    --   sorry,
-    -- sorry,
-    -- split, exact this.symm,
-    -- use {x : ℝ × ℝ | ∃ μ : ℝ, x = b + μ • (a - b)},
-    -- use [b, a], exact ⟨hab, rfl⟩,
-    -- split, exact ⟨1, by simp⟩, split, exact ⟨0, by simp⟩,
-    -- use k, simp at h, rw h, simp
+    refine ⟨is_between.symm h, is_between.one_ne_two h, is_between.one_ne_three h,
+      is_between.two_ne_three h, _⟩,
+    use {x : ℝ × ℝ | ∃ μ : ℝ, x = a + μ • (b - a)},
+    use [a, b], exact ⟨(is_between.one_ne_two h).symm, rfl⟩,
+    refine ⟨_, _, _⟩,
+    exact ⟨0, by simp⟩, exact ⟨1, by simp⟩,
+    exact is_between.collinear h
   end,
-  B2 :=
-  begin
-    intros a b hab,
-    sorry,
-    --use [b - a + b, -1],
-  end,
+  B2 := λ a b hab, is_between.extend hab,
   B3 :=
   begin
-    intros a b c l hl habcl,
-    rcases hl with ⟨u₀, u, huu₀, hl⟩,
-    rw hl at habcl,
+    split,
+    intros a b c l hl habcl hab hac hbc,
+    have := collinear_in13,
+    sorry,
     sorry,
   end,
   B4 :=

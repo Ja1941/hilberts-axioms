@@ -17,7 +17,7 @@ begin
   rw h, rw [h, angle_nontrivial_iff_noncollinear] at haob, set o := α.vertex,
   have hob := (noncollinear_neq haob).2.2,
   cases is_between_extend hob.symm with c hboc,
-  have hoc := (is_between_not_eq hboc).2.2,
+  have hoc := (is_between_neq hboc).2.2,
   use (∠ a o c), rw three_pt_angle_supplementary,
   split, exact hboc,
   split, exact haob,
@@ -45,13 +45,13 @@ begin
   have haob := angle_nontrivial_iff_noncollinear.1 h.1,
   split, exact hboc, split, exact haob,
   exact noncollinear132 (collinear_noncollinear (collinear12 (is_between_collinear hboc))
-    (noncollinear12 (noncollinear13 haob)) (is_between_not_eq hboc).2.2),
+    (noncollinear12 (noncollinear13 haob)) (is_between_neq hboc).2.2),
   exact h.1,
   split, exact h.2,
   intros β hβ, rcases hβ.1 with ⟨o', a', b', c', haoba'ob', ha'oc', hb'oc'⟩,
   have haob := angle_nontrivial_iff_noncollinear.1 h.2,
   have haoc := noncollinear132 (collinear_noncollinear (collinear12 (is_between_collinear hboc))
-    (noncollinear12 (noncollinear13 haob)) (is_between_not_eq hboc).2.2),
+    (noncollinear12 (noncollinear13 haob)) (is_between_neq hboc).2.2),
   have hoo' := ((three_pt_angle_eq_iff haob).1 haoba'ob').1, rw ←hoo' at *,
   cases ((three_pt_angle_eq_iff haob).1 haoba'ob').2 with H H,
   rw ha'oc',
@@ -85,7 +85,7 @@ begin
     have hboa := angle_nontrivial_iff_noncollinear.1 (inside_angle_nontrivial hpin),
     rw inside_three_pt_angle at hpin,
     cases is_between_extend hbo with c hboc,
-    have hco := (is_between_not_eq hboc).2.2.symm,
+    have hco := (is_between_neq hboc).2.2.symm,
     rw three_pt_angle_is_right_angle hboc at hy,
     have h₁ : supplementary (∠ p o b) (∠ p o c),
       rw three_pt_angle_supplementary,
@@ -147,4 +147,3 @@ begin
 end
 
 localized "notation a `⊥` b := perpendicular a b" in perp_notation
--- type `open_locale perp_notation` to get ⊥ meaning perpendicular not bot.

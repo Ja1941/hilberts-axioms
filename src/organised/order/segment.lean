@@ -17,11 +17,10 @@ class incidence_order_geometry extends incidence_geometry :=
 (B1 : ∀ {a b c : pts}, is_between a b c → is_between c b a
                         ∧ (a ≠ b) ∧ (a ≠ c) ∧ (b ≠ c) ∧ collinear a b c)
 (B2 : ∀ {a b : pts}, a ≠ b → ∃ c : pts, is_between a b c)
-(B3 : ∀ {a b c : pts} (l ∈ lines), a ∈ l ∧ b ∈ l ∧ c ∈ l →
-(a ≠ b → a ≠ c → b ≠ c → is_between a b c ∨ is_between a c b ∨ is_between b a c)
-∧ ¬(is_between a b c ∧ is_between a c b)
-∧ ¬(is_between a b c ∧ is_between b a c)
-∧ ¬(is_between a c b ∧ is_between b a c))
+(B3 : (∀ {a b c : pts}, ∀ {l : set pts}, l ∈ lines → a ∈ l ∧ b ∈ l ∧ c ∈ l →
+(a ≠ b → a ≠ c → b ≠ c → is_between a b c ∨ is_between a c b ∨ is_between b a c)) ∧
+∀ a b c : pts, ¬(is_between a b c ∧ is_between a c b)
+∧ ¬(is_between a b c ∧ is_between b a c) ∧ ¬(is_between a c b ∧ is_between b a c))
 (B4 : ∀ {a b c : pts} (l ∈ lines),
       (noncollinear a b c) → a ∉ l → b ∉ l → c ∉ l
       → (∃ d : pts, is_between a d b ∧ d ∈ l) →
@@ -37,7 +36,7 @@ include B
 lemma is_between_symm (a b c : pts) :
 is_between a b c ↔ is_between c b a := iff.intro (λ h, (B1 h).1) (λ h, (B1 h).1)
 
-lemma is_between_not_eq {a b c : pts} (h : is_between a b c) :
+lemma is_between_neq {a b c : pts} (h : is_between a b c) :
 (a ≠ b) ∧ (a ≠ c) ∧ (b ≠ c) := ⟨(B1 h).2.1, (B1 h).2.2.1, (B1 h).2.2.2.1⟩
 
 lemma is_between_collinear {a b c : pts}
@@ -46,15 +45,14 @@ lemma is_between_collinear {a b c : pts}
 lemma is_between_extend {a b : pts} (h : a ≠ b) :
 ∃ c : pts, is_between a b c := B2 h
 
-lemma collinear_between {a b c : pts} (habc : collinear a b c) :
-(a ≠ b → a ≠ c → b ≠ c → is_between a b c ∨ is_between a c b ∨ is_between b a c)
-∧ ¬(is_between a b c ∧ is_between a c b)
+lemma is_between_tri {a b c : pts} (habc : collinear a b c) (hab : a ≠ b) (hac : a ≠ c)
+(hbc : b ≠ c) : is_between a b c ∨ is_between a c b ∨ is_between b a c :=
+by { rcases habc with ⟨l, hl, habc⟩, exact B3.1 hl habc hab hac hbc }
+
+lemma is_between_contra {a b c : pts} :
+  ¬(is_between a b c ∧ is_between a c b)
 ∧ ¬(is_between a b c ∧ is_between b a c)
-∧ ¬(is_between a c b ∧ is_between b a c) :=
-begin
-  rcases habc with ⟨l, hl, hal, hbl, hcl⟩,
-  exact B3 l hl ⟨hal, hbl, hcl⟩
-end
+∧ ¬(is_between a c b ∧ is_between b a c) := B3.2 a b c
 
 /--A type whose inside is a set containing two points and points between them. -/
 structure segment := (inside : set pts)
@@ -82,7 +80,7 @@ by {unfold two_pt_segment, simp, ext, simp, rw is_between_symm, tauto}
 lemma segment_singleton (a : pts) : (a-ₛa).inside = {a} :=
 begin
   unfold two_pt_segment, ext1, simp,
-  intro haxa, exact absurd rfl (is_between_not_eq haxa).2.1
+  intro haxa, exact absurd rfl (is_between_neq haxa).2.1
 end
 
 lemma segment_nontrivial_iff_neq {a b : pts} :
@@ -157,11 +155,11 @@ begin
   have hac := (noncollinear_neq habc).2.1,
   have hbc := (noncollinear_neq habc).2.2,
   cases is_between_extend hac with d hacd,
-  have had := (is_between_not_eq hacd).2.1,
+  have had := (is_between_neq hacd).2.1,
   have hadb : noncollinear a d b,
     from collinear_noncollinear (is_between_collinear hacd) (noncollinear23 habc) had,
   have hbd := (noncollinear_neq hadb).2.2.symm,
-  have hcd := (is_between_not_eq hacd).2.2,
+  have hcd := (is_between_neq hacd).2.2,
   cases is_between_extend hbd with e hbde,
   have hce : c ≠ e,
     intro hce, rw ←hce at hbde,
@@ -169,8 +167,8 @@ begin
     rcases (is_between_collinear hacd) with ⟨m, hm, ham, hcm, hdm⟩,
     rw two_pt_one_line hm hl hcd ⟨hcm, hdm⟩ ⟨hcl, hdl⟩ at ham,
     exact habc ⟨l, hl, ham, hbl, hcl⟩,
-  have hde : d ≠ e, from (is_between_not_eq hbde).2.2,
-  have hbe : b ≠ e, from (is_between_not_eq hbde).2.1,
+  have hde : d ≠ e, from (is_between_neq hbde).2.2,
+  have hbe : b ≠ e, from (is_between_neq hbde).2.1,
   rcases (is_between_collinear hbde) with ⟨l, hl, hbl, hdl, hel⟩,
   rcases (is_between_collinear hacd) with ⟨m, hm, ham, hcm, hdm⟩,
   have : a ∉ (c-ₗe) ∧ d ∉ (c-ₗe) ∧ b ∉ (c-ₗe),
@@ -209,5 +207,5 @@ begin
     intro hcel, rw ←hcel at hdl, exact absurd hdl this.2.1,
   rw [←two_line_one_pt (line_in_lines hce) hl hcel (pt_right_in_line c e) hel hx.1 hxl,
     is_between_symm] at hdxb,
-  exfalso, exact (collinear_between (is_between_collinear hbde)).2.1 ⟨hbde, hdxb⟩
+  exfalso, exact is_between_contra.1 ⟨hbde, hdxb⟩
 end

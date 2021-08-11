@@ -18,12 +18,12 @@ begin
   have hac := (noncollinear_neq habc).2.1,
   cases is_between_extend hab with d habd,
   cases is_between_extend hac with x hacx,
-  have hbd := (is_between_not_eq habd).2.2,
+  have hbd := (is_between_neq habd).2.2,
   rcases extend_congr_segment (segment_nontrivial_iff_neq.2 hbd)
-    (is_between_not_eq hacx).2.2 with ⟨e, hcxe, hbdce, -⟩,
+    (is_between_neq hacx).2.2 with ⟨e, hcxe, hbdce, -⟩,
   have hace := is_between_same_side_pt_is_between hacx hcxe, clear hcxe hacx x,
-  have had := (is_between_not_eq habd).2.1,
-  have hae := (is_between_not_eq hace).2.1,
+  have had := (is_between_neq habd).2.1,
+  have hae := (is_between_neq hace).2.1,
   have hadc := collinear_noncollinear (is_between_collinear habd) habc had,
   have haeb := collinear_noncollinear (is_between_collinear hace) (noncollinear23 habc) hae,
   have hadcaeb : ((Δ a d c) ≅ₜ (Δ a e b)),
@@ -34,7 +34,7 @@ begin
     rw [angle_symm, ←angle_eq_same_side c (is_between_same_side_pt.1 habd).1],
     rw [angle_symm, angle_symm e _ _],
     rw angle_eq_same_side b (is_between_same_side_pt.1 hace).1, exact angle_congr_refl _,
-  have hce := (is_between_not_eq hace).2.2,
+  have hce := (is_between_neq hace).2.2,
   have hdbc := collinear_noncollinear (collinear132 (is_between_collinear habd))
     (noncollinear12 hadc) hbd.symm,
   have hecb := collinear_noncollinear (collinear132 (is_between_collinear hace))
@@ -69,8 +69,8 @@ begin
     have hbc := (noncollinear_neq habc).2.2,
     rw [segment_symm a c, two_pt_segment_lt] at hf,
     rcases hf with ⟨d, hcda, habcd⟩,
-    have hcd := (is_between_not_eq hcda).1,
-    have had := (is_between_not_eq hcda).2.2.symm,
+    have hcd := (is_between_neq hcda).1,
+    have had := (is_between_neq hcda).2.2.symm,
     have hcdb := collinear_noncollinear (collinear23 (is_between_collinear hcda))
         (noncollinear132 habc) hcd,
     have : ((Δ b a c) ≅ₜ (Δ c d b)),
@@ -120,7 +120,7 @@ begin
   have hbc := (noncollinear_neq habc).2.2,
   cases is_between_extend hab.symm with x hbax,
   have : x ∉ (a-ₗc), from noncollinear_in13 (collinear_noncollinear
-    (collinear12 (is_between_collinear hbax)) habc (is_between_not_eq hbax).2.2),
+    (collinear12 (is_between_collinear hbax)) habc (is_between_neq hbax).2.2),
   rcases extend_congr_angle (angle_nontrivial_iff_noncollinear.2
     (noncollinear12 ha'b'c')) hac this with ⟨y, hy, hacyx, -⟩,
   have hay : a ≠ y,
@@ -135,7 +135,7 @@ begin
       exact line_in_lines hac,
       split, exact pt_left_in_line a c, split, exact noncollinear_in13 habc,
       exact noncollinear_in13 (collinear_noncollinear (collinear12 (is_between_collinear hbax))
-        habc (is_between_not_eq hbax).2.2),
+        habc (is_between_neq hbax).2.2),
     have h₂ : same_side_line (a-ₗc) y d,
       rw line_symm, refine t_shape_ray hac.symm _ _ _ _,
       rw line_symm, exact (same_side_line_not_in hacyx).1,
@@ -198,8 +198,8 @@ begin
     exact h₂,
   have hoac : collinear o a c, from ⟨(a-ₗc), line_in_lines hac, ho.1,
     pt_left_in_line a c, pt_right_in_line a c⟩,
-  have hbo := (is_between_not_eq hbod).1,
-  have hdo := (is_between_not_eq hbod).2.2.symm,
+  have hbo := (is_between_neq hbod).1,
+  have hdo := (is_between_neq hbod).2.2.symm,
   have hobc : noncollinear o b c, from λhobc, habc (collinear123 (collinear_trans
     (collinear132 hoac) (collinear132 hobc) hco)),
   have hocd : noncollinear o c d, from λhocd, hobc (collinear_trans (collinear123
@@ -222,7 +222,7 @@ begin
     intro habd, exact (noncollinear13 hoab) (collinear_trans (collinear123 habd)
       (collinear23 (is_between_collinear hbod)) hbd),
     exact h₂,
-  rcases (collinear_between hoac).1 (ne.symm hao) (ne.symm hco) hac with h | h | h,
+  rcases is_between_tri hoac (ne.symm hao) (ne.symm hco) hac with h | h | h,
   have ha₁ : inside_angle a (∠ o b c),
     rw inside_three_pt_angle,
     split, refine t_shape_segment hbo _ _ _ _,
@@ -333,7 +333,7 @@ lemma isosceles_exist' {a b c : pts} (habc : noncollinear a b c)
 begin
   cases is_between_extend (noncollinear_neq habc).2.1.symm with d hcad,
   have habd := noncollinear23 (collinear_noncollinear
-    (collinear12 (is_between_collinear hcad)) (noncollinear23 habc) (is_between_not_eq hcad).2.2),
+    (collinear12 (is_between_collinear hcad)) (noncollinear23 habc) (is_between_neq hcad).2.2),
   cases isosceles_exist habd with e he,
   use e, split, exact he.1,
   have hab := (noncollinear_neq habc).1,
@@ -349,14 +349,14 @@ begin
   intros habad hbede he hbda hafe hf,
   have had := (noncollinear_neq hbda).2.2.symm,
   have hbd := (noncollinear_neq hbda).1,
-  have hae := (is_between_not_eq hafe).2.1,
+  have hae := (is_between_neq hafe).2.1,
   apply noncollinear23, apply collinear_noncollinear (is_between_collinear hafe),
   apply noncollinear13, apply collinear_noncollinear (collinear_in12' hf.1) hbda,
   intro hbf, rw ←hbf at hafe, 
   cases is_between_extend had with i hadi,
-  have hdi := (is_between_not_eq hadi).2.2,
+  have hdi := (is_between_neq hadi).2.2,
   have hbdi := noncollinear132 (collinear_noncollinear (collinear12
-    (is_between_collinear hadi)) (noncollinear123 hbda) (is_between_not_eq hadi).2.2),
+    (is_between_collinear hadi)) (noncollinear123 hbda) (is_between_neq hadi).2.2),
   have : ((∠ b d i) ≅ₐ (∠ b d e)),
     rw [segment_symm, segment_symm d e] at hbede,
     have hebd : noncollinear e b d,
@@ -386,8 +386,8 @@ begin
   intro hbdc,
   have hab := (noncollinear_neq hbac).1.symm,
   have hac := (noncollinear_neq hbac).2.2,
-  have hbd := (is_between_not_eq hbdc).1,
-  have hcd := (is_between_not_eq hbdc).2.2.symm,
+  have hbd := (is_between_neq hbdc).1,
+  have hcd := (is_between_neq hbdc).2.2.symm,
   rw inside_three_pt_angle, split,
   apply same_side_line_symm,
   apply (same_side_pt_line (is_between_same_side_pt.1 hbdc).1).2.2.2 (line_in_lines hab),
@@ -446,7 +446,7 @@ begin
   have hdaf := noncollinear23 (collinear_noncollinear (collinear12 hbdf)
     (noncollinear12 hbda) hdf),
   rw [angle_symm c a f, angle_eq_same_side f hacd, angle_symm f a d] at this,
-  rcases (collinear_between (collinear_in12' hf.1)).1 hbd hbf hdf with h | h | h,
+  rcases is_between_tri (collinear_in12' hf.1) hbd hbf hdf with h | h | h,
   exfalso,
   apply (angle_tri (angle_nontrivial_iff_noncollinear.2 hbaf)
     (angle_nontrivial_iff_noncollinear.2 hdaf)).2.2.2,
@@ -481,9 +481,9 @@ begin
   have : ((Δ d a f) ≅ₜ (Δ d b f)),
     apply SAS; unfold three_pt_triangle; simp,
     exact noncollinear132 (collinear_noncollinear (collinear23 (is_between_collinear h))
-      (noncollinear23 hadb) (is_between_not_eq h).1),
+      (noncollinear23 hadb) (is_between_neq h).1),
     exact noncollinear132 (collinear_noncollinear (collinear132 (is_between_collinear h))
-      (noncollinear132 hadb) (is_between_not_eq h).2.2.symm),
+      (noncollinear132 hadb) (is_between_neq h).2.2.symm),
     rw [segment_symm, segment_symm d b], exact hd,
     exact segment_congr_refl _,
     have : same_side_pt d e f,
@@ -502,6 +502,8 @@ begin
   exact noncollinear_in12 deb ((ray_in_line d e) hf.1)
 end
 
+open_locale perp_notation
+
 /--I.11 in Elements -/
 lemma perpendicular_exist_same_side {l : set pts} (hl : l ∈ lines) {a : pts} (hal : a ∈ l)
 {b : pts} (hbl : b ∉ l) : ∃ c : pts, (l ⊥ (a-ₗc)) ∧ same_side_line l b c := 
@@ -517,14 +519,14 @@ begin
     rw two_pt_one_line hl (line_in_lines hac.symm) hac at hbl,
     intro hcab, exact hbl (collinear_in12 hcab hac.symm),
     exact ⟨hal, hcl⟩, exact ⟨pt_right_in_line c a, pt_left_in_line c a⟩,
-  have hcd := (is_between_not_eq hcad).2.1,
+  have hcd := (is_between_neq hcad).2.1,
   have hcdb := collinear_noncollinear (is_between_collinear hcad) hcab hcd,
   rcases isosceles_exist hcdb with ⟨e, hcecd, hbe⟩,
   use e,
   rw two_pt_one_line hl (line_in_lines hcd) hac
     ⟨hal, hcl⟩ ⟨collinear_in13 (is_between_collinear hcad) hcd, pt_left_in_line c d⟩,
   split, rw is_between_symm at hcad,
-  have hda := (is_between_not_eq hcad).1,
+  have hda := (is_between_neq hcad).1,
   have head : noncollinear e a d, from noncollinear13 (collinear_noncollinear (collinear23
     (is_between_collinear hcad)) (noncollinear12 (same_side_line_noncollinear hbe hcd).2) hda),
   use [d, e, a], rw [angle_symm, three_pt_angle_is_right_angle hcad],
@@ -545,5 +547,32 @@ end
 
 lemma drop_perpendicular {l : set pts} (hl : l ∈ lines) {a : pts} (hal : a ∉ l) : ∃ b : pts, l ⊥ (a-ₗb) :=
 begin
-  
+  rcases two_pt_on_one_line hl with ⟨b, c, hbc, hbl, hcl⟩,
+  rw two_pt_one_line hl (line_in_lines hbc) hbc ⟨hbl, hcl⟩ ⟨pt_left_in_line b c, pt_right_in_line b c⟩ at hal,
+  have habc := noncollinear_in23' hbc hal,
+  have hab := (noncollinear_neq habc).1,
+  rcases extend_congr_angle' (angle_nontrivial_iff_noncollinear.2 habc) hbc hal with ⟨d, habcdbc, hda⟩,
+  have hbd := (diff_side_line_neq hda).1.symm,
+  rcases extend_congr_segment (segment_nontrivial_iff_neq.2 hab.symm) hbd with ⟨e, hbde, hbabe, -⟩,
+  cases hda.1 with f hf,
+  rcases hf.2 with hf | hf | hf,
+  simp at hf, rw is_between_symm at hf,
+  by_cases hbf : b = f,
+    rw ←hbf at hf, use b,
+    use [c, a, b],
+    split, exact hcl, split, exact pt_left_in_line a b,
+    split, exact ⟨hbl, pt_right_in_line a b⟩,
+    rw three_pt_angle_is_right_angle hf,
+    have : (Δ b c a ≅ₜ Δ b c d),
+      apply SAS; unfold three_pt_triangle; simp,
+      exact noncollinear123 habc, exact (diff_side_line_noncollinear hda hbc).1,
+      exact segment_congr_refl _,
+      
+  use f, use [b, a, f],
+  split, exact hbl,
+  split, exact pt_left_in_line a f,
+  split, rw two_pt_one_line hl (line_in_lines hbc) hbc ⟨hbl, hcl⟩ ⟨pt_left_in_line b c, pt_right_in_line b c⟩,
+  exact ⟨hf.1, pt_right_in_line a f⟩,
+  simp at hf, rw is_between_symm at hf,
+  rw three_pt_angle_is_right_angle hf,
 end

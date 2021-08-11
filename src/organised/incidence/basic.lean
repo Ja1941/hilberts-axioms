@@ -222,3 +222,18 @@ by { intro h, by_contra habc, exact (noncollinear_in13 habc) h }
 
 lemma collinear_in23' {a b c : pts} : a ∈ (b-ₗc) → collinear a b c :=
 by { intro h, by_contra habc, exact (noncollinear_in23 habc) h }
+
+lemma noncollinear_in12' {a b c : pts} (hab : a ≠ b)
+: c ∉ (a-ₗb) → noncollinear a b c :=
+by { contrapose!, intro h, unfold noncollinear at h, rw not_not at h,
+  exact collinear_in12 h hab }
+
+lemma noncollinear_in13' {a b c : pts} (hac : a ≠ c)
+: b ∉ (a-ₗc) → noncollinear a b c :=
+by { contrapose!, intro h, unfold noncollinear at h, rw not_not at h,
+  exact collinear_in13 h hac }
+
+lemma noncollinear_in23' {a b c : pts} (hbc : b ≠ c)
+: a ∉ (b-ₗc) → noncollinear a b c :=
+by { contrapose!, intro h, unfold noncollinear at h, rw not_not at h,
+  exact collinear_in23 h hbc }

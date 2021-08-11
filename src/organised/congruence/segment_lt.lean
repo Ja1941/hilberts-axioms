@@ -18,7 +18,7 @@ notation a`<ₛ`b := segment_lt a b
 lemma segment_lt_nontrivial {m n : segment} : (m <ₛ n) → segment_nontrivial n :=
 begin
   rintros ⟨a, b, c, hn, hbac, hm⟩,
-  rw [hn, segment_nontrivial_iff_neq], exact (is_between_not_eq hbac).2.1
+  rw [hn, segment_nontrivial_iff_neq], exact (is_between_neq hbac).2.1
 end
 
 lemma two_pt_segment_lt {m : segment} {a b : C.pts} :
@@ -30,7 +30,7 @@ begin
   cases two_pt_segment_pt haba'b',
   rw [←h.1, ←h.2] at ha'xb', rw ←h.1 at hm,
   exact ⟨x, ha'xb', hm⟩,
-  rcases extend_congr_segment (segment_nontrivial_iff_neq.2 (is_between_not_eq ha'xb').1) hab
+  rcases extend_congr_segment (segment_nontrivial_iff_neq.2 (is_between_neq ha'xb').1) hab
     with ⟨y, haby, hy, -⟩,
   use y, rw [←h.1, ←h.2] at ha'xb', rw ←h.2 at hy, rw ←h.2 at hm,
   split,
@@ -49,7 +49,7 @@ begin
   intros hn hl, rcases hl with ⟨a, b, c, hmbc, hbac, hl⟩,
   rcases segment_two_pt n with ⟨d, e, hnde⟩, rw hnde,
   rw [hnde, segment_nontrivial_iff_neq] at hn,
-  rcases extend_congr_segment (segment_nontrivial_iff_neq.2 (is_between_not_eq hbac).1) hn
+  rcases extend_congr_segment (segment_nontrivial_iff_neq.2 (is_between_neq hbac).1) hn
     with ⟨x, hdex, hbadx, -⟩,
   rw two_pt_segment_lt, use x,
   split,
@@ -63,7 +63,7 @@ lemma segment_lt_trans {m n l : segment} :
 begin
   intros hmn hnl,
   rcases hnl with ⟨a, b, c, hl, hbac, hn⟩,
-  have hab := (is_between_not_eq hbac).1.symm,
+  have hab := (is_between_neq hbac).1.symm,
   replace hmn := (segment_lt_congr hn).2 (segment_nontrivial_iff_neq.2 hab.symm) hmn,
   rw two_pt_segment_lt at hmn,
   rcases hmn with ⟨x, hbxa, hm⟩,

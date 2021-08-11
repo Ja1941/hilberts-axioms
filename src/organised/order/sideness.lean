@@ -123,6 +123,11 @@ lemma diff_side_line_neq' {a b x y : pts} :
 diff_side_line (a-ₗb) x y → y ≠ a ∧ y ≠ b :=
 λhxy, diff_side_line_neq (diff_side_line_symm hxy)
 
+
+lemma diff_side_line_noncollinear {a b c d : pts} :
+diff_side_line (a-ₗb) c d → a ≠ b → noncollinear a b c ∧ noncollinear a b d :=
+λhcd hab, ⟨noncollinear_in12' hab hcd.2.1, noncollinear_in12' hab hcd.2.2⟩
+
 private lemma same_side_line_trans_noncollinear {l : set pts} (hl : l ∈ lines) {a b c : pts} :
 noncollinear a b c → same_side_line l a b → same_side_line l b c → same_side_line l a c :=
 begin
@@ -162,31 +167,31 @@ begin
       simp at hf,
       split, exact hdl,
       rcases is_between_collinear hdae with ⟨n, hn, hdn, han, hen⟩,
-      have := (two_pt_one_line (line_in_lines (is_between_not_eq hdae).2.2) hn
-        ((is_between_not_eq hdae).2.2) ⟨pt_left_in_line a e, pt_right_in_line a e⟩ ⟨han, hen⟩),
+      have := (two_pt_one_line (line_in_lines (is_between_neq hdae).2.2) hn
+        ((is_between_neq hdae).2.2) ⟨pt_left_in_line a e, pt_right_in_line a e⟩ ⟨han, hen⟩),
       rw this, exact hdn,
     have hneq : l ≠ (a-ₗe),
       intro hf, have := (same_side_line_not_in hlab).1,
       rw hf at this, exact this (pt_left_in_line a e),
-    have hdf : d = f, from two_line_one_pt hl (line_in_lines (is_between_not_eq hdae).2.2)
+    have hdf : d = f, from two_line_one_pt hl (line_in_lines (is_between_neq hdae).2.2)
       hneq hdlae.1 hdlae.2 hflae.1 hflae.2,
     rw hdf at hdae,
     unfold two_pt_segment at hf, simp at hf,
-    have := is_between_not_eq hdae,
+    have := is_between_neq hdae,
     rcases hf.2 with hf | hf | hf,
     exact this.1 hf, exact this.2.1 hf,
-  exact (collinear_between (is_between_collinear hf)).2.2.1 ⟨hf, hdae⟩,
+  exact is_between_contra.2.1 ⟨hf, hdae⟩,
   have hbae : noncollinear b a e,
     rintros ⟨n, hn, hbn, han, hen⟩,
     have hem : e ∈ m,
       rw two_pt_one_line hm hn hab ⟨ham, hbm⟩ ⟨han, hbn⟩, exact hen,
     have hd : d ∈ (a-ₗe),
       rcases is_between_collinear hdae with ⟨n, hn, hdn, han, hen⟩,
-      have := (two_pt_one_line (line_in_lines (is_between_not_eq hdae).2.2) hn
-        ((is_between_not_eq hdae).2.2) ⟨pt_left_in_line a e, pt_right_in_line a e⟩ ⟨han, hen⟩),
+      have := (two_pt_one_line (line_in_lines (is_between_neq hdae).2.2) hn
+        ((is_between_neq hdae).2.2) ⟨pt_left_in_line a e, pt_right_in_line a e⟩ ⟨han, hen⟩),
       rw this, exact hdn,
-    have := two_pt_one_line hm (line_in_lines (is_between_not_eq hdae).2.2)
-      (is_between_not_eq hdae).2.2 ⟨ham, hem⟩ ⟨pt_left_in_line a e, pt_right_in_line a e⟩,
+    have := two_pt_one_line hm (line_in_lines (is_between_neq hdae).2.2)
+      (is_between_neq hdae).2.2 ⟨ham, hem⟩ ⟨pt_left_in_line a e, pt_right_in_line a e⟩,
     rw ←this at hd,
     exact hdm hd,
   have hebc : noncollinear e b c,
@@ -333,7 +338,7 @@ begin
   split, intro habc,
   simp, split, right, right, exact habc,
   rcases is_between_collinear habc with ⟨l, hl, hal, hbl, hcl⟩,
-  exact ⟨(is_between_not_eq habc).1, (is_between_not_eq habc).2.2.symm⟩,
+  exact ⟨(is_between_neq habc).1, (is_between_neq habc).2.2.symm⟩,
   simp, intros h hab hcb,
   rcases h with h | h | h,
   exact absurd h.symm hab,
@@ -348,19 +353,19 @@ begin
   unfold same_side_pt, unfold two_pt_segment,
   simp, split; split,
   intro hf, rcases hf with hab | hac | hbac,
-  exact (is_between_not_eq habc).1 hab,
-  exact (is_between_not_eq habc).2.1 hac,
-  exact (collinear_between (is_between_collinear habc)).2.2.1 ⟨habc, hbac⟩,
-  exact (is_between_collinear habc),
+  exact (is_between_neq habc).1 hab,
+  exact (is_between_neq habc).2.1 hac,
+  exact is_between_contra.2.1 ⟨habc, hbac⟩,
+  exact is_between_collinear habc,
   intro hf, rcases hf with hca | hcb | hacb,
-  exact (is_between_not_eq habc).2.1 hca.symm,
-  exact (is_between_not_eq habc).2.2 hcb.symm,
-  exact (collinear_between (is_between_collinear habc)).2.1 ⟨habc, hacb⟩,
+  exact (is_between_neq habc).2.1 hca.symm,
+  exact (is_between_neq habc).2.2 hcb.symm,
+  exact is_between_contra.1 ⟨habc, hacb⟩,
   rcases is_between_collinear habc with ⟨l, hl, hal, hbl, hcl⟩,
   exact ⟨l, hl, hcl, hal, hbl⟩,
   unfold same_side_pt, unfold two_pt_segment, simp, push_neg,
   intros h₁ habc h₂ hcab,
-  rcases (collinear_between habc).1 h₁.1 h₁.2.1 h₂.2.1.symm with h | h | h,
+  rcases is_between_tri habc h₁.1 h₁.2.1 h₂.2.1.symm with h | h | h,
   exact h, exact absurd h h₂.2.2, exact absurd h h₁.2.2
 end
 
@@ -434,14 +439,14 @@ begin
     rcases is_between_collinear habc with ⟨l, hl, hal, hbl, hcl⟩,
     rcases is_between_collinear hbcd with ⟨m, hm, hbm, hcm, hdm⟩,
     have h₁ : ¬same_side_pt b a c,
-      rw not_same_side_pt ⟨l, hl, hbl, hal, hcl⟩ (is_between_not_eq habc).1
-        (is_between_not_eq habc).2.2.symm,
+      rw not_same_side_pt ⟨l, hl, hbl, hal, hcl⟩ (is_between_neq habc).1
+        (is_between_neq habc).2.2.symm,
       exact is_between_diff_side_pt.mp habc,
     have h₂ :  same_side_pt b c d, from (is_between_same_side_pt.mp hbcd).1,
     rw is_between_diff_side_pt,
-    rw two_pt_one_line hm hl (is_between_not_eq habc).2.2 ⟨hbm, hcm⟩ ⟨hbl, hcl⟩ at hdm,            
-    rw ←not_same_side_pt ⟨l, hl, hbl, hal, hdm⟩ (is_between_not_eq habc).1
-      (is_between_not_eq hbcd).2.1.symm,
+    rw two_pt_one_line hm hl (is_between_neq habc).2.2 ⟨hbm, hcm⟩ ⟨hbl, hcl⟩ at hdm,            
+    rw ←not_same_side_pt ⟨l, hl, hbl, hal, hdm⟩ (is_between_neq habc).1
+      (is_between_neq hbcd).2.1.symm,
     intro h₃, replace h₂ := same_side_pt_symm h₂,
     exact h₁ (same_side_pt_trans h₃ h₂),
   intros habc hbcd, split, exact this habc hbcd,
@@ -456,9 +461,9 @@ begin
     intros a b c d habd hbcd,
     rcases is_between_collinear habd with ⟨l, hl, hal, hbl, hdl⟩,
     rcases is_between_collinear hbcd with ⟨m, hm, hbm, hcm ,hdm⟩,
-    rw two_pt_one_line hm hl (is_between_not_eq habd).2.2 ⟨hbm, hdm⟩ ⟨hbl, hdl⟩ at hcm,
+    rw two_pt_one_line hm hl (is_between_neq habd).2.2 ⟨hbm, hdm⟩ ⟨hbl, hdl⟩ at hcm,
     rw [is_between_diff_side_pt, ←not_same_side_pt ⟨l, hl, hbl, hal, hcm⟩
-      (is_between_not_eq habd).1 (is_between_not_eq hbcd).1.symm],
+      (is_between_neq habd).1 (is_between_neq hbcd).1.symm],
     intro hbac, have hbad := same_side_pt_trans hbac (is_between_same_side_pt.mp hbcd).1,
     rw [is_between_diff_side_pt, ←not_same_side_pt ⟨l, hl, hbl, hal, hdl⟩] at habd,
     exact habd hbad, exact habd.2.1, exact habd.2.2,
@@ -471,7 +476,7 @@ lemma same_side_pt_between {a b c : pts} :
 same_side_pt a b c → b ≠ c → is_between a b c ∨ is_between a c b :=
 begin
   intros habc hbc,
-  rcases (collinear_between habc.2).1 (same_side_pt_neq habc).1.symm
+  rcases is_between_tri habc.2 (same_side_pt_neq habc).1.symm
     (same_side_pt_neq habc).2.symm hbc with h | h | h,
   left, exact h, right, exact h,
   rw [is_between_diff_side_pt, ←not_same_side_pt habc.2] at h, exact absurd habc h,
@@ -521,7 +526,7 @@ begin
       ((segment_in_line a b) hx.2) hy.1 hyac,
     rw ←hxy at hy, unfold two_pt_segment at hy, simp at hy,
     rcases hy.2 with hya | hyc | hy,
-    exact (is_between_not_eq this).1.symm hya, rw ←hyc at hlac, exact hlac.2.2 hy.1,
+    exact (is_between_neq this).1.symm hya, rw ←hyc at hlac, exact hlac.2.2 hy.1,
     cases h₂.1 with z hz,
     have hzbc := (segment_in_line b c) hz.2,
     rw two_pt_one_line (line_in_lines hbc) hm hbc
@@ -532,13 +537,12 @@ begin
       ((segment_in_line a b) hx.2) hz.1 hzbc,
     rw ←hxz at hz, unfold two_pt_segment at hz, simp at hz,
     rcases hz.2 with hzb | hzc | hz,
-    exact (is_between_not_eq this).2.2 hzb, rw ←hzc at hlac, exact hlac.2.2 hz.1,
-    rcases (collinear_between ⟨m, hm, ham, hbm, hcm⟩).1 hab hac hbc with habc | hacb | hbac,
-    exact (collinear_between (is_between_collinear this)).2.1
-      ⟨this, (is_between_trans' habc hz).1⟩,
-    exact (collinear_between (is_between_collinear hy)).2.1
-      ⟨hy, (is_between_trans' hacb (by {rw is_between_symm, exact hz})).1⟩,
-    exact (collinear_between (is_between_collinear this)).2.2.1
+    exact (is_between_neq this).2.2 hzb, rw ←hzc at hlac, exact hlac.2.2 hz.1,
+    rcases is_between_tri ⟨m, hm, ham, hbm, hcm⟩ hab hac hbc with habc | hacb | hbac,
+    exact is_between_contra.1 ⟨this, (is_between_trans' habc hz).1⟩,
+    exact is_between_contra.1 ⟨hy, (is_between_trans' hacb
+      (by {rw is_between_symm, exact hz})).1⟩,
+    exact is_between_contra.2.1
       ⟨this, by {rw is_between_symm, exact (is_between_trans' hbac hy).1}⟩,
     exact h₁.2.1, exact h₂.2.2,
   by_contra h₃,
@@ -600,38 +604,38 @@ begin
     cases (two_pt_between hbb') with x hbxb',
     have hx : x ∈ (b-ₛb').inside,
       unfold two_pt_segment, simp, right, right, exact hbxb',
-    rw ←haba'b' at hx, simp at hx, exact (is_between_not_eq hbxb').1 hx.symm,
+    rw ←haba'b' at hx, simp at hx, exact (is_between_neq hbxb').1 hx.symm,
   by_cases hab' : a = b', rw hab' at haba'b',
     rw segment_singleton at haba'b',
     cases (two_pt_between hbb') with x hbxb',
     have hx : x ∈ (b-ₛb').inside,
       unfold two_pt_segment, simp, right, right, exact hbxb',
-    rw [segment_symm, haba'b'] at hx, simp at hx, exact (is_between_not_eq hbxb').2.2 hx,
+    rw [segment_symm, haba'b'] at hx, simp at hx, exact (is_between_neq hbxb').2.2 hx,
   by_cases habb' : collinear a b b',
-    rcases (collinear_between habb').1 hab hab' hbb' with h | h | h,
-    cases (two_pt_between (is_between_not_eq h).2.2) with x hbxb',
+    rcases is_between_tri habb' hab hab' hbb' with h | h | h,
+    cases (two_pt_between (is_between_neq h).2.2) with x hbxb',
     have haxb' := (is_between_trans' h hbxb').2,
     have h₁ : x ∈ (a-ₛb').inside,
       unfold two_pt_segment, simp, right, right, exact haxb',
     have h₂ : x ∉ (a-ₛb).inside,
       unfold two_pt_segment, simp, intro hf,
       rcases hf with hf | hf | hf,
-      exact (is_between_not_eq (is_between_trans' h hbxb').2).1 hf.symm,
-      exact (is_between_not_eq hbxb').1 hf.symm,
+      exact (is_between_neq (is_between_trans' h hbxb').2).1 hf.symm,
+      exact (is_between_neq hbxb').1 hf.symm,
       have habx := (is_between_trans' h hbxb').1,
-      exact (collinear_between (is_between_collinear hf)).2.1 ⟨hf, habx⟩,
+      exact is_between_contra.1 ⟨hf, habx⟩,
     rw haba'b' at h₂, exact absurd h₁ h₂,
-    cases (two_pt_between (is_between_not_eq h).2.2) with x hb'xb,
+    cases (two_pt_between (is_between_neq h).2.2) with x hb'xb,
     have haxb := (is_between_trans' h hb'xb).2,
     have h₁ : x ∈ (a-ₛb).inside,
       unfold two_pt_segment, simp, right, right, exact haxb,
     have h₂ : x ∉ (a-ₛb').inside,
       unfold two_pt_segment, simp, intro hf,
       rcases hf with hf | hf | hf,
-      exact (is_between_not_eq (is_between_trans' h hb'xb).2).1 hf.symm,
-      exact (is_between_not_eq hb'xb).1 hf.symm,
+      exact (is_between_neq (is_between_trans' h hb'xb).2).1 hf.symm,
+      exact (is_between_neq hb'xb).1 hf.symm,
       have hab'x := (is_between_trans' h hb'xb).1,
-      exact (collinear_between (is_between_collinear hf)).2.1 ⟨hf, hab'x⟩,
+      exact is_between_contra.1 ⟨hf, hab'x⟩,
     rw haba'b' at h₁, exact absurd h₁ h₂,
     cases (two_pt_between hab) with x haxb,
     have h₁ : x ∈ (a-ₛb).inside,
@@ -640,22 +644,22 @@ begin
       unfold two_pt_segment, simp, intro hf,
       rw is_between_symm at h,
       rcases hf with hf | hf | hf,
-      exact (is_between_not_eq haxb).1 hf.symm,
-      exact (is_between_not_eq (is_between_trans' h haxb).2).1 hf.symm,
+      exact (is_between_neq haxb).1 hf.symm,
+      exact (is_between_neq (is_between_trans' h haxb).2).1 hf.symm,
       have hb'ax := (is_between_trans' h haxb).1,
       rw is_between_symm at hf,
-      exact (collinear_between (is_between_collinear hf)).2.1 ⟨hf, hb'ax⟩,
+      exact is_between_contra.1 ⟨hf, hb'ax⟩,
     rw haba'b' at h₁, exact absurd h₁ h₂,
     cases (two_pt_between hab) with x haxb,
     have h : x ∈ (a-ₛb').inside,
       rw ←haba'b', unfold two_pt_segment, simp, right, right, exact haxb,
     unfold two_pt_segment at h, simp at h, rcases h with h | h | h,
-    exact absurd h (is_between_not_eq haxb).1.symm,
+    exact absurd h (is_between_neq haxb).1.symm,
     rw h at haxb, rcases (is_between_collinear haxb) with ⟨l, hl, hal, hb'l, hbl⟩,
     exfalso, exact habb' ⟨l, hl, hal, hbl, hb'l⟩,
     rcases (is_between_collinear haxb) with ⟨l, hl, hal, hxl, hbl⟩,
     rcases (is_between_collinear h) with ⟨m, hm, ham, hxm, hb'm⟩,
-    rw two_pt_one_line hm hl (is_between_not_eq haxb).1 ⟨ham, hxm⟩ ⟨hal, hxl⟩ at hb'm,
+    rw two_pt_one_line hm hl (is_between_neq haxb).1 ⟨ham, hxm⟩ ⟨hal, hxl⟩ at hb'm,
     exfalso, exact habb' ⟨l, hl, hal, hbl, hb'm⟩
 end
 
@@ -671,10 +675,10 @@ begin
   have := pt_right_in_segment a b,
   rw haba'b' at this, rcases this with hb | hb | hb,
   simp at hb, rw is_between_symm at hf,
-  exfalso, exact (collinear_between (is_between_collinear hb)).2.2.1 ⟨hb, hf⟩,
-  exact absurd hb (is_between_not_eq ha').2.2.symm,
-  exact absurd hb (is_between_not_eq hf).2.1.symm,
-  exact absurd ha' (is_between_not_eq ha).1,
+  exfalso, exact is_between_contra.2.1 ⟨hb, hf⟩,
+  exact absurd hb (is_between_neq ha').2.2.symm,
+  exact absurd hb (is_between_neq hf).2.1.symm,
+  exact absurd ha' (is_between_neq ha).1,
   right, rw segment_symm at haba'b',
   simp at ha',
   exact ⟨two_pt_segment_pt_prep haba'b' ha'.symm, ha'.symm⟩,
