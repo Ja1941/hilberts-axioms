@@ -18,7 +18,7 @@ class hilbert_plane extends incidence_order_geometry :=
 (C1 : ∀ {a b : pts} {l : seg}, seg_nontrivial l → a ≠ b → ∃ c : pts, same_side_pt a b c ∧
 seg_congr l (a-ₛc) ∧ ∀ x : pts, same_side_pt a b x → seg_congr l (a-ₛx) → x = c)
 (C2 : (∀ {s₁ s₂ s₃ : seg}, (seg_congr s₁ s₂ → seg_congr s₁ s₃ → seg_congr s₂ s₃))
-    ∧ ∀ (s : seg),  seg_congr s s)
+∧ ∀ (s : seg),  seg_congr s s)
 (C3 : ∀ {a b c d e f: pts}, between a b c → between d e f
   → seg_congr (a-ₛb) (d-ₛe) → seg_congr (b-ₛc) (e-ₛf) → seg_congr (a-ₛc) (d-ₛf))
 (ang_congr : ang → ang → Prop)

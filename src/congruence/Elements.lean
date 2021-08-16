@@ -684,3 +684,61 @@ begin
   rw between_symm, exact hace,
   exact hbcd
 end
+
+/--I.18 in Elements -/
+lemma greater_side_ang {a b c : pts} (habc : noncol a b c) (hs : (a-ₛb) <ₛ (a-ₛc)) :
+∠ a c b <ₐ ∠ a b c :=
+begin
+  have hab := (noncol_neq habc).1,
+  have hbc := (noncol_neq habc).2.2,
+  rcases two_pt_seg_lt.1 hs with ⟨d, hadc, habad⟩,
+  have had := (between_neq hadc).1,
+  have hcd := (between_neq hadc).2.2.symm,
+  apply ang_lt_trans (ang_nontrivial_iff_noncol.2 (noncol23 habc)),
+  rw [ang_symm, ang_eq_same_side b (between_same_side_pt.1 hadc).2],
+  rw between_symm at hadc,
+  apply (ang_exter_lt_inter _ hadc).2,
+  exact noncol132 (col_noncol (col23 (between_col hadc)) (noncol132 habc) hcd),
+  apply (ang_lt_congr _).1,
+  rw three_pt_ang_lt, use d,
+  split, exact hypo_inside_ang habc hadc,
+  apply isosceles,
+  exact noncol23 (col_noncol (col23 (between_col hadc)) (noncol23 habc) had),
+  exact habad,
+  rw ang_symm, exact ang_congr_refl _
+end
+
+/--I.19 in Elements -/
+lemma greater_ang_side {a b c : pts} (habc : noncol a b c) (ha : ∠ a c b <ₐ ∠ a b c) :
+(a-ₛb) <ₛ (a-ₛc) :=
+begin
+  have hab := (noncol_neq habc).1,
+  have hac := (noncol_neq habc).2.1,
+  rcases (seg_tri (seg_nontrivial_iff_neq.2 hab) (seg_nontrivial_iff_neq.2 hac)).1
+    with h | hf | hf,
+  exact h,
+  exfalso, apply (ang_tri (ang_nontrivial_iff_noncol.2 (noncol23 habc))
+    (ang_nontrivial_iff_noncol.2 habc)).2.1,
+  split, exact ha,
+  exact isosceles (noncol23 habc) (seg_congr_symm hf),
+  exfalso, apply (ang_tri (ang_nontrivial_iff_noncol.2 (noncol23 habc))
+    (ang_nontrivial_iff_noncol.2 habc)).2.2.1,
+  split, exact ha,
+  exact greater_side_ang (noncol23 habc) hf
+end
+
+/--I.20 in Elements -/
+theorem triangular_ineq {a b c d : pts} (habc : noncol a b c) (habd : between a b d)
+(hbdbc : (b-ₛd) ≅ₛ (b-ₛc)) : (a-ₛc) <ₛ (a-ₛd) :=
+begin
+  have had := (between_neq habd).2.1,
+  have hbd := (between_neq habd).2.2,
+  have hadc := (col_noncol (between_col habd) habc) had,
+  have hbdc := (col_noncol (col12 (between_col habd)) (noncol12 habc)) hbd,
+  apply greater_ang_side (noncol23 hadc),
+  rw [ang_symm a c d, three_pt_ang_lt],
+  use b, rw ang_symm, split,
+  exact hypo_inside_ang (noncol23 hadc) habd,
+  rw [ang_symm a d c, ang_eq_same_side c (between_same_side_pt.1 habd).2, ang_symm, ang_symm c d b],
+  exact isosceles (noncol23 hbdc) (seg_congr_symm hbdbc)
+end

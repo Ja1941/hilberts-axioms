@@ -277,6 +277,7 @@ end
 structure ang := (vertex : pts) (inside : set pts)
 (in_eq : ∃ a b : pts, inside = (vertex-ᵣa).inside ∪ (vertex-ᵣb).inside)
 
+/--
 noncomputable def pt1 (α : ang) :
 {a : pts // ∃ b : pts, α.inside = (α.vertex-ᵣa).inside ∪ (α.vertex-ᵣb).inside} :=
 by {choose a h using α.in_eq, exact ⟨a, h⟩}
@@ -284,6 +285,7 @@ by {choose a h using α.in_eq, exact ⟨a, h⟩}
 noncomputable def pt2 (α : ang) :
 {b : pts // α.inside = (α.vertex-ᵣ(pt1 α)).inside ∪ (α.vertex-ᵣb).inside} :=
 by {choose b h using (pt1 α).2, exact ⟨b, h⟩}
+-/
 
 lemma vertex_in_ang (α : ang) : α.vertex ∈ α.inside :=
 by { rcases α.in_eq with ⟨a, b, h⟩, rw h, left, exact pt_left_in_ray _ _ }
@@ -529,6 +531,20 @@ begin
   split; rw ang_nontrivial_iff_noncol; intro h,
   exact (same_side_line_not_in hp.1).2 (col_in23 h hoa),
   exact (same_side_line_not_in hp.2).2 (col_in23 h hob)
+end
+
+lemma hypo_inside_ang {a b c d : pts} (habc : noncol a b c) (hadc : between a d c) :
+inside_ang d (∠ a b c) :=
+begin
+  have hab := (noncol_neq habc).1,
+  have hbc := (noncol_neq habc).2.2,
+  have had := (between_neq hadc).1,
+  have hdc := (between_neq hadc).2.2,
+  rw inside_three_pt_ang, split,
+  apply t_shape_seg hab.symm (noncol_in12 (noncol12 habc)),
+  left, exact hadc, exact had.symm,
+  apply t_shape_seg hbc (noncol_in23 habc),
+  left, rw between_symm at hadc, exact hadc, exact hdc
 end
 
 theorem crossbar {a b c d : pts}

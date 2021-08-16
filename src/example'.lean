@@ -590,31 +590,8 @@ example : hilbert_plane :=
     rw [seg.between_cal habc, seg.between_cal hdef, habde, hbcef]
   end,
   ang_congr := ang_congr,
-  C4 :=
-  begin
-    sorry,
-  end,
-  C5 :=
-  begin
-    split,
-    intros α β γ hαβ hαγ,
-    rcases hαβ with hαβ | hαβ | hαβ | hαβ,
-    left, exact ⟨hαβ.2.1, ang.congr_acute hαγ hαβ.1,
-      hαβ.2.2.symm.trans (ang.congr_acute_tangent hαγ hαβ.1)⟩,
-    right, left,
-    exact ⟨hαβ.2, ang.congr_right hαγ hαβ.1⟩,
-    right, right, left, exact ⟨hαβ.2.1, ang.congr_obtuse hαγ hαβ.1,
-      hαβ.2.2.symm.trans (ang.congr_obtuse_tangent hαγ hαβ.1)⟩,
-    right, right, right,
-    exact ⟨hαβ.2, ang.congr_trivial hαγ hαβ.1⟩,
-    intro α,
-    by_cases @ang_nontrivial r_squared α,
-      rcases acute_right_obtuse h with h | h | h,
-      left, simp, exact h,
-      right, left, simp, exact h,
-      right, right, left, simp, exact h,
-    right, right, right, simp, exact h
-  end,
+  C4 := sorry,
+  C5 := sorry,
   C6 := sorry,
   ..r_squared }
 
