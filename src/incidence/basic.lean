@@ -6,7 +6,7 @@ universes u
 with the following axioms :
 I1. Two distinct points uniquely define a line.
 I2. Every line contains at least 2 distinct points.
-I3. There exists 3 noncollinear points.
+I3. There exists 3 noncol points.
 -/
 class incidence_geometry :=
 (pts : Type u) (lines : set (set pts))
@@ -92,16 +92,16 @@ begin
   exact absurd ((key l₁ hl₁ ha₁ hb₁).trans (key l₂ hl₂ ha₂ hb₂).symm) hll
 end
 
-/--Three points are collinear if there are on the same line. -/
-def collinear (a b c : pts) : Prop :=
+/--Three points are col if there are on the same line. -/
+def col (a b c : pts) : Prop :=
 ∃ l ∈ lines, a ∈ l ∧ b ∈ l ∧ c ∈ l
 
-/--Opposite to collinear -/
-def noncollinear (a b c : pts) : Prop := ¬collinear a b c
+/--Opposite to col -/
+def noncol (a b c : pts) : Prop := ¬col a b c
 
-lemma noncollinear_exist {a b : pts} (hab : a ≠ b) : ∃ c : pts, noncollinear a b c :=
+lemma noncol_exist {a b : pts} (hab : a ≠ b) : ∃ c : pts, noncol a b c :=
 begin
-  by_contra hf, unfold noncollinear collinear at hf, push_neg at hf,
+  by_contra hf, unfold noncol col at hf, push_neg at hf,
   rcases I3 with ⟨x, y, z, hxy, hxz, hyz, hxyz⟩,
   rcases hf x with ⟨l, hl, hal, hbl, hxl⟩,
   rcases hf y with ⟨m, hm, ham, hbm, hym⟩,
@@ -111,7 +111,7 @@ begin
   exact hxyz ⟨l, hl, hxl, hym, hzn⟩
 end
 
-lemma noncollinear_neq {a b c : pts} (hf : noncollinear a b c) : a ≠ b ∧ a ≠ c ∧ b ≠ c :=
+lemma noncol_neq {a b c : pts} (hf : noncol a b c) : a ≠ b ∧ a ≠ c ∧ b ≠ c :=
 begin
   have : ∀ a b : pts, ∃ l ∈ lines, a ∈ l ∧ b ∈ l,
     intros a b, by_cases a = b,
@@ -136,49 +136,49 @@ begin
   exact hf ⟨l, hl, key.1, key.2, key.2⟩
 end
 
-lemma collinear12 {a b c : pts} : collinear a b c → collinear b a c :=
+lemma col12 {a b c : pts} : col a b c → col b a c :=
 by {rintros ⟨l, hl, habc⟩, use l, tauto}
 
-lemma noncollinear12 {a b c : pts} : noncollinear a b c → noncollinear b a c :=
-by {unfold noncollinear, contrapose!, exact collinear12}
+lemma noncol12 {a b c : pts} : noncol a b c → noncol b a c :=
+by {unfold noncol, contrapose!, exact col12}
 
-lemma collinear13 {a b c : pts} : collinear a b c → collinear c b a :=
+lemma col13 {a b c : pts} : col a b c → col c b a :=
 by {rintros ⟨l, hl, habc⟩, use l, tauto}
 
-lemma noncollinear13 {a b c : pts} : noncollinear a b c → noncollinear c b a :=
-by {unfold noncollinear, contrapose!, exact collinear13}
+lemma noncol13 {a b c : pts} : noncol a b c → noncol c b a :=
+by {unfold noncol, contrapose!, exact col13}
 
-lemma collinear23 {a b c : pts} : collinear a b c → collinear a c b :=
+lemma col23 {a b c : pts} : col a b c → col a c b :=
 by {rintros ⟨l, hl, habc⟩, use l, tauto}
 
-lemma noncollinear23 {a b c : pts} : noncollinear a b c → noncollinear a c b :=
-by {unfold noncollinear, contrapose!, exact collinear23}
+lemma noncol23 {a b c : pts} : noncol a b c → noncol a c b :=
+by {unfold noncol, contrapose!, exact col23}
 
-lemma collinear123 {a b c : pts} : collinear a b c → collinear b c a :=
-λh, collinear23 (collinear12 h)
+lemma col123 {a b c : pts} : col a b c → col b c a :=
+λh, col23 (col12 h)
 
-lemma collinear132 {a b c : pts} : collinear a b c → collinear c a b :=
-λh, collinear23 (collinear13 h)
+lemma col132 {a b c : pts} : col a b c → col c a b :=
+λh, col23 (col13 h)
 
-lemma noncollinear123 {a b c : pts} : noncollinear a b c → noncollinear b c a :=
-by {unfold noncollinear, contrapose!, exact collinear132}
+lemma noncol123 {a b c : pts} : noncol a b c → noncol b c a :=
+by {unfold noncol, contrapose!, exact col132}
 
-lemma noncollinear132 {a b c : pts} : noncollinear a b c → noncollinear c a b :=
-by {unfold noncollinear, contrapose!, exact collinear123}
+lemma noncol132 {a b c : pts} : noncol a b c → noncol c a b :=
+by {unfold noncol, contrapose!, exact col123}
 
-lemma collinear_trans {a b c d : pts} (habc : collinear a b c) (habd : collinear a b d)
-  (hab : a ≠ b) : collinear a c d :=
+lemma col_trans {a b c d : pts} (habc : col a b c) (habd : col a b d)
+  (hab : a ≠ b) : col a c d :=
 begin
   rcases habc with ⟨l, hl, hal, hbl, hcl⟩, rcases habd with ⟨m, hm, ham, hbm, hdm⟩,
   rw two_pt_one_line hm hl hab ⟨ham, hbm⟩ ⟨hal, hbl⟩ at hdm,
   exact ⟨l, hl, hal, hcl, hdm⟩
 end
 
-lemma collinear_noncollinear {a b c d : pts} (habc : collinear a b c) (habd : noncollinear a b d) :
-a ≠ c → noncollinear a c d :=
-λhac hacd, habd (collinear_trans (collinear23 habc) hacd hac)
+lemma col_noncol {a b c d : pts} (habc : col a b c) (habd : noncol a b d) :
+a ≠ c → noncol a c d :=
+λhac hacd, habd (col_trans (col23 habc) hacd hac)
 
-lemma collinear_in12 {a b c : pts} : collinear a b c → a ≠ b → c ∈ (a-ₗb) :=
+lemma col_in12 {a b c : pts} : col a b c → a ≠ b → c ∈ (a-ₗb) :=
 begin
   rintros ⟨l, hl, hal, hbl, hcl⟩, intro hab,
   rw two_pt_one_line hl (line_in_lines hab) hab
@@ -186,7 +186,7 @@ begin
   exact hcl
 end
 
-lemma collinear_in13 {a b c : pts} : collinear a b c → a ≠ c → b ∈ (a-ₗc) :=
+lemma col_in13 {a b c : pts} : col a b c → a ≠ c → b ∈ (a-ₗc) :=
 begin
   rintros ⟨l, hl, hal, hbl, hcl⟩, intro hac,
   rw two_pt_one_line hl (line_in_lines hac) hac
@@ -194,7 +194,7 @@ begin
   exact hbl
 end
 
-lemma collinear_in23 {a b c : pts} : collinear a b c → b ≠ c → a ∈ (b-ₗc) :=
+lemma col_in23 {a b c : pts} : col a b c → b ≠ c → a ∈ (b-ₗc) :=
 begin
   rintros ⟨l, hl, hal, hbl, hcl⟩, intro hbc,
   rw two_pt_one_line hl (line_in_lines hbc) hbc
@@ -202,38 +202,38 @@ begin
   exact hal
 end
 
-lemma noncollinear_in12 {a b c : pts} : noncollinear a b c → c ∉ (a-ₗb) :=
-λ habc hc, habc ⟨(a-ₗb), line_in_lines (noncollinear_neq habc).1,
+lemma noncol_in12 {a b c : pts} : noncol a b c → c ∉ (a-ₗb) :=
+λ habc hc, habc ⟨(a-ₗb), line_in_lines (noncol_neq habc).1,
   pt_left_in_line a b, pt_right_in_line a b, hc⟩
 
-lemma noncollinear_in13 {a b c : pts} : noncollinear a b c → b ∉ (a-ₗc) :=
-λ habc hb, habc ⟨(a-ₗc), line_in_lines (noncollinear_neq habc).2.1,
+lemma noncol_in13 {a b c : pts} : noncol a b c → b ∉ (a-ₗc) :=
+λ habc hb, habc ⟨(a-ₗc), line_in_lines (noncol_neq habc).2.1,
   pt_left_in_line a c, hb, pt_right_in_line a c⟩
 
-lemma noncollinear_in23 {a b c : pts} : noncollinear a b c → a ∉ (b-ₗc) :=
-λ habc ha, habc ⟨(b-ₗc), line_in_lines (noncollinear_neq habc).2.2, ha,
+lemma noncol_in23 {a b c : pts} : noncol a b c → a ∉ (b-ₗc) :=
+λ habc ha, habc ⟨(b-ₗc), line_in_lines (noncol_neq habc).2.2, ha,
   pt_left_in_line b c, pt_right_in_line b c⟩
 
-lemma collinear_in12' {a b c : pts} : c ∈ (a-ₗb) → collinear a b c :=
-by { intro h, by_contra habc, exact (noncollinear_in12 habc) h }
+lemma col_in12' {a b c : pts} : c ∈ (a-ₗb) → col a b c :=
+by { intro h, by_contra habc, exact (noncol_in12 habc) h }
 
-lemma collinear_in13' {a b c : pts} : b ∈ (a-ₗc) → collinear a b c :=
-by { intro h, by_contra habc, exact (noncollinear_in13 habc) h }
+lemma col_in13' {a b c : pts} : b ∈ (a-ₗc) → col a b c :=
+by { intro h, by_contra habc, exact (noncol_in13 habc) h }
 
-lemma collinear_in23' {a b c : pts} : a ∈ (b-ₗc) → collinear a b c :=
-by { intro h, by_contra habc, exact (noncollinear_in23 habc) h }
+lemma col_in23' {a b c : pts} : a ∈ (b-ₗc) → col a b c :=
+by { intro h, by_contra habc, exact (noncol_in23 habc) h }
 
-lemma noncollinear_in12' {a b c : pts} (hab : a ≠ b)
-: c ∉ (a-ₗb) → noncollinear a b c :=
-by { contrapose!, intro h, unfold noncollinear at h, rw not_not at h,
-  exact collinear_in12 h hab }
+lemma noncol_in12' {a b c : pts} (hab : a ≠ b)
+: c ∉ (a-ₗb) → noncol a b c :=
+by { contrapose!, intro h, unfold noncol at h, rw not_not at h,
+  exact col_in12 h hab }
 
-lemma noncollinear_in13' {a b c : pts} (hac : a ≠ c)
-: b ∉ (a-ₗc) → noncollinear a b c :=
-by { contrapose!, intro h, unfold noncollinear at h, rw not_not at h,
-  exact collinear_in13 h hac }
+lemma noncol_in13' {a b c : pts} (hac : a ≠ c)
+: b ∉ (a-ₗc) → noncol a b c :=
+by { contrapose!, intro h, unfold noncol at h, rw not_not at h,
+  exact col_in13 h hac }
 
-lemma noncollinear_in23' {a b c : pts} (hbc : b ≠ c)
-: a ∉ (b-ₗc) → noncollinear a b c :=
-by { contrapose!, intro h, unfold noncollinear at h, rw not_not at h,
-  exact collinear_in23 h hbc }
+lemma noncol_in23' {a b c : pts} (hbc : b ≠ c)
+: a ∉ (b-ₗc) → noncol a b c :=
+by { contrapose!, intro h, unfold noncol at h, rw not_not at h,
+  exact col_in23 h hbc }

@@ -4,6 +4,7 @@ import data.real.basic
 import data.real.sqrt
 import group_theory.group_action.defs
 import analysis.normed_space.inner_product
+import analysis.normed_space.pi_Lp
 
 -- TODO : prove three axioms.
 section Fano_example
@@ -541,158 +542,26 @@ end
 
 end seg
 
-noncomputable def slope (a b : ℝ × ℝ) : ℝ := (b.2 - a.2) / (b.1 - a.1)
+open real
 
-example {a b c : ℝ} (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) :
-(a * b)/(a * c) = b / c := mul_div_mul_left b c ha
-
-lemma same_side_pt_slope {a b c : ℝ × ℝ} (habc : @same_side_pt r_squared a b c) :
-slope b a = slope c a :=
-begin
-  rw seg.same_side_pt_rw at habc,
-  rcases habc with ⟨hab, k, hkpos, hk⟩,
-  rw prod.ext_iff at hk, simp at hk,
-  unfold slope,
-  rw [←neg_sub b.1 a.1, ←neg_sub b.2 a.2, ←neg_sub c.1 a.1, ←neg_sub c.2 a.2,
-    neg_div_neg_eq, neg_div_neg_eq, hk.1, hk.2, mul_div_mul_left],
-  linarith
-end
-
-def right (α : @ang r_squared) : Prop :=
-@ang_nontrivial r_squared α ∧ ∃ a b : ℝ × ℝ,
-α = @three_pt_ang r_squared a (@ang.vertex r_squared α) b
-∧ (slope a (@ang.vertex r_squared α)) * (slope b (@ang.vertex r_squared α)) = -1
-
-lemma three_pt_right {a o b : ℝ × ℝ} : right (@three_pt_ang r_squared a o b)
-↔ @noncol (r_squared.to_incidence_geometry) a o b ∧ (slope a o) * (slope b o) = -1 :=
-begin
-  split; intro haob,
-  rcases haob with ⟨haob, a', b', hα, hr⟩,
-  split, rw ang_nontrivial_iff_noncol at haob, exact haob,
-  rw three_pt_ang_vertex at hα hr,
-  replace hα := hα.symm,
-  rw three_pt_ang_eq_iff at hα,
-  cases hα.2,
-  rw [←same_side_pt_slope h.1, ←same_side_pt_slope h.2, hr],
-  rw [←same_side_pt_slope h.1, ←same_side_pt_slope h.2, mul_comm, hr],
-  rw [←hα, ang_nontrivial_iff_noncol] at haob, exact haob,
-  split, rw ang_nontrivial_iff_noncol, exact haob.1,
-  use [a, b], exact ⟨rfl, haob.2⟩
-end
-
-def acute (α : @ang r_squared) : Prop :=
-@ang_nontrivial r_squared α ∧ ∃ a b c : ℝ × ℝ,
-α = @three_pt_ang r_squared a (@ang.vertex r_squared α) b
-∧ right (@three_pt_ang r_squared a (@ang.vertex r_squared α) c)
-∧ @inside_ang r_squared a (@three_pt_ang r_squared c (@ang.vertex r_squared α) b)
-
-def obtuse (α : @ang r_squared) : Prop :=
-@ang_nontrivial r_squared α ∧ ∃ a b c : ℝ × ℝ,
-α = @three_pt_ang r_squared a (@ang.vertex r_squared α) b
-∧ right (@three_pt_ang r_squared a (@ang.vertex r_squared α) c)
-∧ @inside_ang r_squared c (@three_pt_ang r_squared a (@ang.vertex r_squared α) b)
-
-def trivial (α : @ang r_squared) : Prop := ¬@ang_nontrivial r_squared α
-
-lemma ang_trivial_iff_col {a o b : ℝ × ℝ} : trivial (@three_pt_ang r_squared a o b)
-↔ @col r_squared.to_incidence_geometry a o b :=
-begin
-  split; contrapose!; intro h,
-  unfold trivial, push_neg,
-  rw ang_nontrivial_iff_noncol, exact h,
-  unfold trivial at h, push_neg at h,
-  rw ang_nontrivial_iff_noncol at h, exact h
-end
-
-lemma extend_right_ang {a o b : ℝ × ℝ} (haob : @noncol r_squared.to_incidence_geometry a o b) :
-∃ c : ℝ × ℝ, right (@three_pt_ang r_squared a o c) ∧ @same_side_line r_squared
-(@line r_squared.to_incidence_geometry o a) b c :=
-begin
-  sorry
-end
-
-lemma acute_right_obtuse {α : @ang r_squared} (haob : @ang_nontrivial r_squared α) :
-(acute α ∨ right α ∨ obtuse α) ∧ ¬(acute α ∧ right α)
-∧ ¬(acute α ∧ obtuse α) ∧ ¬(right α ∧ obtuse α) :=
-begin
-  rcases @ang_three_pt r_squared α with ⟨a, b, hα⟩,
-  set o := (@ang.vertex r_squared α),
-  rw hα, rw hα at haob,
-  sorry
-end
-
-noncomputable def tangent (α : @ang r_squared) : ℝ :=
-abs ((slope (@pt1 r_squared α).1 (@ang.vertex r_squared α) - slope (@pt2 r_squared α).1
-(@ang.vertex r_squared α)) / (1 + slope (@pt1 r_squared α).1
-(@ang.vertex r_squared α) * slope (@pt2 r_squared α).1 (@ang.vertex r_squared α)))
+noncomputable def cos (a o b : ℝ × ℝ) : ℝ := ((a.1 - o.1) * (b.1 - o.1) + (a.2 - o.2) * (b.2 - o.2))
+/ (sqrt ((a.1 - o.1)^2 + (a.2 - o.2)^2) * sqrt ((b.1 - o.1)^2 + (b.2 - o.2)^2))
 
 def ang_congr (α β : @ang r_squared) : Prop :=
-(acute α ∧ acute β ∧ tangent α = tangent β) ∨ (right α ∧ right β)
-∨ (obtuse α ∧ obtuse β ∧ tangent α = tangent β) ∨ (trivial α ∧ trivial β)
+∃ a b c d e f : ℝ × ℝ, α = @three_pt_ang r_squared a b c ∧ β = @three_pt_ang r_squared d e f
+∧ cos (a - b) (c - b) = cos (d - e) (f - e)
 
 namespace ang
 
-lemma congr_acute {α β : @ang r_squared} (hαβ : ang_congr α β)
-(hα : acute α) : acute β :=
-begin
-  rcases hαβ with hαβ | hαβ | hαβ | hαβ,
-  exact hαβ.2.1,
-  exfalso, exact (acute_right_obtuse hαβ.1.1).2.1 ⟨hα, hαβ.1⟩,
-  exfalso, exact (acute_right_obtuse hαβ.1.1).2.2.1 ⟨hα, hαβ.1⟩,
-  exact absurd hα.1 hαβ.1
-end
-
-lemma congr_right {α β : @ang r_squared} (hαβ : ang_congr α β)
-(hα : right α) : right β :=
-begin
-  rcases hαβ with hαβ | hαβ | hαβ | hαβ,
-  exfalso, exact (acute_right_obtuse hαβ.1.1).2.1 ⟨hαβ.1, hα⟩,
-  exact hαβ.2,
-  exfalso, exact (acute_right_obtuse hαβ.1.1).2.2.2 ⟨hα, hαβ.1⟩,
-  exact absurd hα.1 hαβ.1
-end
-
-lemma congr_obtuse {α β : @ang r_squared} (hαβ : ang_congr α β)
-(hα : obtuse α) : obtuse β :=
-begin
-  rcases hαβ with hαβ | hαβ | hαβ | hαβ,
-  exfalso, exact (acute_right_obtuse hαβ.1.1).2.2.1 ⟨hαβ.1, hα⟩,
-  exfalso, exact (acute_right_obtuse hαβ.1.1).2.2.2 ⟨hαβ.1, hα⟩,
-  exact hαβ.2.1,
-  exact absurd hα.1 hαβ.1
-end
-
-lemma congr_trivial {α β : @ang r_squared} (hαβ : ang_congr α β)
-(hα : trivial α) : trivial β :=
-begin
-  rcases hαβ with hαβ | hαβ | hαβ | hαβ,
-  exact absurd hαβ.1.1 hα,
-  exact absurd hαβ.1.1 hα,
-  exact absurd hαβ.1.1 hα,
-  exact hαβ.2
-end
-
-lemma congr_acute_tangent {α β : @ang r_squared} (hαβ : ang_congr α β)
-(hα : acute α) : tangent α =  tangent β :=
-begin
-  rcases hαβ with hαβ | hαβ | hαβ | hαβ,
-  exact hαβ.2.2,
-  exfalso, exact (acute_right_obtuse hαβ.1.1).2.1 ⟨hα, hαβ.1⟩,
-  exact hαβ.2.2,
-  exact absurd hα.1 hαβ.1
-end
-
-lemma congr_obtuse_tangent {α β : @ang r_squared} (hαβ : ang_congr α β)
-(hα : obtuse α) : tangent α =  tangent β :=
-begin
-  rcases hαβ with hαβ | hαβ | hαβ | hαβ,
-  exact hαβ.2.2,
-  exfalso, exact (acute_right_obtuse hαβ.1.1).2.2.2 ⟨hαβ.1, hα⟩,
-  exact hαβ.2.2,
-  exact absurd hα.1 hαβ.1
-end
-
 end ang
+
+example {a b c d : euclidean_space ℝ (fin 2)} :
+inner (b - a) (c - d) =
+(b 0 - a 0) * (c 0 - d 0) + (b 1 - a 1) * (c 0 - d 0) :=
+begin
+  simp,
+  sorry
+end
 
 example : hilbert_plane :=
 { seg_congr := seg_congr,
