@@ -542,27 +542,52 @@ end
 
 end seg
 
-open real
+def f (a : ℝ × ℝ) : euclidean_space ℝ (fin 2) := λ i,
+if i = 0 then a.1 else a.2
 
 noncomputable def cos (a o b : ℝ × ℝ) : ℝ :=
-((a.1 - o.1) * (b.1 - o.1) + (a.2 - o.2) * (b.2 - o.2))
-/ (sqrt ((a.1 - o.1)^2 + (a.2 - o.2)^2) * sqrt ((b.1 - o.1)^2 + (b.2 - o.2)^2))
+(inner (f a - f o) (f b - f o)) / (∥f a - f o∥ * ∥ f b - f o∥)
 
-def ang_congr (α β : @ang r_squared) : Prop :=
-∃ a b c d e f : ℝ × ℝ, α = @three_pt_ang r_squared a b c ∧ β = @three_pt_ang r_squared d e f
-∧ cos (a - b) (c - b) = cos (d - e) (f - e)
+lemma cos_symm (a o b : ℝ × ℝ) : cos a o b = cos b o a :=
+by { unfold cos, rw [real_inner_comm, mul_comm] }
+
+lemma cos_eq_same_side_pt {a o c : ℝ × ℝ} (b : ℝ × ℝ) (h : @same_side_pt r_squared o a c) :
+cos a o b = cos c o b :=
+begin
+  sorry,
+end
+
+lemma f1 (a : ℝ × ℝ) : a.1 = f a 0 := rfl
+
+lemma f2 (a : ℝ × ℝ) : a.2 = f a 1 := rfl
+
+lemma inner_equiv (a b : ℝ × ℝ) :
+inner (f a) (f b) = a.1 * b.1 + a.2 * b.2 :=
+begin
+  unfold inner, simp,
+  rw [f1, f1, f2, f2],
+  --unfold finset.univ fintype.elems finset.fin_range,
+  sorry,
+end
+
+open real
+
+lemma norm_equiv (a : ℝ × ℝ) :
+∥f a∥ = sqrt (a.1^2 + a.2^2) :=
+begin
+  unfold norm,
+  rw [f1, f2],
+  sorry,
+end
 
 namespace ang
 
-end ang
+def congr (α β : @ang r_squared) : Prop := ∃ a b c d : ℝ × ℝ,
+α = @three_pt_ang r_squared a (@ang.vertex r_squared α) b
+∧ β = @three_pt_ang r_squared c (@ang.vertex r_squared α) d
+∧ cos a (@ang.vertex r_squared α) b = cos c (@ang.vertex r_squared α) d
 
-example {a b c d : euclidean_space ℝ (fin 2)} :
-inner (b - a) (c - d) =
-(b 0 - a 0) * (c 0 - d 0) + (b 1 - a 1) * (c 0 - d 0) :=
-begin
-  simp,
-  sorry
-end
+end ang
 
 example : hilbert_plane :=
 { seg_congr := seg_congr,
@@ -589,9 +614,21 @@ example : hilbert_plane :=
     nlinarith, nlinarith,
     rw [seg.between_cal habc, seg.between_cal hdef, habde, hbcef]
   end,
-  ang_congr := ang_congr,
+  ang_congr := ang.congr,
   C4 := sorry,
-  C5 := sorry,
+  C5 :=
+  begin
+    split,
+    intros α β γ hαβ hαγ,
+    rcases hαβ with ⟨a, b, c, d, hα, hβ, hαβ⟩,
+    rcases hαγ with ⟨a', b', e, f, hα', hγ, hαγ⟩,
+    use [c, d, e, f],
+    have he := hα.symm.trans hα',
+    rw three_pt_ang_eq_iff at he,
+    sorry,
+    sorry,
+    sorry,
+  end,
   C6 := sorry,
   ..r_squared }
 

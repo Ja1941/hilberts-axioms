@@ -277,7 +277,6 @@ end
 structure ang := (vertex : pts) (inside : set pts)
 (in_eq : ∃ a b : pts, inside = (vertex-ᵣa).inside ∪ (vertex-ᵣb).inside)
 
-/--
 noncomputable def pt1 (α : ang) :
 {a : pts // ∃ b : pts, α.inside = (α.vertex-ᵣa).inside ∪ (α.vertex-ᵣb).inside} :=
 by {choose a h using α.in_eq, exact ⟨a, h⟩}
@@ -285,7 +284,6 @@ by {choose a h using α.in_eq, exact ⟨a, h⟩}
 noncomputable def pt2 (α : ang) :
 {b : pts // α.inside = (α.vertex-ᵣ(pt1 α)).inside ∪ (α.vertex-ᵣb).inside} :=
 by {choose b h using (pt1 α).2, exact ⟨b, h⟩}
--/
 
 lemma vertex_in_ang (α : ang) : α.vertex ∈ α.inside :=
 by { rcases α.in_eq with ⟨a, b, h⟩, rw h, left, exact pt_left_in_ray _ _ }

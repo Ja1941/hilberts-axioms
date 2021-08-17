@@ -544,7 +544,8 @@ end seg
 
 open real
 
-noncomputable def cos (a o b : ℝ × ℝ) : ℝ := ((a.1 - o.1) * (b.1 - o.1) + (a.2 - o.2) * (b.2 - o.2))
+noncomputable def cos (a o b : ℝ × ℝ) : ℝ :=
+((a.1 - o.1) * (b.1 - o.1) + (a.2 - o.2) * (b.2 - o.2))
 / (sqrt ((a.1 - o.1)^2 + (a.2 - o.2)^2) * sqrt ((b.1 - o.1)^2 + (b.2 - o.2)^2))
 
 def ang_congr (α β : @ang r_squared) : Prop :=
@@ -555,6 +556,7 @@ namespace ang
 
 end ang
 
+/--
 example {a b c d : euclidean_space ℝ (fin 2)} :
 inner (b - a) (c - d) =
 (b 0 - a 0) * (c 0 - d 0) + (b 1 - a 1) * (c 0 - d 0) :=
@@ -562,6 +564,7 @@ begin
   simp,
   sorry
 end
+-/
 
 example : hilbert_plane :=
 { seg_congr := seg_congr,
@@ -589,31 +592,8 @@ example : hilbert_plane :=
     rw [seg.between_cal habc, seg.between_cal hdef, habde, hbcef]
   end,
   ang_congr := ang_congr,
-  C4 :=
-  begin
-    sorry,
-  end,
-  C5 :=
-  begin
-    split,
-    intros α β γ hαβ hαγ,
-    rcases hαβ with hαβ | hαβ | hαβ | hαβ,
-    left, exact ⟨hαβ.2.1, ang.congr_acute hαγ hαβ.1,
-      hαβ.2.2.symm.trans (ang.congr_acute_tangent hαγ hαβ.1)⟩,
-    right, left,
-    exact ⟨hαβ.2, ang.congr_right hαγ hαβ.1⟩,
-    right, right, left, exact ⟨hαβ.2.1, ang.congr_obtuse hαγ hαβ.1,
-      hαβ.2.2.symm.trans (ang.congr_obtuse_tangent hαγ hαβ.1)⟩,
-    right, right, right,
-    exact ⟨hαβ.2, ang.congr_trivial hαγ hαβ.1⟩,
-    intro α,
-    by_cases @ang_nontrivial r_squared α,
-      rcases acute_right_obtuse h with h | h | h,
-      left, simp, exact h,
-      right, left, simp, exact h,
-      right, right, left, simp, exact h,
-    right, right, right, simp, exact h
-  end,
+  C4 := sorry,
+  C5 := sorry,
   C6 := sorry,
   ..r_squared }
 
