@@ -6,28 +6,11 @@ import group_theory.group_action.defs
 import analysis.normed_space.inner_product
 import analysis.normed_space.pi_Lp
 import geometry.euclidean.basic
-
--- TODO : prove three axioms.
-section Fano_example
-
-/-- The Fano Plane. -/
-def pts_Fano : Type := {x : zmod 2 × zmod 2 × zmod 2 // x ≠ (0,0,0)}
-
-/--Construction of a Fano plane as an incidence geometry -/
-example : incidence_geometry :=
-{ pts := pts_Fano,
-  lines := { S : set pts_Fano | ∃ y : pts_Fano,
-    S = { x | x.1.1 * y.1.1 + x.1.2.1 * y.1.2.1 + x.1.2.2 * y.1.2.2 = 0}},
-  I1 := sorry,
-  I2 := sorry,
-  I3 := sorry
-}
-
-end Fano_example
+import geometry.euclidean.triangle
 
 section affine_plane
 
--- affine plane
+/--A Cartesian plane on any field forms an incidence geometry. -/
 def affine_plane (k : Type) [field k] : incidence_geometry :=
 { pts := k × k,
   lines := {S : set (k × k) | ∃ u₀ u : k × k, u ≠ u₀
@@ -87,8 +70,9 @@ def affine_plane (k : Type) [field k] : incidence_geometry :=
 
 end affine_plane
 
-namespace r_squared
+namespace r2
 
+/--b is between a and c -/
 def between (a b c : ℝ × ℝ) : Prop :=
 b ≠ c ∧ ∃ k : ℝ, 0 < k ∧ a + k • c = k • b + b
 
@@ -155,7 +139,7 @@ begin
   exact ⟨⟨0, by simp⟩, ⟨1, by simp⟩⟩
 end
 
-lemma tri {μ : ℝ} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) (hc : c = a + μ • (b - a)) :
+lemma tri {μ : ℝ} (hac : a ≠ c) (hbc : b ≠ c) (hc : c = a + μ • (b - a)) :
 between a b c ∨ between a c b ∨ between b a c :=
 begin
   have hμ0 : μ ≠ 0,
@@ -338,12 +322,13 @@ end
 
 end between
 
-/--Construction of ℝ × ℝ as an incidence order geometry and a Hilbert plane -/
+/--Construction of ℝ × ℝ as an incidence order geometry.
+  In fact, this is true for any ordered field. -/
 def r_squared : incidence_order_geometry :=
 { between := between,
   B1 :=
   begin
-    rintros a b c (h : r_squared.between a b c),
+    rintros a b c h,
     refine ⟨between.symm h, between.one_ne_two h, between.one_ne_three h,
       between.two_ne_three h, _⟩,
     use {x : ℝ × ℝ | ∃ μ : ℝ, x = a + μ • (b - a)},
@@ -360,7 +345,7 @@ def r_squared : incidence_order_geometry :=
     have := @col_in12 (affine_plane ℝ) a b c ⟨l, hl, habcl⟩ hab,
     rw between.line_rw hab at this,
     cases this with μ hc,
-    exact between.tri hab hac hbc hc,
+    exact between.tri hac hbc hc,
     intros a b c,
     split, exact between.contra a b c,
     split, intro hf, exact between.contra c b a ⟨between.symm hf.1, between.symm hf.2⟩,
@@ -400,6 +385,7 @@ def r_squared : incidence_order_geometry :=
   end,
   ..affine_plane ℝ}
 
+/--Two segments are congruent if their lengths are equal. -/
 def seg_congr (s₁ s₂ : @seg r_squared) : Prop :=
 ∃ a b c d : r_squared.pts, s₁ = @two_pt_seg r_squared a b ∧ s₂ = @two_pt_seg r_squared c d
 ∧ (a.1 - b.1)^2 + (a.2 - b.2)^2 = (c.1 - d.1)^2 + (c.2 - d.2)^2
@@ -543,6 +529,7 @@ end
 
 end seg
 
+/--This map bijects between ℝ × ℝ to Euclidean space ℝ^2. -/
 def f (a : ℝ × ℝ) : euclidean_space ℝ (fin 2) := ![a.1, a.2]
 
 lemma f1 (a : ℝ × ℝ) : a.1 = f a 0 := rfl
@@ -587,6 +574,9 @@ begin
   apply rpow_nonneg_of_nonneg, rw [this, this], nlinarith,
 end
 
+lemma norm_equiv' (a : ℝ × ℝ) : ∥f a∥^2 = a.1^2 + a.2^2 :=
+by {rw [norm_equiv, sq_sqrt], nlinarith}
+
 open euclidean_geometry
 open inner_product_geometry
 
@@ -601,6 +591,7 @@ begin
   linarith
 end
 
+/--Two angles are congruent if they have the same radians. -/
 def ang_congr (α β : @ang r_squared) : Prop := ∃ a b c d : ℝ × ℝ,
 α = @three_pt_ang r_squared a (@ang.vertex r_squared α) b
 ∧ β = @three_pt_ang r_squared c (@ang.vertex r_squared β) d
@@ -744,10 +735,39 @@ begin
          : by {rw [add_div, mul_comm, ←mul_assoc, mul_div_cancel _ hb], ring_exp_eq}
 end
 
+lemma sq_add_sq_zero {a b : ℝ} (h : a^2 + b^2 = 0) : a = 0 ∧ b = 0 :=
+begin
+  have ha : a^2 ≤ a^2 + b^2, nlinarith,
+  have hb : b^2 ≤ a^2 + b^2, nlinarith,
+  rw h at ha hb,
+  exact ⟨pow_eq_zero (le_antisymm ha (sq_nonneg a)), pow_eq_zero (le_antisymm hb (sq_nonneg b))⟩
+end
+
 lemma unit_wlog {o a : ℝ × ℝ} (hoa : o ≠ a) :
 ∃ b : ℝ × ℝ, @same_side_pt r_squared o a b ∧ (b.1 - o.1)^2 + (b.2 - o.2)^2 = 1 :=
 begin
-  sorry
+  set k := ∥f a - f o∥ with hk,
+  use (1 / k) • (a - o) + o,
+  split, rw seg.same_side_pt_rw,
+  split, exact hoa,
+  use k,
+  have hkpos : k > 0,
+    rw hk, simp,
+    intro hf, rw [←f_sub, f_zero, sub_eq_zero] at hf,
+    exact hoa hf.symm,
+  split, exact hkpos,
+  rw [add_sub_cancel, smul_smul, mul_one_div, div_self, one_smul],
+  exact ne_of_gt hkpos,
+  simp only [prod.snd_add, algebra.id.smul_eq_mul, prod.smul_snd, prod.smul_fst, add_sub_cancel,
+    prod.fst_add],
+  rw [mul_pow, mul_pow, ←mul_add, hk, ←f_sub, norm_equiv, div_pow, one_pow, sq_sqrt,
+    div_mul_cancel],
+  intro hf,
+  rw [prod.fst_sub, prod.snd_sub] at hf,
+  apply hoa, rw prod.ext_iff,
+  rw [sub_eq_zero.1 (sq_add_sq_zero hf).1, sub_eq_zero.1 (sq_add_sq_zero hf).2],
+  exact ⟨rfl, rfl⟩,
+  nlinarith
 end
 
 lemma ineq {o a : ℝ × ℝ} (hao : a ≠ o) :
@@ -768,14 +788,6 @@ lemma ineq' (a b o : ℝ × ℝ) :
 inner (f a -ᵥ f o) (f b -ᵥ f o) / (∥f a -ᵥ f o∥ * ∥f b -ᵥ f o∥) ≤ 1
 ∧ inner (f a -ᵥ f o) (f b -ᵥ f o) / (∥f a -ᵥ f o∥ * ∥f b -ᵥ f o∥) ≥ -1 :=
 by {rw ←cos_angle, exact ⟨cos_le_one _, neg_one_le_cos _⟩}
-
-lemma sq_add_sq_zero {a b : ℝ} (h : a^2 + b^2 = 0) : a = 0 ∧ b = 0 :=
-begin
-  have ha : a^2 ≤ a^2 + b^2, nlinarith,
-  have hb : b^2 ≤ a^2 + b^2, nlinarith,
-  rw h at ha hb,
-  exact ⟨pow_eq_zero (le_antisymm ha (sq_nonneg a)), pow_eq_zero (le_antisymm hb (sq_nonneg b))⟩
-end
 
 lemma cos_eq_one {a b c : ℝ × ℝ} (habc : cos (angle (f a) (f b) (f c)) = 1) :
 @col (affine_plane ℝ) a b c :=
@@ -836,8 +848,6 @@ begin
   use k, rw ←f_inj h, ring, exact hab.symm,
   have := int.le_of_dvd (by linarith) ⟨n, h.symm⟩, norm_num at this
 end
-
-example {a b c d : ℝ} : a^2 = b^2 → a = b ∨ a = - b := eq_or_eq_neg_of_sq_eq_sq a b
 
 lemma extend {α : @ang r_squared} {o a : ℝ × ℝ} (hα : @ang_nontrivial r_squared α)
 (hao : a ≠ o) : ∃ b c : ℝ × ℝ, ang_congr α (@three_pt_ang r_squared b o a)
@@ -1190,9 +1200,33 @@ begin
   rw hy, apply same_side_pt_symm, exact hxy
 end
 
+lemma cosine1 (a b c : ℝ × ℝ) : ∥f b - f c∥^2 = ∥f a - f b∥^2 + ∥f a - f c∥^2
+- 2 * ∥f a - f b∥ * ∥f a - f c∥ * cos (angle (f b) (f a) (f c)) :=
+begin
+  unfold euclidean_geometry.angle,
+  rw [sq, sq, sq, vsub_eq_sub, vsub_eq_sub, ←angle_neg_neg, neg_sub, neg_sub,
+    ←norm_sub_sq_eq_norm_sq_add_norm_sq_sub_two_mul_norm_mul_norm_mul_cos_angle, ←sq,
+    sub_sub, add_sub, add_comm (f b) (f a), ←sub_add, ←sub_sub, sub_self, zero_sub, ←neg_sub,
+    norm_neg, add_comm, tactic.ring.add_neg_eq_sub, sq]
+end
+
+lemma cosine2 {a b c : ℝ × ℝ} (hba : b ≠ a) (hbc : b ≠ c) : angle (f a) (f b) (f c) = arccos
+((∥f a - f b∥^2 + ∥f b - f c∥^2 - ∥f a - f c∥^2) / (2 * ∥f a - f b∥ * ∥f b - f c∥)) :=
+begin
+  rw [cosine1 b a c, ←neg_sub (f b) (f a), norm_neg], simp,
+  rw [mul_comm, mul_div_cancel, arccos_cos],
+  exact euclidean_geometry.angle_nonneg (f a) (f b) (f c),
+  exact euclidean_geometry.angle_le_pi (f a) (f b) (f c),
+  simp, rw [←f_sub, ←f_sub, f_zero, f_zero, sub_eq_zero, sub_eq_zero],
+  push_neg, exact ⟨hba, hbc⟩
+end
+
 end ang
 
-example : hilbert_plane :=
+/--Construction of ℝ × ℝ as a Hilbert plane. Note that this is not true for any ordered field.
+For example, rationals do not satisfy C2 as we cannot extend for irrational length. The field
+should be Pythagorean for C2 to hold. -/
+def r_squared' : hilbert_plane :=
 { seg_congr := seg_congr,
   C1 := λ a b l, seg.extend,
   C2 :=
@@ -1265,10 +1299,45 @@ example : hilbert_plane :=
     intro α, rcases @ang_three_pt r_squared α with ⟨a, b, hα⟩,
     use [a, b, a, b], rw ←hα, simp
   end,
-  C6 := sorry,
+  C6 :=
+  begin
+    intros a b c d e f habc hdef habde hacdf hbacedf,
+    have ha := three_pt_ang_congr (@noncol12 (affine_plane ℝ) a b c habc) hbacedf,
+    rw [two_pt_seg_congr, ←prod.fst_sub, ←prod.fst_sub, ←prod.snd_sub, ←prod.snd_sub,
+      ←norm_equiv', ←norm_equiv', f_sub, f_sub, eq_of_sq_eq_sq] at habde hacdf,
+    have hbcef : seg_congr (@two_pt_seg r_squared b c) (@two_pt_seg r_squared e f),
+      use [b, c, e, f],
+      split, exact rfl, split, exact rfl,
+      rw [←prod.fst_sub, ←prod.fst_sub, ←prod.snd_sub, ←prod.snd_sub, ←norm_equiv', ←norm_equiv',
+        f_sub, ang.cosine1 a b c, f_sub, ang.cosine1 d e f, hacdf, habde, ha],
+    split, exact hbcef,
+    rw [two_pt_seg_congr, ←prod.fst_sub, ←prod.fst_sub, ←prod.snd_sub, ←prod.snd_sub,
+      ←norm_equiv', ←norm_equiv', f_sub, f_sub, eq_of_sq_eq_sq] at hbcef,
+    have hab := (@noncol_neq (affine_plane ℝ) a b c habc).1,
+    have hac := (@noncol_neq (affine_plane ℝ) a b c habc).2.1,
+    have hbc := (@noncol_neq (affine_plane ℝ) a b c habc).2.2,
+    have hde := (@noncol_neq (affine_plane ℝ) d e f hdef).1,
+    have hdf := (@noncol_neq (affine_plane ℝ) d e f hdef).2.1,
+    have hef := (@noncol_neq (affine_plane ℝ) d e f hdef).2.2,
+    split,
+    use [a, c, d, f],
+    rw [three_pt_ang_vertex, three_pt_ang_vertex],
+    split, exact rfl, split, exact rfl,
+    split, split; intro hf,
+    exact absurd hf habc,
+    exact absurd hf hdef,
+    intro habc, rw [ang.cosine2 hab.symm hbc, ang.cosine2 hde.symm hef, habde, hacdf, hbcef],
+    use [a, b, d, e],
+    rw [three_pt_ang_vertex, three_pt_ang_vertex],
+    split, exact rfl, split, exact rfl,
+    split, split; intro hf,
+    exact absurd hf (@noncol23 (affine_plane ℝ) a b c habc),
+    exact absurd hf (@noncol23 (affine_plane ℝ) d e f hdef),
+    intro hacb, rw [ang.cosine2 hac.symm hbc.symm, ang.cosine2 hdf.symm hef.symm,
+      habde, hacdf, ←neg_sub (r2.f b) (r2.f c), norm_neg,
+      ←neg_sub (r2.f e) (r2.f f), norm_neg, hbcef],
+    all_goals {exact norm_nonneg _}
+  end,
   ..r_squared }
 
-
-example {p q r : Prop} : (p ↔ q) ↔ (¬p ↔ ¬q) := not_iff_not.symm
-
-end r_squared
+end r2
