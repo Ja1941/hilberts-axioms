@@ -5,6 +5,7 @@ import data.real.sqrt
 import group_theory.group_action.defs
 import analysis.normed_space.inner_product
 import analysis.normed_space.pi_Lp
+import geometry.euclidean.basic
 
 -- TODO : prove three axioms.
 section Fano_example
@@ -317,7 +318,7 @@ begin
     mul_one_div_cancel, one_mul, ←mul_assoc, ←mul_div_assoc, mul_comm (k + 1) k, mul_div_cancel],
   suffices : x + k * y = 0,
     rw [hx, hy] at this, rw ←this, ring,
-  rw hk, ring, rw [div_mul_cancel, sub_self _], exact ne_of_lt h₁.2,
+  rw hk, ring_nf, rw [div_mul_cancel, sub_self _], exact ne_of_lt h₁.2,
   all_goals {try {by linarith}},
   rw between_rw,
   split, intro hf, apply hab,
@@ -432,7 +433,7 @@ begin
   intro habc, split, exact (@same_side_pt_neq r_squared a b c habc).1.symm,
   have hab := (@same_side_pt_neq r_squared a b c habc).1.symm,
   have hac := (@same_side_pt_neq r_squared a b c habc).2.symm,
-  have := @col_in13 r_squared.to_incidence_geometry a b c habc.2 hac,
+  have := @col_in13 (affine_plane ℝ) a b c habc.2 hac,
   rw between.line_rw at this,
   cases this with μ hb,
   use μ, split,
@@ -542,50 +543,652 @@ end
 
 end seg
 
-def f (a : ℝ × ℝ) : euclidean_space ℝ (fin 2) := λ i,
-if i = 0 then a.1 else a.2
-
-noncomputable def cos (a o b : ℝ × ℝ) : ℝ :=
-(inner (f a - f o) (f b - f o)) / (∥f a - f o∥ * ∥ f b - f o∥)
-
-lemma cos_symm (a o b : ℝ × ℝ) : cos a o b = cos b o a :=
-by { unfold cos, rw [real_inner_comm, mul_comm] }
-
-lemma cos_eq_same_side_pt {a o c : ℝ × ℝ} (b : ℝ × ℝ) (h : @same_side_pt r_squared o a c) :
-cos a o b = cos c o b :=
-begin
-  sorry,
-end
+def f (a : ℝ × ℝ) : euclidean_space ℝ (fin 2) := ![a.1, a.2]
 
 lemma f1 (a : ℝ × ℝ) : a.1 = f a 0 := rfl
 
 lemma f2 (a : ℝ × ℝ) : a.2 = f a 1 := rfl
 
+lemma f_add (a b : ℝ × ℝ) : f (a + b) = f a + f b := by {unfold f, simp}
+
+lemma f_neg (a : ℝ × ℝ) : f (-a) = - f a := by {unfold f, simp}
+
+lemma f_sub (a b : ℝ × ℝ) : f (a - b) = f a - f b :=
+by rw [←tactic.ring.add_neg_eq_sub, ←tactic.ring.add_neg_eq_sub, ←f_neg, f_add]
+
+lemma f_smul (k : ℝ) (a : ℝ × ℝ) : f (k • a) = k • (f a) := by {unfold f, simp}
+
+lemma f_inj {a b : ℝ × ℝ} (h : f a = f b) : a = b :=
+by {rw [prod.ext_iff, f1, f1, f2, f2, h], exact ⟨rfl, rfl⟩}
+
+lemma f_zero {a : ℝ × ℝ} : f a = 0 ↔ a = 0 :=
+by {unfold f, rw prod.ext_iff, simp}
+
+lemma f_nonzero {a : ℝ × ℝ} : f a ≠ 0 ↔ a ≠ 0 :=
+by {split; contrapose!; rw f_zero; simp}
+
 lemma inner_equiv (a b : ℝ × ℝ) :
 inner (f a) (f b) = a.1 * b.1 + a.2 * b.2 :=
-begin
-  unfold inner, simp,
-  rw [f1, f1, f2, f2],
-  --unfold finset.univ fintype.elems finset.fin_range,
-  sorry,
-end
+by {unfold inner, rw [f1, f1, f2, f2, fin.sum_univ_succ,
+    fin.sum_univ_succ, fin.succ_zero_eq_one], simp}
 
 open real
 
-lemma norm_equiv (a : ℝ × ℝ) :
-∥f a∥ = sqrt (a.1^2 + a.2^2) :=
+lemma norm_equiv (a : ℝ × ℝ) : ∥f a∥ = sqrt (a.1^2 + a.2^2) :=
 begin
-  unfold norm,
-  rw [f1, f2],
-  sorry,
+  have : ∀ a : ℝ, a ^ (2 : ℝ) = a ^ 2, intro a, rw ←rpow_nat_cast, simp,
+  unfold norm, rw [f1, f2, fin.sum_univ_succ],
+  simp, rw [fin.succ_zero_eq_one, ←sq_abs, ←sq_abs (f a 1)],
+  symmetry, rw sqrt_eq_iff_sq_eq,
+  rw [←rpow_nat_cast, ←rpow_mul], simp only [inv_mul_cancel_of_invertible,
+    nat.cast_bit0, rpow_one, nat.cast_one],
+  rw [←rpow_nat_cast, ←rpow_nat_cast], simp,
+  rw [this, this], nlinarith, nlinarith,
+  apply rpow_nonneg_of_nonneg, rw [this, this], nlinarith,
+end
+
+open euclidean_geometry
+open inner_product_geometry
+
+lemma ang_eq_same_side_pt {a o c : ℝ × ℝ} (b : ℝ × ℝ) (h : @same_side_pt r_squared o a c) :
+angle (f a) (f o) (f b) = angle (f c) (f o) (f b) :=
+begin
+  unfold euclidean_geometry.angle inner_product_geometry.angle,
+  rw [vsub_eq_sub, vsub_eq_sub, vsub_eq_sub],
+  rcases (seg.same_side_pt_rw.1 h).2 with ⟨k, hkpos, hk⟩,
+  rw [←f_sub, ←f_sub, ←f_sub, hk, f_smul, inner_smul_left, norm_smul, norm_eq_abs, abs_of_pos,
+    is_R_or_C.conj_to_real, mul_assoc, mul_div_mul_left];
+  linarith
+end
+
+def ang_congr (α β : @ang r_squared) : Prop := ∃ a b c d : ℝ × ℝ,
+α = @three_pt_ang r_squared a (@ang.vertex r_squared α) b
+∧ β = @three_pt_ang r_squared c (@ang.vertex r_squared β) d
+∧ (@col (affine_plane ℝ) a (@ang.vertex r_squared α) b ↔ @col (affine_plane ℝ)
+c (@ang.vertex r_squared β) d) ∧ (@noncol (affine_plane ℝ) a (@ang.vertex r_squared α) b
+→ angle (f a) (f (@ang.vertex r_squared α)) (f b) = angle (f c) (f (@ang.vertex r_squared β)) (f d))
+
+lemma three_pt_ang_congr {a o b a' o' b' : ℝ × ℝ} (haob : @noncol (affine_plane ℝ) a o b)
+(he : ang_congr (@three_pt_ang r_squared a o b) (@three_pt_ang r_squared a' o' b')) :
+angle (f a) (f o) (f b) = angle (f a') (f o') (f b') :=
+begin
+  rcases he with ⟨c, d, c', d', h₁, h₂, h, key⟩,
+  rw three_pt_ang_vertex at h₁ h₂ key h, rw three_pt_ang_vertex at key h,
+  have hcod := (@ang_nontrivial_iff_noncol r_squared a o b).2 haob,
+  rw [h₁, ang_nontrivial_iff_noncol] at hcod,
+  specialize key hcod,
+  have ha'o'b' : @noncol (affine_plane ℝ) a' o' b',
+    apply (@ang_nontrivial_iff_noncol r_squared a' o' b').1,
+    rw [h₂, ang_nontrivial_iff_noncol], intro hf, rw ←h at hf, exact absurd hf hcod,
+  have : angle (f a) (f o) (f b) = angle (f c) (f o) (f d),
+    rw three_pt_ang_eq_iff at h₁,
+    cases h₁.2 with h h,
+    rw [ang_eq_same_side_pt b h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt c h.2, euclidean_geometry.angle_comm],
+    rw [ang_eq_same_side_pt b h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt d h.2, euclidean_geometry.angle_comm],
+    exact haob,
+  rw [this, key],
+  rw three_pt_ang_eq_iff at h₂,
+  symmetry,
+  cases h₂.2 with h h,
+  rw [ang_eq_same_side_pt b' h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt c' h.2, euclidean_geometry.angle_comm],
+  rw [ang_eq_same_side_pt b' h.1, euclidean_geometry.angle_comm,
+    ang_eq_same_side_pt d' h.2, euclidean_geometry.angle_comm],
+  exact ha'o'b'
 end
 
 namespace ang
 
-def congr (α β : @ang r_squared) : Prop := ∃ a b c d : ℝ × ℝ,
-α = @three_pt_ang r_squared a (@ang.vertex r_squared α) b
-∧ β = @three_pt_ang r_squared c (@ang.vertex r_squared α) d
-∧ cos a (@ang.vertex r_squared α) b = cos c (@ang.vertex r_squared α) d
+lemma backward1 {a b x y c : ℝ} (hb : b ≠ 0)
+(hab : a^2 + b^2 = 1) (hx : x = sqrt ((1 - a^2) * (1 - c^2)) + a*c)
+(hy : y = -(abs b / b) * a * sqrt (1 - c^2) + b * c) : a*x + b*y = c :=
+begin
+  replace hx : a * x = a * sqrt (b^2 + a^2 - a^2) * sqrt (1 - c^2) + a^2 * c,
+    rw [hx, mul_add, add_comm (b^2) _, hab, mul_assoc, ←sqrt_mul]; nlinarith,
+  simp at hx, rw sqrt_sq_eq_abs at hx,
+  rw [hx, hy, mul_add b _ _, ←mul_assoc b _ _, ←mul_assoc b _ _, mul_neg_eq_neg_mul_symm,
+    ←mul_div_assoc, mul_comm b _, mul_div_cancel _ hb],
+  ring_exp, rw [mul_comm, ←mul_add, hab, mul_one]
+end
+
+lemma backward2 {a b x y c : ℝ} (hb : b ≠ 0)
+(hab : a^2 + b^2 = 1) (hx : x = -sqrt ((1 - a^2) * (1 - c^2)) + a*c)
+(hy : y = (abs b / b) * a * sqrt (1 - c^2) + b * c) : a*x + b*y = c :=
+begin
+  replace hx : a * x = -a * sqrt (b^2 + a^2 - a^2) * sqrt (1 - c^2) + a^2 * c,
+    rw [hx, mul_add, add_comm (b^2) _, hab, mul_assoc, ←sqrt_mul]; nlinarith,
+  simp at hx, rw sqrt_sq_eq_abs at hx,
+  rw [hx, hy, mul_add b _ _, ←mul_assoc b _ _, ←mul_assoc b _ _,
+    ←mul_div_assoc, mul_comm b _, mul_div_cancel _ hb],
+  ring_exp, rw [mul_comm, ←mul_add, hab, mul_one]
+end
+
+lemma unit1 {a b x y c : ℝ} (hb : b ≠ 0) (hc : 0 ≤ 1 - c^2)
+(hab : a^2 + b^2 = 1) (hx : x = sqrt ((1 - a^2) * (1 - c^2)) + a*c)
+(hy : y = -(abs b / b) * a * sqrt (1 - c^2) + b * c) : x^2 + y^2 = 1 :=
+begin
+  have hab' : b^2 = 1 - a^2,
+    rw [←hab, add_comm, add_sub_cancel],
+  have cal1 : ∀ a b c d e : ℝ, 2 * (-a * b * c) * (d * e) = -(2 * e * (a * d) * b * c),
+    intros a b c d e, ring,
+  have cal2 : ∀ a b c d : ℝ, 2 * (a * b) * (c * d) = 2 * d * a * c * b,
+    intros a b c d, ring,
+  have cal3 : ∀ a b c d : ℝ, a * (1 - b) + c + d * b + (d * (1 - b) - c + a * b) = d + a,
+    intros a b c d, ring,
+  rw [hx, hy, add_sq, add_sq, sq_sqrt, mul_pow, mul_pow, sq_sqrt, mul_pow, neg_sq,
+    div_pow (abs b) b, sq_abs, div_self, one_mul, ←hab', sqrt_mul, sqrt_sq_eq_abs, mul_pow,
+    cal1, div_mul_cancel, cal2, tactic.ring.add_neg_eq_sub, cal3, hab],
+  exact hb, exact sq_nonneg _, exact pow_ne_zero 2 hb, exact hc,
+  apply mul_nonneg, rw ←hab', exact sq_nonneg _, exact hc
+end
+
+lemma unit2 {a b x y c : ℝ} (hb : b ≠ 0) (hc : 0 ≤ 1 - c^2)
+(hab : a^2 + b^2 = 1) (hx : x = -sqrt ((1 - a^2) * (1 - c^2)) + a*c)
+(hy : y = (abs b / b) * a * sqrt (1 - c^2) + b * c) : x^2 + y^2 = 1 :=
+begin
+  have hab' : b^2 = 1 - a^2,
+    rw [←hab, add_comm, add_sub_cancel],
+  have cal1 : ∀ a b c d e : ℝ, 2 * (a * b * c) * (d * e) = 2 * e * (a * d) * b * c,
+    intros a b c d e, ring,
+  have cal2 : ∀ a b c d : ℝ, 2 * -(a * b) * (c * d) = -(2 * d * a * c * b),
+    intros a b c d, ring,
+  have cal3 : ∀ a b c d : ℝ, a * (1 - b) - c + d * b + (d * (1 - b) + c + a * b) = d + a,
+    intros a b c d, ring,
+  rw [hx, hy, add_sq, add_sq, neg_sq, sq_sqrt, mul_pow, mul_pow, sq_sqrt, mul_pow, 
+    div_pow (abs b) b, sq_abs, div_self, one_mul, ←hab', sqrt_mul, sqrt_sq_eq_abs, mul_pow,
+    cal1, div_mul_cancel, cal2, tactic.ring.add_neg_eq_sub, cal3, hab],
+  exact hb, exact sq_nonneg _, exact pow_ne_zero 2 hb, exact hc,
+  apply mul_nonneg, rw ←hab', exact sq_nonneg _, exact hc
+end
+
+private lemma forward_prep {a b x y c : ℝ} (hab : a^2 + b^2 = 1) (hxy : x^2 + y^2 = 1)
+(he : a * x + b * y = c) : x = sqrt ((1 - a^2) * (1 - c^2)) + a * c
+∨ x = -sqrt ((1 - a^2) * (1 - c^2)) + a * c :=
+begin
+  have key : (x - a * c)^2 = (1 - a^2) * (1 - c^2),
+    rw ←sub_eq_zero,
+    calc (x - a * c)^2 - (1 - a^2) * (1 - c^2)
+       = b^2 * x^2 + (a * x + b * y - c - b * y)^2 + a^2 - 1 : by {ring_nf, rw hab, ring}
+   ... = b^2 * (x^2 + y^2) + a^2 - 1                         : by {rw he, ring}
+   ... = 0                                                   : by {rw [←hab, hxy], ring},
+  have := sq_sqrt (show (1 - a^2) * (1 - c^2) ≥ 0, by nlinarith), rw ←this at key,
+  cases eq_or_eq_neg_of_sq_eq_sq _ _ key;
+  rw ←h; simp
+end
+
+lemma forward {a b x y c : ℝ} (hb : b ≠ 0)
+(hab : a^2 + b^2 = 1) (hxy : x^2 + y^2 = 1) (he : a * x + b * y = c) :
+(x = sqrt ((1 - a^2) * (1 - c^2)) + a * c ∧ y = -(abs b / b) * a * sqrt (1 - c^2) + b * c)
+∨ (x = -sqrt ((1 - a^2) * (1 - c^2)) + a * c ∧ y = (abs b / b) * a * sqrt (1 - c^2) + b * c) :=
+begin
+  cases forward_prep hab hxy he,
+  left, split, exact h,
+  calc y = (c - a * x) / b
+         : by rw [←he, add_comm, add_sub_cancel, mul_comm, mul_div_cancel _ hb]
+     ... = ((b^2 + a^2) * c - a^2 * c - a * sqrt ((b^2 + a^2 - a^2) * (1 - c^2))) / b
+         : by {rw [add_comm (b^2) _, hab, h], ring}
+     ... = (b * b * c - a * (abs b) * sqrt (1 - c^2)) / b
+         : by {rw [←sub_mul, add_sub_cancel, sqrt_mul, sqrt_sq_eq_abs], ring_exp, nlinarith}
+     ... = -(abs b / b) * a * sqrt (1 - c^2) + b * c
+         : by {rw [sub_div, mul_comm, ←mul_assoc, mul_div_cancel _ hb], ring_exp_eq},
+  right, split, exact h,
+  calc y = (c - a * x) / b
+         : by rw [←he, add_comm, add_sub_cancel, mul_comm, mul_div_cancel _ hb]
+     ... = ((b^2 + a^2) * c - a^2 * c + a * sqrt ((b^2 + a^2 - a^2) * (1 - c^2))) / b
+         : by {rw [add_comm (b^2) _, hab, h], ring}
+     ... = (b * b * c + a * (abs b) * sqrt (1 - c^2)) / b
+         : by {rw [←sub_mul, add_sub_cancel, sqrt_mul, sqrt_sq_eq_abs], ring_exp, nlinarith}
+     ... = (abs b / b) * a * sqrt (1 - c^2) + b * c
+         : by {rw [add_div, mul_comm, ←mul_assoc, mul_div_cancel _ hb], ring_exp_eq}
+end
+
+lemma unit_wlog {o a : ℝ × ℝ} (hoa : o ≠ a) :
+∃ b : ℝ × ℝ, @same_side_pt r_squared o a b ∧ (b.1 - o.1)^2 + (b.2 - o.2)^2 = 1 :=
+begin
+  sorry
+end
+
+lemma ineq {o a : ℝ × ℝ} (hao : a ≠ o) :
+((a - o).1 / ∥f a - f o∥)^2 ≤ 1 ∧ ((a - o).2 / (∥f a - f o∥))^2 ≤ 1 :=
+begin
+  have : ∥f (a - o)∥^2 > 0,
+    apply sq_pos_of_ne_zero,
+    unfold f, simp, intros hf₁ hf₂,
+    apply hao, rw prod.ext_iff, exact ⟨sub_eq_zero.1 hf₁, sub_eq_zero.1 hf₂⟩,
+  rw ←f_sub, split,
+  rw div_pow, apply le_of_mul_le_mul_right _ this,
+  rw [div_mul_cancel, one_mul, norm_equiv, sq_sqrt], nlinarith, nlinarith, nlinarith,
+  rw div_pow, apply le_of_mul_le_mul_right _ this,
+  rw [div_mul_cancel, one_mul, norm_equiv, sq_sqrt], nlinarith, nlinarith, nlinarith
+end
+
+lemma ineq' (a b o : ℝ × ℝ) :
+inner (f a -ᵥ f o) (f b -ᵥ f o) / (∥f a -ᵥ f o∥ * ∥f b -ᵥ f o∥) ≤ 1
+∧ inner (f a -ᵥ f o) (f b -ᵥ f o) / (∥f a -ᵥ f o∥ * ∥f b -ᵥ f o∥) ≥ -1 :=
+by {rw ←cos_angle, exact ⟨cos_le_one _, neg_one_le_cos _⟩}
+
+lemma sq_add_sq_zero {a b : ℝ} (h : a^2 + b^2 = 0) : a = 0 ∧ b = 0 :=
+begin
+  have ha : a^2 ≤ a^2 + b^2, nlinarith,
+  have hb : b^2 ≤ a^2 + b^2, nlinarith,
+  rw h at ha hb,
+  exact ⟨pow_eq_zero (le_antisymm ha (sq_nonneg a)), pow_eq_zero (le_antisymm hb (sq_nonneg b))⟩
+end
+
+lemma cos_eq_one {a b c : ℝ × ℝ} (habc : cos (angle (f a) (f b) (f c)) = 1) :
+@col (affine_plane ℝ) a b c :=
+begin
+  cases (cos_eq_one_iff _).1 habc with n hn,
+  have hpi : ↑n * (2 * real.pi) ≤ real.pi,
+    rw hn, exact arccos_le_pi _,
+  have h0 : 0 ≤ ↑n * (2 * real.pi),
+    rw hn, exact arccos_nonneg _,
+  rw mul_comm at h0,
+  have hn₁ : 2 * (n : ℝ) ≥ 0,
+    rw [ge_iff_le, zero_le_mul_left],
+    apply nonneg_of_mul_nonneg_left h0,
+    rw (zero_lt_mul_left (show (2 : ℝ) > 0, by linarith)), exact pi_pos, linarith,
+  have hn₂ : 2 * (n : ℝ) ≤ 1,
+    rw [←mul_le_mul_left, mul_one],
+    rw [mul_comm (2 : ℝ) _, mul_comm, mul_assoc] at hpi, exact hpi,
+    exact pi_pos,
+  norm_cast at hn₁ hn₂,
+  interval_cases (2 * n), simp at h,
+  rw h at hn, simp at hn, rcases angle_eq_zero_iff.1 hn.symm with ⟨hab, k, -, h⟩,
+  rw [vsub_eq_sub, vsub_eq_sub, ←f_sub, ←f_sub, ←f_smul] at h,
+  rw [vsub_eq_sub, ←f_sub, f_nonzero, sub_ne_zero] at hab,
+  apply col_in12', rw [line_symm, between.line_rw],
+  use k, rw ←f_inj h, ring, exact hab.symm,
+  have := int.le_of_dvd (by linarith) ⟨n, h.symm⟩, norm_num at this
+end
+
+lemma cos_eq_neg_one {a b c : ℝ × ℝ} (habc : cos (angle (f a) (f b) (f c)) = -1) :
+@col (affine_plane ℝ) a b c :=
+begin
+  replace habc : -cos (angle (f a) (f b) (f c)) = 1, rw [habc, neg_neg],
+  rw [←cos_sub_pi, cos_eq_one_iff] at habc,
+  cases habc with n hn,
+  have hpi : ↑n * (2 * real.pi) ≤ real.pi,
+    rw hn, rw ←add_le_add_iff_left real.pi, simp,
+    have := arccos_le_pi (inner (f a -ᵥ f b) (f c -ᵥ f b) / (∥f a -ᵥ f b∥ * ∥f c -ᵥ f b∥)),
+    apply le_trans this, simp, exact le_of_lt pi_pos,
+  have h0 : 0 ≤ ↑n * (2 * real.pi) + real.pi,
+    rw [hn, sub_add_cancel], exact arccos_nonneg _,
+  rw mul_comm at h0,
+  have hn₁ : 2 * (n : ℝ) ≥ -1,
+    rw [ge_iff_le, neg_le_iff_add_nonneg, ←mul_le_mul_left (pi_pos), mul_zero, mul_add, mul_one,
+      ←mul_assoc, mul_comm _ (2 : ℝ)], exact h0,
+  have hn₂ : 2 * (n : ℝ) ≤ 1,
+    rw [←mul_le_mul_left, mul_one],
+    rw [mul_comm (2 : ℝ) _, mul_comm, mul_assoc] at hpi, exact hpi,
+    exact pi_pos,
+  replace hn₁ : 2 * n ≥ -1, norm_cast at hn₁, exact hn₁,
+  norm_cast at hn₂, interval_cases (2 * n),
+  replace h : 2 * (-n) = 1, rw [mul_neg_eq_neg_mul_symm, h, neg_neg],
+  have := int.le_of_dvd (by linarith) ⟨-n, h.symm⟩, norm_num at this,
+  simp at h, rw h at hn, simp at hn,
+  rcases angle_eq_pi_iff.1 (sub_eq_zero.1 hn.symm) with ⟨hab, k, -, h⟩,
+  rw [vsub_eq_sub, vsub_eq_sub, ←f_sub, ←f_sub, ←f_smul] at h,
+  rw [vsub_eq_sub, ←f_sub, f_nonzero, sub_ne_zero] at hab,
+  apply col_in12', rw [line_symm, between.line_rw],
+  use k, rw ←f_inj h, ring, exact hab.symm,
+  have := int.le_of_dvd (by linarith) ⟨n, h.symm⟩, norm_num at this
+end
+
+example {a b c d : ℝ} : a^2 = b^2 → a = b ∨ a = - b := eq_or_eq_neg_of_sq_eq_sq a b
+
+lemma extend {α : @ang r_squared} {o a : ℝ × ℝ} (hα : @ang_nontrivial r_squared α)
+(hao : a ≠ o) : ∃ b c : ℝ × ℝ, ang_congr α (@three_pt_ang r_squared b o a)
+∧ ang_congr α (@three_pt_ang r_squared c o a)
+∧ @diff_side_line r_squared (@line (affine_plane ℝ) o a) b c
+∧ ∀ x : ℝ × ℝ, ang_congr α (@three_pt_ang r_squared x o a) →
+(@same_side_line r_squared (@line (affine_plane ℝ) o a) b x → @same_side_pt r_squared o b x)
+∧ (@same_side_line r_squared (@line (affine_plane ℝ) o a) c x → @same_side_pt r_squared o c x) :=
+begin
+  set m := (a.1 - o.1) / (∥f a - f o∥) with hm,
+  set n := (a.2 - o.2) / (∥f a - f o∥) with hn,
+  have hm1 := (ineq hao).1,
+  have hn1 := (ineq hao).2,
+  have hmn : m^2 + n^2 = 1,
+    rw [hm, hn, ←f_sub, norm_equiv, div_pow, div_pow, sq_sqrt, ←add_div,
+      prod.fst_sub, prod.snd_sub, div_self],
+    intro hf, apply hao, rw prod.ext_iff, have := sq_add_sq_zero hf,
+    rw [sub_eq_zero, sub_eq_zero] at this, exact this,
+    nlinarith,
+  have hmn' : n^2 = 1 - m^2,
+    rw [←hmn, add_comm, add_sub_cancel],
+  have hmn'' : m / n = (a.1 - o.1) / (a.2 - o.2),
+    rw [hm, hn, div_div_div_div_eq, ←div_div_eq_div_mul, mul_div_cancel],
+    intro hf, apply hao, rw prod.ext_iff,
+    rw [←f_sub, norm_equiv, prod.fst_sub, prod.snd_sub, sqrt_eq_zero] at hf,
+    exact ⟨sub_eq_zero.1 (sq_add_sq_zero hf).1, sub_eq_zero.1 (sq_add_sq_zero hf).2⟩,
+    nlinarith,
+  rcases @ang_three_pt r_squared α with ⟨c, d, hcd⟩,
+  rw [hcd, ang_nontrivial_iff_noncol] at hα,
+  set o' := @ang.vertex r_squared α with ho',
+  set C := cos (angle (f c) (f o') (f d)) with hC,
+  have hC1 : C^2 ≠ 1^2,
+    intro hf, cases eq_or_eq_neg_of_sq_eq_sq _ _ hf,
+    rw h at hC, exact hα (cos_eq_one hC.symm),
+    exact hα (cos_eq_neg_one h),
+  rw one_pow at hC1,
+  have hC1' := abs_cos_le_one (angle (f c) (f o') (f d)),
+  replace hC1' : 0 ≤ 1 - C^2,
+    rw abs_le at hC1', have := sq_le_sq' hC1'.1 hC1'.2,
+    rw one_pow at this, rw sub_nonneg, exact this,
+  have forward' : ∀ {b : ℝ × ℝ}, ∥f b -ᵥ f o∥ = 1 → m * (b.1 - o.1) + n * (b.2 - o.2) = C
+    → @noncol (affine_plane ℝ) b o a → ang_congr α (@three_pt_ang r_squared b o a),
+    intros b hb he hboa,
+    use [c, d, b, a], rw [hcd, three_pt_ang_vertex, three_pt_ang_vertex], simp,
+    split, exact ⟨λhf, absurd hf hα, λhf, absurd hf hboa⟩,
+    intro hα,
+    unfold euclidean_geometry.angle inner_product_geometry.angle,
+    unfold euclidean_geometry.angle inner_product_geometry.angle at hC, rw cos_arccos at hC,
+    rw [arccos_inj, ←hC, ←he, hm, hn, hb, one_mul, div_mul_eq_mul_div, div_mul_eq_mul_div,
+      vsub_eq_sub, vsub_eq_sub, ←f_sub, ←f_sub, inner_equiv, add_div, mul_comm,
+      mul_comm (a.2 - o.2) _, prod.fst_sub, prod.fst_sub, prod.snd_sub, prod.snd_sub],
+    exact (ineq' c d o').2, exact (ineq' c d o').1,
+    exact (ineq' b a o).2, exact (ineq' b a o).1,
+    exact (ineq' c d o').2, exact (ineq' c d o').1,
+  have backward : ∀ {b : ℝ × ℝ}, ∥f b -ᵥ f o∥ = 1 → ang_congr α (@three_pt_ang r_squared b o a)
+    → @noncol (affine_plane ℝ) b o a → m * (b.1 - o.1) + n * (b.2 - o.2) = C,
+    intros b hb hαboa hboa,
+    rw hcd at hαboa, have := three_pt_ang_congr hα hαboa,
+    unfold euclidean_geometry.angle inner_product_geometry.angle at this,
+    unfold euclidean_geometry.angle inner_product_geometry.angle at hC, rw cos_arccos at hC,
+    rw [arccos_inj, ←hC, hb, vsub_eq_sub, vsub_eq_sub, ←f_sub, ←f_sub, inner_equiv, one_mul] at this,
+    rw [this, hm, hn, f_sub, prod.fst_sub, prod.snd_sub, prod.fst_sub, prod.snd_sub,
+      div_mul_eq_mul_div_comm, div_mul_eq_mul_div_comm, add_div], ring,
+    exact (ineq' c d o').2, exact (ineq' c d o').1,
+    exact (ineq' b a o).2, exact (ineq' b a o).1,
+    exact (ineq' c d o').2, exact (ineq' c d o').1,
+  by_cases hn0 : n = 0,
+    rw hn0 at hn, cases div_eq_zero_iff.1 hn.symm with hn hf,
+    rw sub_eq_zero at hn,
+    rw [hn0, zero_pow, add_zero] at hmn,
+    have hm0 : m ≠ 0,
+      intro hf, rw hf at hmn, linarith,
+    have hm' : (abs m / m)^2 = 1,
+      rw [div_pow, sq_abs, div_self], rw hmn, linarith,
+    have hm'' : abs m = 1,
+      rw [div_pow, div_eq_one_iff_eq, hmn] at hm',
+      rw [←eq_of_sq_eq_sq, one_pow, hm'],
+      exact abs_nonneg _, linarith, rw hmn, linarith,
+    use [o + ((abs m) / m * C, sqrt (1 - C^2)), o + ((abs m) / m * C, -sqrt (1 - C^2))],
+    split,
+    apply forward',
+    rw [vsub_eq_sub, ←f_sub, add_comm, add_sub_cancel, norm_equiv], simp,
+    rw [sq_sqrt hC1', mul_pow, hm', one_mul, add_comm, sub_add_cancel, sqrt_one],
+    rw [hn0, zero_mul, add_zero, prod.fst_add], simp,
+    rw [←mul_assoc, mul_comm m _, div_mul_cancel _ hm0, hm'', one_mul],
+    intro hf, have := @col_in23 (affine_plane ℝ) _ _ _ hf hao.symm,
+    rw between.line_rw at this,
+    cases this with μ hμ, simp at hμ,
+    rw prod.ext_iff at hμ, simp at hμ, rw hn at hμ, simp at hμ,
+    rw [sqrt_eq_zero, sub_eq_zero] at hμ, exact hC1.symm hμ.2,
+    exact hC1', exact hao.symm,
+    split,
+    apply forward',
+    rw [vsub_eq_sub, ←f_sub, add_comm, add_sub_cancel, norm_equiv], simp,
+    rw [sq_sqrt hC1', add_comm, mul_pow, hm', one_mul, sub_add_cancel, sqrt_one],
+    rw [hn0, zero_mul, add_zero, prod.fst_add], simp,
+    rw [←mul_assoc, mul_comm m _, div_mul_cancel _ hm0, hm'', one_mul],
+    intro hf, have := @col_in23 (affine_plane ℝ) _ _ _ hf hao.symm,
+    rw between.line_rw at this,
+    cases this with μ hμ, simp at hμ,
+    rw prod.ext_iff at hμ, simp at hμ, rw hn at hμ, simp at hμ,
+    rw [sqrt_eq_zero, sub_eq_zero] at hμ, exact hC1.symm hμ.2,
+    exact hC1', exact hao.symm,
+    have : @diff_side_line r_squared (@line (affine_plane ℝ) o a)
+      (o.1 + (abs m) / m * C, o.2 + sqrt (1 - C^2)) (o.1 + (abs m) / m * C, o.2 + -sqrt (1 - C^2)),
+      use ((abs m) / m * C + o.1, o.2), split,
+      rw between.line_rw, use (abs m) / m *  C / (a.1 - o.1),
+      rw prod.ext_iff, simp,
+      rw [div_mul_cancel, add_comm, hn, sub_self], simp,
+      intro hf, apply hao, rw prod.ext_iff, rw [hn, sub_eq_zero.1 hf], exact ⟨rfl, rfl⟩,
+      exact hao.symm,
+      left, split, intro hf, rw [prod.ext_iff, add_comm] at hf, simp at hf,
+      rw [sqrt_eq_zero, sub_eq_zero] at hf, exact hC1.symm hf, exact hC1',
+      use 1, rw [one_smul, prod.ext_iff], simp,
+      split, rw add_comm _ ((abs m) / m * C),
+      rw [add_assoc, add_comm (sqrt (1 - C^2)) _, tactic.ring.add_neg_eq_sub, sub_add_cancel],
+      rw between.line_rw,
+      split, rintros ⟨μ, hμ⟩,
+      rw prod.ext_iff at hμ, simp at hμ, rw hn at hμ, simp at hμ,
+      rw [sqrt_eq_zero, sub_eq_zero] at hμ, exact hC1.symm hμ.2,
+      exact hC1',
+      rintros ⟨μ, hμ⟩,
+      rw prod.ext_iff at hμ, simp at hμ, rw hn at hμ, simp at hμ,
+      rw [sqrt_eq_zero, sub_eq_zero] at hμ, exact hC1.symm hμ.2,
+      exact hC1', exact hao.symm,
+    split, exact this,
+    intros x hxoa, split,
+    intro hx, have hxo := (@same_side_line_neq' r_squared o a _ x hx).1,
+    rcases unit_wlog hxo.symm with ⟨y, hxy, hy⟩,
+    have hoy := (@same_side_pt_neq r_squared o x y hxy).2.symm,
+    rw [ang_symm, @ang_eq_same_side r_squared a o x y hxy, ang_symm] at hxoa,
+    have hu : ∥f y -ᵥ f o∥ = 1,
+      rw [vsub_eq_sub, ←f_sub, norm_equiv, prod.fst_sub, prod.snd_sub, hy, sqrt_one],
+    have hoxa := @noncol23 (affine_plane ℝ) o a x
+      (@same_side_line_noncol r_squared o a _ x hx hao.symm).2,
+    have hyoa := @noncol12 (affine_plane ℝ) o y a (@col_noncol (affine_plane ℝ) o x y a
+      hxy.2 hoxa hoy),
+    have he₁ := backward hu hxoa hyoa,
+    rw [hn0, zero_mul, add_zero] at he₁,
+    replace he₁ : y.1 - o.1 = C / m,
+      rw [←he₁, mul_comm, mul_div_cancel _ hm0],
+    have he₂ : (y.2 - o.2)^2 = sqrt (1 - C^2)^2,
+      rw [sq_sqrt hC1', ←hy, he₁, div_pow, hmn, div_one, add_comm, add_sub_cancel],
+    cases eq_or_eq_neg_of_sq_eq_sq _ _ he₂ with he₂ he₂,
+    have hy : (o + ((abs m) / m * C, sqrt (1 - C^2))) = y,
+      rw prod.ext_iff, simp,
+      rw [←he₂, div_mul_comm', ←he₁, hm'', mul_one,
+        add_comm, sub_add_cancel, add_comm o.2 _, sub_add_cancel],
+      exact ⟨rfl, rfl⟩,
+    rw ←hy at hxy, exact @same_side_pt_symm r_squared o x _ hxy,
+    have hy : (o.1 + (abs m) / m * C, o.2 + -sqrt (1 - C^2)) = y,
+      rw prod.ext_iff, simp,
+      rw [←he₂, div_mul_comm', ←he₁, hm'', mul_one,
+        add_comm, sub_add_cancel, add_comm o.2 _, sub_add_cancel],
+      exact ⟨rfl, rfl⟩,
+    rw ←not_same_side_line at this, exfalso, apply this,
+    apply same_side_line_trans, exact @line_in_lines (affine_plane ℝ) o a hao.symm,
+    exact hx, rw hy, apply (@same_side_pt_line r_squared o x y hxy).2.2.2,
+    exact @line_in_lines (affine_plane ℝ) o a hao.symm,
+    split, exact @pt_left_in_line (affine_plane ℝ) o a,
+    split, exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
+    exact @noncol_in23 (affine_plane ℝ) y o a hyoa,
+    exact this.2.1, exact this.2.2,
+    intro hx, have hxo := (@same_side_line_neq' r_squared o a _ x hx).1,
+    rcases unit_wlog hxo.symm with ⟨y, hxy, hy⟩,
+    have hoy := (@same_side_pt_neq r_squared o x y hxy).2.symm,
+    rw [ang_symm, @ang_eq_same_side r_squared a o x y hxy, ang_symm] at hxoa,
+    have hu : ∥f y -ᵥ f o∥ = 1,
+      rw [vsub_eq_sub, ←f_sub, norm_equiv, prod.fst_sub, prod.snd_sub, hy, sqrt_one],
+    have hoxa := @noncol23 (affine_plane ℝ) o a x
+      (@same_side_line_noncol r_squared o a _ x hx hao.symm).2,
+    have hyoa := @noncol12 (affine_plane ℝ) o y a (@col_noncol (affine_plane ℝ) o x y a
+      hxy.2 hoxa hoy),
+    have he₁ := backward hu hxoa hyoa,
+    rw [hn0, zero_mul, add_zero] at he₁,
+    replace he₁ : y.1 - o.1 = C / m,
+      rw [←he₁, mul_comm, mul_div_cancel _ hm0],
+    have he₂ : (y.2 - o.2)^2 = sqrt (1 - C^2)^2,
+      rw [sq_sqrt hC1', ←hy, he₁, div_pow, hmn, div_one, add_comm, add_sub_cancel],
+    cases eq_or_eq_neg_of_sq_eq_sq _ _ he₂ with he₂ he₂,
+    have hy : (o.1 + (abs m) / m * C, o.2 + sqrt (1 - C^2)) = y,
+      rw prod.ext_iff, simp,
+      rw [←he₂, div_mul_comm', ←he₁, hm'', mul_one,
+        add_comm, sub_add_cancel, add_comm o.2 _, sub_add_cancel],
+      exact ⟨rfl, rfl⟩,
+    rw ←not_same_side_line at this, exfalso, apply this,
+    apply same_side_line_trans, exact @line_in_lines (affine_plane ℝ) o a hao.symm,
+    rw hy, apply same_side_line_symm, apply (@same_side_pt_line r_squared o x y hxy).2.2.2,
+    exact @line_in_lines (affine_plane ℝ) o a hao.symm,
+    split, exact @pt_left_in_line (affine_plane ℝ) o a,
+    split, exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
+    exact @noncol_in23 (affine_plane ℝ) y o a hyoa,
+    apply same_side_line_symm, exact hx,
+    exact this.2.1, exact this.2.2,
+    have hy : (o + ((abs m) / m * C, -sqrt (1 - C^2))) = y,
+      rw prod.ext_iff, simp,
+      rw [←he₂, div_mul_comm', ←he₁, hm'', mul_one,
+        add_comm, sub_add_cancel, add_comm o.2 _, sub_add_cancel],
+      exact ⟨rfl, rfl⟩,
+    rw ←hy at hxy, exact @same_side_pt_symm r_squared o x _ hxy,
+  linarith,
+  rw [←f_sub, norm_eq_zero, f_zero, sub_eq_zero] at hf, exact absurd hf hao,
+  have hao' : a.2 - o.2 ≠ 0,
+    intro hf, rw sub_eq_zero at hf,
+    rw [hf, sub_self, zero_div] at hn, exact hn0 hn,
+  set x₁ := sqrt ((1 - m^2) * (1 - C^2)) + m * C with hx₁,
+  set y₁ := -(abs n / n) * m * sqrt (1 - C^2) + n * C with hy₁,
+  set x₂ := -sqrt ((1 - m^2) * (1 - C^2)) + m * C with hx₂,
+  set y₂ := (abs n / n) * m * sqrt (1 - C^2) + n * C with hy₂,
+  have h₁ : @noncol (affine_plane ℝ) (o.1 + x₁, o.2 + y₁) o a,
+    intro hf, have := @col_in23 (affine_plane ℝ) _ _ _ hf hao.symm,
+    rw between.line_rw at this,
+    cases this with μ hμ, rw prod.ext_iff at hμ, simp at hμ,
+    have hf : x₁ * (a.2 - o.2) = y₁ * (a.1 - o.1),
+      rw [hμ.1, hμ.2], ring,
+    rw [hx₁, hy₁, add_mul, add_mul] at hf,
+    have : m * C * (a.2 - o.2) = n * C * (a.1 - o.1),
+      rw [hm, hn], ring,
+    rw [this, add_left_inj, ←hmn', sqrt_mul, sqrt_sq_eq_abs] at hf,
+    replace hf : abs n * sqrt (1 - C^2) * (a.2 - o.2)
+      = abs n * sqrt (1 - C^2) * (-(m / n) * (a.1 - o.1)),
+      rw hf, ring,
+    rw [mul_right_inj', hmn'', ←mul_left_inj' hao', mul_assoc,
+      mul_comm (a.1 - o.1) _, ←mul_assoc, ←neg_mul_eq_neg_mul, div_mul_cancel, ←sq,
+      ←neg_mul_eq_neg_mul, ←sq, ←add_eq_zero_iff_eq_neg] at hf,
+    exact hao' (sq_add_sq_zero hf).1, exact hao',
+    apply mul_ne_zero, exact λhf, hn0 (abs_eq_zero.1 hf),
+    exact (sqrt_ne_zero hC1').2 (sub_ne_zero.2 hC1.symm),
+    exact sq_nonneg n, exact hao.symm,
+  have h₂ : @noncol (affine_plane ℝ) (o.1 + x₂, o.2 + y₂) o a,
+    intro hf, have := @col_in23 (affine_plane ℝ) _ _ _ hf hao.symm,
+    rw between.line_rw at this,
+    cases this with μ hμ, rw prod.ext_iff at hμ, simp at hμ,
+    have hf : x₂ * (a.2 - o.2) = y₂ * (a.1 - o.1),
+      rw [hμ.1, hμ.2], ring,
+    rw [hx₂, hy₂, add_mul, add_mul] at hf,
+    have : m * C * (a.2 - o.2) = n * C * (a.1 - o.1),
+      rw [hm, hn], ring,
+    rw [this, add_left_inj, ←hmn', sqrt_mul, sqrt_sq_eq_abs, neg_mul_eq_neg_mul_symm] at hf,
+    replace hf : abs n * sqrt (1 - C^2) * (a.2 - o.2)
+      = abs n * sqrt (1 - C^2) * (-(m / n) * (a.1 - o.1)),
+      rw [eq_neg_of_eq_neg hf.symm], ring,
+    rw [mul_right_inj', hmn'', ←mul_left_inj' hao', mul_assoc,
+      mul_comm (a.1 - o.1) _, ←mul_assoc, ←neg_mul_eq_neg_mul, div_mul_cancel, ←sq,
+      ←neg_mul_eq_neg_mul, ←sq, ←add_eq_zero_iff_eq_neg] at hf,
+    exact hao' (sq_add_sq_zero hf).1, exact hao',
+    apply mul_ne_zero, exact λhf, hn0 (abs_eq_zero.1 hf),
+    exact (sqrt_ne_zero hC1').2 (sub_ne_zero.2 hC1.symm),
+    exact sq_nonneg n, exact hao.symm,
+  use [(o.1 + x₁, o.2 + y₁), (o.1 + x₂, o.2 + y₂)],
+  split, apply forward',
+  rw [vsub_eq_sub, ←f_sub, norm_equiv], simp,
+  rw [unit1 hn0 hC1' hmn hx₁ hy₁, sqrt_one],
+  simp, exact backward1 hn0 hmn hx₁ hy₁,
+  exact h₁,
+  split, apply forward',
+  rw [vsub_eq_sub, ←f_sub, norm_equiv], simp,
+  rw [unit2 hn0 hC1' hmn hx₂ hy₂, sqrt_one],
+  simp, exact backward2 hn0 hmn hx₂ hy₂,
+  exact h₂,
+  have : @diff_side_line r_squared (@line (affine_plane ℝ) o a)
+    (o.fst + x₁, o.snd + y₁) (o.fst + x₂, o.snd + y₂),
+  use (o.1 + (x₁ + x₂) / 2, o.2 + (y₁ + y₂) / 2),
+  have hx : (x₁ + x₂) / 2 = m * C,
+    rw [hx₁, hx₂, add_comm _ (m * C), add_assoc, ←add_assoc _ _ (m * C),
+      add_neg_self, zero_add], simp,
+  have hy : (y₁ + y₂) / 2 = n * C,
+    rw [hy₁, hy₂, add_comm _ (n * C), add_assoc, ←add_assoc _ _ (n * C),
+      add_comm _ (abs n / n * m * sqrt (1 - C^2)), ←neg_mul_eq_neg_mul, ←neg_mul_eq_neg_mul,
+      add_neg_self, zero_add], simp,
+  split,
+  rw [between.line_rw, hx, hy, hm, hn],
+  use C / ∥f a - f o∥,
+  rw prod.ext_iff, simp, rw [div_mul_comm', div_mul_comm' _ _ C], exact ⟨rfl, rfl⟩,
+  exact hao.symm,
+  left, simp, split,
+  intro hf, rw prod.ext_iff at hf, simp at hf,
+  rw [hx, hy] at hf, rw hf.1 at hx₂, rw hf.2 at hy₂,
+  rw self_eq_add_left at hx₂ hy₂,
+  rw [neg_eq_zero, sqrt_eq_zero, mul_eq_zero] at hx₂,
+  rw [mul_eq_zero, mul_eq_zero, sqrt_eq_zero, div_eq_zero_iff, abs_eq_zero, or_self] at hy₂,
+  cases hx₂, rw sub_eq_zero.1 hx₂ at hmn, rw add_right_eq_self at hmn,
+  exact hn0 (pow_eq_zero hmn), exact hC1 (sub_eq_zero.1 hx₂).symm,
+  exact hC1',
+  apply mul_nonneg, rw sub_nonneg, exact hm1,
+  exact hC1',
+  use 1, simp, ring_nf, exact ⟨rfl, rfl⟩,
+  exact ⟨@noncol_in23 (affine_plane ℝ) _ o a h₁, @noncol_in23 (affine_plane ℝ) _ o a h₂⟩,
+  split, exact this,
+  intros x hxoa, split,
+  intro hx, have hxo := (@same_side_line_neq' r_squared o a _ x hx).1,
+  rcases unit_wlog hxo.symm with ⟨y, hxy, hy⟩,
+  have hoy := (@same_side_pt_neq r_squared o x y hxy).2.symm,
+  rw [ang_symm, @ang_eq_same_side r_squared a o x y hxy, ang_symm] at hxoa,
+  have hu : ∥f y -ᵥ f o∥ = 1,
+    rw [vsub_eq_sub, ←f_sub, norm_equiv, prod.fst_sub, prod.snd_sub, hy, sqrt_one],
+  have hoxa := @noncol23 (affine_plane ℝ) o a x
+    (@same_side_line_noncol r_squared o a _ x hx hao.symm).2,
+  have hyoa := @noncol12 (affine_plane ℝ) o y a (@col_noncol (affine_plane ℝ) o x y a
+    hxy.2 hoxa hoy),
+  have he₁ := backward hu hxoa hyoa,
+  cases forward hn0 hmn hy he₁ with he₂ he₂,
+  have hy : (o + (x₁, y₁)) = y,
+      rw prod.ext_iff, simp,
+      rw [hx₁, hy₁, ←he₂.1, ←he₂.2, add_comm, sub_add_cancel, add_comm o.2 _, sub_add_cancel],
+      exact ⟨rfl, rfl⟩,
+    rw ←hy at hxy, exact @same_side_pt_symm r_squared o x _ hxy,
+  have hy : (o.1 + x₂, o.2 + y₂) = y,
+    rw prod.ext_iff, simp,
+    rw [hx₂, hy₂, ←he₂.1, ←he₂.2, add_comm, sub_add_cancel, add_comm o.2 _, sub_add_cancel],
+    exact ⟨rfl, rfl⟩,
+  rw ←not_same_side_line at this, exfalso, apply this,
+  apply same_side_line_trans, exact @line_in_lines (affine_plane ℝ) o a hao.symm,
+  exact hx, rw hy, apply (@same_side_pt_line r_squared o x y hxy).2.2.2,
+  exact @line_in_lines (affine_plane ℝ) o a hao.symm,
+  split, exact @pt_left_in_line (affine_plane ℝ) o a,
+  split, exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
+  exact @noncol_in23 (affine_plane ℝ) y o a hyoa,
+  exact this.2.1, exact this.2.2,
+  intro hx, have hxo := (@same_side_line_neq' r_squared o a _ x hx).1,
+  rcases unit_wlog hxo.symm with ⟨y, hxy, hy⟩,
+  have hoy := (@same_side_pt_neq r_squared o x y hxy).2.symm,
+  rw [ang_symm, @ang_eq_same_side r_squared a o x y hxy, ang_symm] at hxoa,
+  have hu : ∥f y -ᵥ f o∥ = 1,
+    rw [vsub_eq_sub, ←f_sub, norm_equiv, prod.fst_sub, prod.snd_sub, hy, sqrt_one],
+  have hoxa := @noncol23 (affine_plane ℝ) o a x
+    (@same_side_line_noncol r_squared o a _ x hx hao.symm).2,
+  have hyoa := @noncol12 (affine_plane ℝ) o y a (@col_noncol (affine_plane ℝ) o x y a
+    hxy.2 hoxa hoy),
+  have he₁ := backward hu hxoa hyoa,
+  cases forward hn0 hmn hy he₁ with he₂ he₂,
+  have hy : (o.1 + x₁, o.2 + y₁) = y,
+    rw prod.ext_iff, simp,
+    rw [hx₁, hy₁, ←he₂.1, ←he₂.2, add_comm, sub_add_cancel, add_comm o.2 _, sub_add_cancel],
+    exact ⟨rfl, rfl⟩,
+  rw ←not_same_side_line at this, exfalso, apply this,
+  apply same_side_line_trans, exact @line_in_lines (affine_plane ℝ) o a hao.symm,
+  rw hy,apply same_side_line_symm,
+  apply (@same_side_pt_line r_squared o x y hxy).2.2.2,
+  exact @line_in_lines (affine_plane ℝ) o a hao.symm,
+  split, exact @pt_left_in_line (affine_plane ℝ) o a,
+  split, exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
+  exact @noncol_in23 (affine_plane ℝ) y o a hyoa,
+  apply same_side_line_symm, exact hx,
+  exact this.2.1, exact this.2.2,
+  have hy : (o.1 + x₂, o.2 + y₂) = y,
+    rw prod.ext_iff, simp,
+    rw [hx₂, hy₂, ←he₂.1, ←he₂.2, add_comm, sub_add_cancel, add_comm o.2 _, sub_add_cancel],
+    exact ⟨rfl, rfl⟩,
+  rw hy, apply same_side_pt_symm, exact hxy
+end
 
 end ang
 
@@ -610,26 +1213,62 @@ example : hilbert_plane :=
   begin
     intros a b c d e f habc hdef habde hbcef,
     rw two_pt_seg_congr at habde hbcef, rw two_pt_seg_congr,
-    apply (real.sqrt_inj _ _).1 _,
+    apply (sqrt_inj _ _).1 _,
     nlinarith, nlinarith,
     rw [seg.between_cal habc, seg.between_cal hdef, habde, hbcef]
   end,
-  ang_congr := ang.congr,
-  C4 := sorry,
+  ang_congr := ang_congr,
+  C4 :=
+  begin
+    intros α o a p hα hoa hp,
+    rcases ang.extend hα hoa.symm with ⟨b, c, hb, hc, hbc, hu⟩,
+    rcases (@plane_separation r_squared (@line (affine_plane ℝ) o a) b p hbc.2.1 hp).1 with h | h,
+    use b,
+    split, exact hb, split, exact h,
+    intros x hbx hx,
+    left, exact (hu x hx).1 hbx,
+    use c,
+    split, exact hc, split,
+    apply diff_side_line_cancel,
+    exact @line_in_lines (affine_plane ℝ) o a hoa,
+    apply diff_side_line_symm, exact hbc,
+    exact h,
+    intros x hcx hx,
+    left, exact (hu x hx).2 hcx
+  end,
   C5 :=
   begin
     split,
     intros α β γ hαβ hαγ,
-    rcases hαβ with ⟨a, b, c, d, hα, hβ, hαβ⟩,
-    rcases hαγ with ⟨a', b', e, f, hα', hγ, hαγ⟩,
+    rcases hαβ with ⟨a, b, c, d, hα, hβ, h₁, h₂⟩,
+    rcases hαγ with ⟨a', b', e, f, hα', hγ, h₃, h₄⟩,
     use [c, d, e, f],
+    split, exact hβ, split, exact hγ,
     have he := hα.symm.trans hα',
-    rw three_pt_ang_eq_iff at he,
-    sorry,
-    sorry,
-    sorry,
+      split, rw [←h₁, ←h₃], split; contrapose!;
+      intros h hf;
+      have := (@ang_nontrivial_iff_noncol r_squared _ _ _).2 h,
+      rw [←he, ang_nontrivial_iff_noncol] at this, exact this hf,
+      rw [he, ang_nontrivial_iff_noncol] at this, exact this hf,
+    rw ←not_iff_not at h₁ h₃,
+    intro hcd,
+    have hab := h₁.2 hcd,
+    have ha'b' := (@ang_nontrivial_iff_noncol r_squared _ _ _).2 hab,
+    rw [he, ang_nontrivial_iff_noncol] at ha'b',
+    rw three_pt_ang_eq_iff at he, 
+    rw [←h₂ hab, ←h₄ ha'b'], cases he.2,
+    rw [ang_eq_same_side_pt b h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt a' h.2, euclidean_geometry.angle_comm],
+    rw [ang_eq_same_side_pt b h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt b' h.2, euclidean_geometry.angle_comm],
+    exact hab,
+    intro α, rcases @ang_three_pt r_squared α with ⟨a, b, hα⟩,
+    use [a, b, a, b], rw ←hα, simp
   end,
   C6 := sorry,
   ..r_squared }
+
+
+example {p q r : Prop} : (p ↔ q) ↔ (¬p ↔ ¬q) := not_iff_not.symm
 
 end r_squared
