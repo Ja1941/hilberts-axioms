@@ -859,3 +859,46 @@ begin
   exact hbcb'c',
   exact habca'b'c'
 end
+
+/--Hypotenuse leg theorem -/
+theorem HL {ABC DEF : triang} (hr₁ : is_right_ang (∠ ABC.v1 ABC.v2 ABC.v3))
+(hr₂ : is_right_ang (∠ DEF.v1 DEF.v2 DEF.v3)) (haba'b' : (ABC.v1-ₛABC.v2) ≅ₛ (DEF.v1-ₛDEF.v2))
+(haca'c' : (ABC.v1-ₛABC.v3) ≅ₛ (DEF.v1-ₛDEF.v3)) : ABC ≅ₜ DEF :=
+begin
+  set a := ABC.v1 with ha, set b := ABC.v2 with hb, set c := ABC.v3 with hc,
+  set a' := DEF.v1, set b' := DEF.v2, set c' := DEF.v3,
+  have habc := ang_nontrivial_iff_noncol.1 hr₁.1,
+  have ha'b'c' := ang_nontrivial_iff_noncol.1 hr₂.1,
+  have hbc := (noncol_neq habc).2.2,
+  have hb'c' := (noncol_neq ha'b'c').2.2,
+  rcases extend_congr_seg' (seg_nontrivial_iff_neq.2 hb'c') hbc with ⟨d, hcbd, hb'c'bd, -⟩,
+  rw ←between_diff_side_pt at hcbd,
+  have hbd := (between_neq hcbd).2.2,
+  have hcd := (between_neq hcbd).2.1,
+  have hbda := col_noncol (col12 (between_col hcbd)) (noncol123 habc) hbd,
+  have hr₃ : is_right_ang (∠ a b d),
+    apply right_supplementary_right hr₁,
+    rw three_pt_ang_supplementary,
+    exact ⟨hcbd, habc, noncol132 hbda⟩,
+  have : (Δ b a d ≅ₜ Δ b' a' c'),
+    apply SAS; unfold three_pt_triang; simp,
+    exact noncol23 hbda, exact noncol12 ha'b'c',
+    rw [seg_symm, seg_symm b' a'], exact haba'b',
+    exact seg_congr_symm hb'c'bd,
+    apply all_right_ang_congr,
+    exact hr₃, exact hr₂,
+  apply tri_congr_trans _ (tri_congr12 this),
+  apply tri_congr13,
+  apply AAS, exact noncol13 habc, exact noncol12 hbda,
+  exact seg_congr_refl _,
+  apply all_right_ang_congr,
+  rw ang_symm, exact hr₁,
+  rw ang_symm, exact hr₃,
+  unfold three_pt_triang, simp,
+  rw [ang_symm, ang_eq_same_side a (between_same_side_pt.1 hcbd).1, ang_symm b d a,
+    ←ang_eq_same_side a (between_same_side_pt.1 hcbd).2],
+  apply isosceles,
+  exact noncol132 (col_noncol (between_col hcbd) (noncol13 habc) hcd),
+  apply seg_congr_trans haca'c',
+  exact seg_congr_symm (tri_congr_side this).2.2
+end

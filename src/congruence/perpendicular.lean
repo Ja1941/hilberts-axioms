@@ -9,7 +9,7 @@ import congruence.ang_lt
 # Right angles and perpendicularity
 
 This file defines right angles using `supplementary` and how two lines
-are perpendicular.
+are perpendicular, proves that all right angles are congruent
 
 ## Main definitions
 
@@ -92,6 +92,16 @@ begin
   exact diff_side_same_side_pt hboc H.2,
   rw between_diff_side_pt, rw between_diff_side_pt at hb'oc',
   exact diff_side_pt_symm (diff_side_same_side_pt hb'oc' (same_side_pt_symm H.1))
+end
+
+lemma right_supplementary_right {α β : ang} (hα : is_right_ang α) (hαβ : supplementary α β) :
+is_right_ang β :=
+begin
+  apply right_ang_congr,
+  apply hα.2,
+  exact hαβ,
+  exact hα,
+  exact hαβ.2.2
 end
 
 lemma all_right_ang_congr {α β : ang}
