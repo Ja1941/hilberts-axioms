@@ -763,3 +763,99 @@ begin
   rw [ang_symm a d c, ang_eq_same_side c (between_same_side_pt.1 habd).2, ang_symm, ang_symm c d b],
   exact isosceles (noncol23 hbdc) (seg_congr_symm hbdbc)
 end
+
+private lemma ASA_prep {a b c d e f : pts} (habc : noncol a b c) (hdef : noncol d e f)
+(habcdef : ∠ a b c ≅ₐ ∠ d e f) (hbacedf : ∠ b a c ≅ₐ ∠ e d f)
+(habde : (a-ₛb) ≅ₛ (d-ₛe)) : ¬((d-ₛf) <ₛ (a-ₛc)) :=
+begin
+  intro hf,
+  rw two_pt_seg_lt at hf,
+  rcases hf with ⟨x, haxc, hdfax⟩,
+  have hax := (between_neq haxc).1,
+  have haxb := col_noncol (col23 (between_col haxc)) (noncol23 habc) hax,
+  apply (ang_tri (ang_nontrivial_iff_noncol.2 (noncol23 haxb))
+    (ang_nontrivial_iff_noncol.2 habc)).2.1,
+  split,
+  rw three_pt_ang_lt,
+  exact ⟨x, hypo_inside_ang habc haxc, ang_congr_refl _⟩,
+  apply ang_congr_symm,
+  apply ang_congr_trans habcdef,
+  have : (Δ a b x ≅ₜ Δ d e f),
+    apply SAS; unfold three_pt_triang; simp,
+    exact noncol23 haxb, exact hdef,
+    exact habde,
+    exact seg_congr_symm hdfax,
+    rw ang_eq_same_side b (between_same_side_pt.1 haxc).1,
+    exact hbacedf,
+  exact ang_congr_symm (tri_congr_ang this).2.1
+end
+
+/--I.26 part one in Elements -/
+theorem ASA {ABC DEF : triang} (habc : noncol ABC.v1 ABC.v2 ABC.v3)
+(ha'b'c' : noncol DEF.v1 DEF.v2 DEF.v3) (haba'b' : (ABC.v1-ₛABC.v2) ≅ₛ (DEF.v1-ₛDEF.v2))
+(habca'b'c' : (∠ABC.v1 ABC.v2 ABC.v3 ≅ₐ ∠DEF.v1 DEF.v2 DEF.v3))
+(hbacb'a'c' : (∠ABC.v2 ABC.v1 ABC.v3 ≅ₐ ∠DEF.v2 DEF.v1 DEF.v3)) : ABC ≅ₜ DEF :=
+begin
+  set a := ABC.v1 with ha, set b := ABC.v2 with hb, set c := ABC.v3 with hc,
+  set a' := DEF.v1, set b' := DEF.v2, set c' := DEF.v3,
+  have hac := (noncol_neq habc).2.1,
+  have ha'c' := (noncol_neq ha'b'c').2.1,
+  apply SAS,
+  exact habc, exact ha'b'c',
+  exact haba'b',
+  rcases (seg_tri (seg_nontrivial_iff_neq.2 hac) (seg_nontrivial_iff_neq.2 ha'c')).1
+    with hf | haca'c' | hf,
+  exact absurd hf (ASA_prep ha'b'c' habc (ang_congr_symm habca'b'c') (ang_congr_symm hbacb'a'c')
+    (seg_congr_symm haba'b')),
+  exact haca'c',
+  exact absurd hf (ASA_prep habc ha'b'c' habca'b'c' hbacb'a'c' haba'b'),
+  exact hbacb'a'c'
+end
+
+private lemma AAS_prep {a b c d e f : pts} (habc : noncol a b c) (hdef : noncol d e f)
+(habcdef : ∠ a b c ≅ₐ ∠ d e f) (hbacedf : ∠ b a c ≅ₐ ∠ e d f)
+(hbcef : (b-ₛc) ≅ₛ (e-ₛf)) : ¬((d-ₛe) <ₛ (a-ₛb)) :=
+begin
+  intro hf,
+  rw [seg_symm a b, two_pt_seg_lt] at hf,
+  rcases hf with ⟨x, hbxa, hdebx⟩,
+  have hbx := (between_neq hbxa).1,
+  have hbxc := col_noncol (col23 (between_col hbxa)) (noncol12 habc) hbx,
+  apply (ang_tri (ang_nontrivial_iff_noncol.2 hbxc) (ang_nontrivial_iff_noncol.2 (noncol12 habc))).2.2.2,
+  split,
+  apply ang_congr_trans _ (ang_congr_symm hbacedf),
+  apply (tri_congr_ang _).2.1,
+  apply SAS; unfold three_pt_triang; simp,
+  exact hbxc, exact noncol12 hdef,
+  rw seg_symm e d, exact seg_congr_symm hdebx,
+  exact hbcef,
+  rw [ang_symm, ang_eq_same_side c (between_same_side_pt.1 hbxa).1, ang_symm],
+  exact habcdef,
+  rw [ang_symm, ang_eq_same_side c (between_same_side_pt.1 hbxa).2, ang_symm b x c],
+  apply (ang_exter_lt_inter _ _).2,
+  have hxa := (between_neq hbxa).2.2,
+  exact noncol132 (col_noncol (col132 (between_col hbxa)) habc hxa.symm),
+  rw between_symm, exact hbxa
+end
+
+/--I.26 part two in Elements -/
+theorem AAS {ABC DEF : triang} (habc : noncol ABC.v1 ABC.v2 ABC.v3)
+(ha'b'c' : noncol DEF.v1 DEF.v2 DEF.v3) (hbcb'c' : (ABC.v2-ₛABC.v3) ≅ₛ (DEF.v2-ₛDEF.v3))
+(habca'b'c' : (∠ABC.v1 ABC.v2 ABC.v3 ≅ₐ ∠DEF.v1 DEF.v2 DEF.v3))
+(hbacb'a'c' : (∠ABC.v2 ABC.v1 ABC.v3 ≅ₐ ∠DEF.v2 DEF.v1 DEF.v3)) : ABC ≅ₜ DEF :=
+begin
+  set a := ABC.v1 with ha, set b := ABC.v2 with hb, set c := ABC.v3 with hc,
+  set a' := DEF.v1, set b' := DEF.v2, set c' := DEF.v3,
+  have hab := (noncol_neq habc).1,
+  have ha'b' := (noncol_neq ha'b'c').1,
+  apply tri_congr12, apply SAS,
+  exact noncol12 habc, exact noncol12 ha'b'c',
+  rcases (seg_tri (seg_nontrivial_iff_neq.2 hab) (seg_nontrivial_iff_neq.2 ha'b')).1
+    with hf | haba'b' | hf,
+  exact absurd hf (AAS_prep ha'b'c' habc (ang_congr_symm habca'b'c') (ang_congr_symm hbacb'a'c')
+    (seg_congr_symm hbcb'c')),
+  rw [seg_symm, seg_symm a' b'] at haba'b', exact haba'b',
+  exact absurd hf (AAS_prep habc ha'b'c' habca'b'c' hbacb'a'c' hbcb'c'),
+  exact hbcb'c',
+  exact habca'b'c'
+end
