@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 Tianchen Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tianchen Zhao
+-/
 import congruence.basic
 import data.zmod.basic
 import data.real.basic
@@ -7,6 +12,18 @@ import analysis.normed_space.inner_product
 import analysis.normed_space.pi_Lp
 import geometry.euclidean.basic
 import geometry.euclidean.triangle
+
+/-!
+# Examples of incidence geometry, ordered incidence geometry and Hilbert plane.
+
+This file gives example of `incidece_geometry`, `incidence_order_geometry` and
+`hilber_plane` to guarantee that the axioms are not contradictive.
+
+## References
+
+* See [Geometry: Euclid and Beyond]
+
+-/
 
 section affine_plane
 

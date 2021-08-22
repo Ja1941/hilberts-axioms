@@ -1,7 +1,28 @@
+/-
+Copyright (c) 2021 Tianchen Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tianchen Zhao
+-/
 import congruence.basic
 import congruence.seg_lt
 import congruence.ang_lt
 import congruence.perpendicular
+
+/-!
+# Euclid's Elements
+
+This file proves most propositions in Euclid's book I with some exceptions. For
+instance, intersection of two circles is not guaranteed by Hilbert's axioms. Also
+note that some proofs are different from Euclid's ones to fit Hilbert's axioms.
+
+Some propositions needs reintepretation. For example, the propositions on ruler
+and compass contructions are understood to be existence proof.
+
+## References
+
+* See [Geometry: Euclid and Beyond]
+
+-/
 
 open incidence_geometry incidence_order_geometry hilbert_plane
 

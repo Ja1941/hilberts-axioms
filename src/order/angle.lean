@@ -1,4 +1,29 @@
+/-
+Copyright (c) 2021 Tianchen Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tianchen Zhao
+-/
 import order.sideness
+
+/-!
+# Ray and angle
+
+This file defines rays and angles using `same_side_pt` and insideness of an angle,
+and then proves some important theorems such as the crossbar theorem.
+
+## Main definitions
+
+* `ray` is half of a line separated by its vertex.
+
+* `ang` is the union of two `ray` sharing the same vertex.
+
+* `inside_ang` defines how a point can be inside `ang`.
+
+## References
+
+* See [Geometry: Euclid and Beyond]
+
+-/
 
 open set
 

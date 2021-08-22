@@ -1,4 +1,30 @@
+/-
+Copyright (c) 2021 Tianchen Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tianchen Zhao
+-/
 import order.segment
+
+/-!
+# Sideness
+
+This file defines sideness (two points lie on the same side of a line, or same side of
+a point) using `incidence_order_geometry.between` and apply them to prove some theorems
+of betweenness.
+
+## Main definitions
+
+* `same_side_line` defines a relation that two points lie on the same side of a line,
+`diff_side_line` meaning that they lie on different side of a line.
+
+* `same_side_pt` defines, on a line, two points lie on the same side with respect to
+a point, `diff_side_pt` meaning the opposite.
+
+## References
+
+* See [Geometry: Euclid and Beyond]
+
+-/
 
 open_locale classical
 open set

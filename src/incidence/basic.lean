@@ -1,4 +1,31 @@
+/-
+Copyright (c) 2021 Tianchen Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tianchen Zhao
+-/
 import set_theory.zfc
+
+/-!
+# Incidence geometry
+
+This file defines incidence geometry as a class and proves basic lemmas about
+points, lines and collinearity.
+
+## Main definitions
+
+* `incidence_geometry` is a class satisfying the three axioms of incidence.
+
+* `line`, with notation `-ₗ`, is the unique line determined by the given two points.
+
+* `col` is a ternary relation among points meaning they lie on the same line.
+
+* `noncol` is the opposite of `col`.
+
+## References
+
+* See [Geometry: Euclid and Beyond]
+
+-/
 
 universes u
 

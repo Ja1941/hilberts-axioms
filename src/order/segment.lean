@@ -1,4 +1,28 @@
+/-
+Copyright (c) 2021 Tianchen Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tianchen Zhao
+-/
 import incidence.basic
+
+/-!
+# Order on incidence geometry and segments
+
+This file formalises betweenness based on `incidence_geometry`, defines line segments
+and proves some important lemmas such as Pasch's.
+
+## Main definitions
+
+* `incidence_order_geometry` is a class extended by `incidence_geometry` and defines
+  a ternary relation `between` satisfying some axioms.
+
+* `seg`, with notation `-ₛ`, is the unique segment determined by the given two points.
+
+## References
+
+* See [Geometry: Euclid and Beyond]
+
+-/
 
 open_locale classical
 

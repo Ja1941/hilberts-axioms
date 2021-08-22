@@ -1,4 +1,32 @@
+/-
+Copyright (c) 2021 Tianchen Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tianchen Zhao
+-/
 import order.angle
+
+/-!
+# Congruence of segments, angles and triangles
+
+This file extends incidence order geometry and defines congruence of segments and angles
+to make a Hilbert plane, and then formalises supplementary angles and congruence of triangles.
+
+## Main definitions
+
+* `hilbert_plane` is a class extended `incidence_order_geometry` and defines congruence of `seg`
+  and `ang` based on some axioms.
+
+* `triang` is a structure consisting of the three vertices in order.
+
+* `tri_congr` means two triangles are congruence i.e. their segments and angles are congruent.
+
+* `supplementary` means two angles "add" to 180°.
+
+## References
+
+* See [Geometry: Euclid and Beyond]
+
+-/
 
 /--A Hilbert plane extends incidence order geometry. It contains two binary relations, seg
 congruence and ang congruence. Intuitionally, they correspond to lengths of two segs and

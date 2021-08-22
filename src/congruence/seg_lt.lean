@@ -1,4 +1,21 @@
+/-
+Copyright (c) 2021 Tianchen Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tianchen Zhao
+-/
 import congruence.basic
+
+/-!
+# Segment orderness
+
+This file defines how a segment is less than another and proves basic properties such as
+transitivity and trichotomy.
+
+## References
+
+* See [Geometry: Euclid and Beyond]
+
+-/
 
 open incidence_geometry incidence_order_geometry hilbert_plane
 
