@@ -6,9 +6,9 @@ Authors: Tianchen Zhao
 import order.segment
 
 /-!
-# Sideness
+# sidedness
 
-This file defines sideness (two points lie on the same side of a line, or same side of
+This file defines sidedness (two points lie on the same side of a line, or same side of
 a point) using `incidence_order_geometry.between` and apply them to prove some theorems
 of betweenness.
 

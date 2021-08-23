@@ -3,12 +3,12 @@ Copyright (c) 2021 Tianchen Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tianchen Zhao
 -/
-import order.sideness
+import order.sidedness
 
 /-!
 # Ray and angle
 
-This file defines rays and angles using `same_side_pt` and insideness of an angle,
+This file defines rays and angles using `same_side_pt` and insidedness of an angle,
 and then proves some important theorems such as the crossbar theorem.
 
 ## Main definitions
