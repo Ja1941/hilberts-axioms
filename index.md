@@ -31,7 +31,7 @@
     <p>
     First we need to prove that the three points are not on $(C-ₗE)$. This is not as easy as it looks on the graph, which involves a series of collinearity arguments. Then as line     $CE$ intersects $AD$ at $C$, Pasch's says it either intersects $AB$ or $BD$. The first case is exactly what we want, and the second case leads to a contradiction: if they         intersect at $x$, which is also the intersection of line $CE$ and \underline{line} $BD$ that is supposed to be $E$. By uniqueness, $x = E$ but $B*x*D$ and $B*D*E$, which is       contradiction by our axioms.
     </p>
-    <img src="draft/between.JPG" alt="Existence of a point between any two" width="250" height="150">
+    <img src="draft/between.jpg" alt="Existence of a point between any two" width="250" height="150">
 
     <h2>The Cauchy-Schwarz Inequality</h2>
 
