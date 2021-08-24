@@ -85,8 +85,6 @@
     expression $\sqrt{3x-1}+(1+x)^2$ is an example of an inline equation.  As
     you see, MathJax equations can be used this way as well, without unduly
     disturbing the spacing between lines.</p>
-
-  <h2>HTML Image</h2>
-  <img src="draft/pasch.png" alt="Trulli" width="500" height="333">
+    <img src="draft/pasch.PNG" alt="Pasch's" width="500" height="333">
   
 </body>
