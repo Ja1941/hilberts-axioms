@@ -29,7 +29,7 @@
     This lemma asserts the existence of a point between two distinct points, using Pasch's. Given two distinct points $A$ and $B$, we find another point $C$ such that they are         noncollinear. Then we extend $A$ and $C$ to $D$, $B$ and $D$ to $E$ and use Pasch's on points $A$ $B$ $D$ and line $CE$.
     </p>
     <p>
-    First we need to prove that the three points are not on $(C-ₗE)$. This is not as easy as it looks on the graph, which involves a series of collinearity arguments. Then as line     $CE$ intersects $AD$ at $C$, Pasch's says it either intersects $AB$ or $BD$. The first case is exactly what we want, and the second case leads to a contradiction: if they         intersect at $P$, which is also the intersection of line $CE$ and \underline{line} $BD$ that is supposed to be $E$. By uniqueness, $P = E$ but $B*P*D$ and $B*D*E$, which is       contradiction by our axioms.
+    First, we need to prove that the three points are not on $(C-ₗE)$. This is not as easy as it looks on the graph, which involves a series of collinearity arguments. Then as line     $CE$ intersects $AD$ at $C$, Pasch's says it either intersects $AB$ or $BD$. The first case is exactly what we want, and the second case leads to a contradiction: if they         intersect at $P$, which is also the intersection of line $CE$ and \underline{line} $BD$ that is supposed to be $E$. By uniqueness, $P = E$ but $B*P*D$ and $B*D*E$, which is       contradiction by our axioms.
     </p>
     <img src="draft/between.jpg" alt="Existence of a point between any two distinct ones" width="250" height="150">
 
