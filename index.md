@@ -15,19 +15,21 @@
     
     <h2>Pasch's axiom B4</h2>
     <p>
-    This axiom, in common language, says that if a line enters a triangle in one side, it must exit in one of the two other sides, but not both. As in the figure, $a$, $b$ and $c$     are not on $l$ and $l$ intersects with (a-ₛb), so it should intersect with either (a-ₛc) or (b-ₛc).
+    This axiom says that if a line enters a triangle in one side, it must exit in one of the two other sides, but not both. As in the figure, $a$, $b$ and $c$ are not on $l$           and $l$ intersects with `(a-ₛb)`, so it should intersect with either `(a-ₛc)` or `(b-ₛc)`.
     </p>
     <img src="draft/pasch.PNG" alt="Pasch's" width="250" height="150">
 
-    <h2>The Lorenz Equations</h2>
+    <h2>lemma two_pt_between</h2>
 
     <p>
+    This lemma asserts the existence of a point between two distinct points, using Pasch's. Given two distinct points $a$ and $b$, find another point $c$ such that they are           noncollinear. Then extend $A$ and $C$ to $D$, $B$ and $D$ to $E$,
     \begin{align}
     \dot{x} &amp; = \sigma(y-x) \\
     \dot{y} &amp; = \rho x - y - xz \\
     \dot{z} &amp; = -\beta z + xy
     \end{align}
     </p>
+    <img src="draft/between.JPG" width="250" height="150">
 
     <h2>The Cauchy-Schwarz Inequality</h2>
 
