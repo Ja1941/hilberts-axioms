@@ -12,12 +12,13 @@
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head>
 <body>
-    <h1>MathJax v3 beta: TeX input, HTML output test</h1>
-
+    <h1>Hilbert's axioms in Lean</h1>
+    
+    <h2>Pasch's axiom B4
     <p>
-    When $a \ne 0$, there are 2 solutions to \(ax^2 + bx + c = 0\) and they are
-    $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}.$$
+    This axiom, in common language, says that if a line enters a triangle in one side, it must exit in one of the two other sides, but not both. As in the figure, $a$, $b$ and $c$     are not on $l$ and $l$ intersects with (a-ₛb), so it should intersect with either (a-ₛc) or (b-ₛc).
     </p>
+    <img src="draft/pasch.PNG" alt="Pasch's" width="250" height="150">
 
     <h2>The Lorenz Equations</h2>
 
