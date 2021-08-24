@@ -15,7 +15,7 @@
     
     <h2>Pasch's axiom B4</h2>
     <p>
-    This axiom says that if a line enters a triangle in one side, it must exit in one of the two other sides, but not both. As in the figure, $a$, $b$ and $c$ are not on $l$           and $l$ intersects with `(a-ₛb)`, so it should intersect with either `(a-ₛc)` or `(b-ₛc)`.
+    This axiom says that if a line enters a triangle in one side, it must exit in one of the two other sides, but not both. As in the figure, $a$, $b$ and $c$ are not on $l$           and $l$ intersects with $(a-ₛb)$, so it should intersect with either $(a-ₛc)$ or $(b-ₛc)$.
     </p>
     <img src="draft/pasch.PNG" alt="Pasch's" width="250" height="150">
 
