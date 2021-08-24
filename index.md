@@ -87,6 +87,6 @@
     disturbing the spacing between lines.</p>
 
   <h2>HTML Image</h2>
-  <img src="pasch.png" alt="Trulli" width="500" height="333">
+  <img src="draft/pasch.png" alt="Trulli" width="500" height="333">
   
 </body>
