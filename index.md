@@ -12,7 +12,6 @@
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head>
 <body>
-    <h1>Hilbert's axioms in Lean</h1>
     
     <h2>Pasch's axiom B4
     <p>
