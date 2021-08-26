@@ -83,7 +83,7 @@
   2. All points on opposite ray of $AD$ except for $A$ are on different side with $D$ to line $AC$. All points on $BE$ except for $E$ are on the same side with $B$ to line $AC$. Also, $B$ and $D$ are on the same side to $AC$ as $D$ is inside $∠BAC$. So $BE$ cannot intersect with the opposite ray of $AD$.
  </p>
  <p>
-  3. Similar to step. All points on opposite ray of $AD$ except for $A$ are on different side with $D$ to line $AC$. All points on $BC$ except for $C$ are on the same side with $B$ to line $AC$. So $BC$ cannot intersect with the opposite ray of $AD$.
+  3. All points on opposite ray of $AD$ except for $A$ are on different side with $D$ to line $AC$. All points on $BC$ except for $C$ are on the same side with $B$ to line $AC$. So $BC$ cannot intersect with the opposite ray of $AD$.
   </p>
   
   <h2>lemma supplementary_congr </h2>
