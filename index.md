@@ -86,6 +86,20 @@
   3. Similar to step. All points on opposite ray of $AD$ except for $A$ are on different side with $D$ to line $AC$. All points on $BC$ except for $C$ are on the same side with $B$ to line $AC$. So $BC$ cannot intersect with the opposite ray of $AD$.
   </p>
   
+  <h2>lemma supplementary_congr </h2>
+  
+  <p>
+  This lemma proves that the two supplementary angles of a pair of congruent angles are also congruent. As in the figure, $D*A*C$ and $D'*A'*C'$ and we can assume that $AB$ ≅ $A'B'$, $AC$ ≅ $A'C'$ and $AD$ ≅ $A'D'$. Given $∠BAC≅∠B'A'C'$, we want to prove $∠BAD≅∠B'A'D'$. The proof is divided into three steps.
+  </p>
+  
+   <ol>
+  <li>By SAS, we have $ΔABC≅ΔA'B'C'$ as $∠BAC≅∠B'A'C'$ and $AB ≅ A'B'$, $AC ≅ A'C'$.</li>
+  <li>$CD ≅ C'D'$ as $AC ≅ A'C'$, $AD$ ≅ $A'D'$ and $D*A*C$ and $D'*A'*C'$. Also, $ΔABC≅ΔA'B'C'$ implies $BC$ ≅ B'C'$ and $∠ACB≅∠A'C'B'$ (equivalently, $∠BCD≅∠B'C'D'$), so $ $ΔCBD≅ΔC'B'D'$ by SAS.</li>
+  <li>Using SAS again, ΔDAB≅ₜΔD'A'B' : $AD$ ≅ $A'D'$, by $ΔCBD≅ΔC'B'D'$ $BD$ ≅ B'D'$ and ΔBDA≅ₜΔB'D'A' (equivalently, ΔBDC≅ₜΔB'D'C'). Then we immediately have $∠BAD≅∠B'A'D'$.</li>
+  </ol>
+  
+  <img src="draft/supple.PNG" alt="supplementary angles" width="500" height="150">
+  
   <h2>lemma congr_ang_add</h2>
   
   <p>
