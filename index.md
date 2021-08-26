@@ -44,4 +44,21 @@
     Proof when they are collinear involves contruction of three noncollinear points to apply the noncollinear case. Assume $A$ $B$ $C$ all lie on $m$. $m$ intersects with $l$ in at most one point, so there must exist $D$ on $l$ but not on $m$. Then extend $D$ $A$ to get $E$. Now $A$ and $E$ are on the same side to $l$ since line $AE$ already intersects with $l$ at $D$, which is not on segment $AE$. Also note that $A$ $B$ $E$ must be noncollinear and $A$ $B$ are on the same side to $l$. By the noncollinear case, $B$ $E$ are on the same side. Also $B$ $C$ $E$ are noncollinear and $B$ $C$ are on the same side. Again by the noncollinear case, $C$ $E$ are on the same side. Lastly, $A$ $C$ $E$ are noncollinear and $A$ $E$ are on the same side as proven before, $A$ $C$ are on the same side.
     </p>
   <img src="draft/col.PNG" alt="collinear case" width="250" height="150">
+  
+  <h2>theorem crossbar</h2>
+  
+  <p>
+    This theorem states that the ray $AD$ inside $∠BAC$ must meet $BC$. We will prove it based on Pasch's and a series of sidedness reasoning.
+    <img src="draft/crossbar1.PNG" alt="Crossbar theorem" width="250" height="150">
+  </p>
+  
+  <p>
+    First, we extend $C$ $A$ to $E$. Apply Pasch's on line $AD$ and points $E$ $B$ $C$ and we know $AD$ intersect with either $BE$ or $BC$. The proof is divided into the following steps.
+ <ul>
+  <li>$BE$ doesn't intersect with ray $AD$.</li>
+  <li>$BE$ doesn't intersect with the opposite ray of $AD$, so $BE$ doesn't intersect with line $AD$ so line $AD$ will meet $BC$.</li>
+  <li>$BC$ doesn't meet the opposite ray of $AD$, so it must meet ray $AD$.</li>
+</ul>
+  </p>
+  <img src="draft/crossbar1.PNG" alt="Crossbar theorem proof" width="250" height="150">
 </body>
