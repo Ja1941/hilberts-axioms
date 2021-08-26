@@ -48,7 +48,7 @@
   <h2>theorem crossbar</h2>
   
   <p>
-    This theorem states that the ray $AD$ inside $∠BAC$ must meet $BC$. We will prove it based on Pasch's and a series of sidedness reasoning.
+    This theorem states that the ray $AD$ inside $∠BAC$ must meet $BC$. We prove it based on Pasch's and some sidedness reasoning.
     <img src="draft/crossbar1.PNG" alt="Crossbar theorem" width="250" height="150">
   </p>
   
