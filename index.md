@@ -95,7 +95,7 @@
    <ol>
   <li>By SAS, we have $ΔABC≅ΔA'B'C'$ as $∠BAC≅∠B'A'C'$ and $AB ≅ A'B'$, $AC ≅ A'C'$.</li>
   <li>$CD ≅ C'D'$ as $AC ≅ A'C'$, $AD ≅ A'D'$ and $D*A*C$ and $D'*A'*C'$. Also, $ΔABC≅ΔA'B'C'$ implies $BC≅B'C'$ and $∠ACB≅∠A'C'B'$ (equivalently, $∠BCD≅∠B'C'D'$), so  $ΔCBD≅ΔC'B'D'$ by SAS.</li>
-  <li>Using SAS again, $ΔDAB≅ΔD'A'B'$ : $AD ≅ A'D'$, by $ΔCBD≅ΔC'B'D'$ $BD$ ≅ B'D'$ and $ΔBDA≅ΔB'D'A'$ (equivalently, $ΔBDC≅ΔB'D'C'$). Then we immediately have $∠BAD≅∠B'A'D'$.</li>
+  <li>Using SAS again, $ΔDAB≅ΔD'A'B'$ : $AD ≅ A'D'$, by $ΔCBD≅ΔC'B'D'$ $BD ≅ B'D'$ and $ΔBDA≅ΔB'D'A'$ (equivalently, $ΔBDC≅ΔB'D'C'$). Then we immediately have $∠BAD≅∠B'A'D'$.</li>
   </ol>
   
   <img src="draft/supple.PNG" alt="supplementary angles" width="500" height="150">
