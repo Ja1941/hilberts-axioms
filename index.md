@@ -54,11 +54,11 @@
   
   <p>
     First, we extend $C$ $A$ to $E$. Apply Pasch's on line $AD$ and points $E$ $B$ $C$ and we know $AD$ intersect with either $BE$ or $BC$. The proof is divided into the following steps.
- <ul>
+ <ol>
   <li>$BE$ doesn't intersect with ray $AD$.</li>
   <li>$BE$ doesn't intersect with the opposite ray of $AD$, so $BE$ doesn't intersect with line $AD$ so line $AD$ will meet $BC$.</li>
   <li>$BC$ doesn't meet the opposite ray of $AD$, so it must meet ray $AD$.</li>
-</ul>
+</ol>
   </p>
-  <img src="draft/crossbar1.PNG" alt="Crossbar theorem proof" width="250" height="150">
+  <img src="draft/crossbar2.PNG" alt="Crossbar theorem proof" width="250" height="150">
 </body>
