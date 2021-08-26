@@ -20,7 +20,18 @@
     <p>
         $A*B*C$ : $B$ is between $A$ and $C$
     </p>
-  
+    <p>
+      $AB≅A'B'$ : segment $A$ $B$ is congruent to segment $A'$ $B'$
+     </P>
+     <P>
+      $∠ABC≅∠A'B'C'$ : angle $A$ $B$ $C$ is congruent to angle $A'$ $B'$ $C'$
+      </P>
+      <p>
+       $ΔABC$ : triangle $A$ $B$ $C$
+      </p>
+      <p>
+   $ΔABC≅ΔA'B'C'$ : triangle $A$ $B$ $C$ is congruent to triangle $A'$ $B'$ $C'$
+      </p>
     <h2>Pasch's axiom B4</h2>
     <p>
       This axiom says that if a line enters a triangle in one side, it must exit in one of the two other sides, but not both. As in the figure, $A$, $B$ and $C$ are not on $l$           and $l$ intersects with segment $AB$, so it should intersect with either $AC$ or $BC$.
@@ -73,5 +84,18 @@
  </p>
  <p>
   3. Similar to step. All points on opposite ray of $AD$ except for $A$ are on different side with $D$ to line $AC$. All points on $BC$ except for $C$ are on the same side with $B$ to line $AC$. So $BC$ cannot intersect with the opposite ray of $AD$.
+  </p>
+  
+  <h2>lemma congr_ang_add</h2>
+  
+  <p>
+  Unlike segments, we don't have that angle congruence repsects addition as an axiom, because this is a result by C6 which is SAS. First, without the loss of generality, we assume $D$ lies on $BC$ with crossbar theorem. Also, we can assume that $AB$ ≅ $A'B'$, $AC$ ≅ $A'C'$ and $AD$ ≅ $A'D'$.
+  </p>
+  
+  <p>
+  By SAS, we know that $ΔABD≅ΔA'B'D'$ and $ΔACD≅ΔA'C'D'$. Note that we don't know if $D'$ is on $B'C'$ as in the figure. We prove it by extending $B'$ $D'$ to $E'$ and prove $D'$ $C'$ and $E'$ are collinear. $ΔABD≅ΔA'B'D'$ implies that $∠ADB$ is congruent to $∠A'D'B'$ and so are their supplementary angles, namely $∠ADC$ and $∠A'D'E'$. Also, $ΔACD≅ΔA'C'D'$ implies $∠ADC≅∠A'D'C'$ and by transitivity $∠A'D'E'≅∠A'D'C'$. As $C'$ and $E'$ lie on the same side to line $A'D'$, they are on the same side to $D'$ by uniqueness, which implies collinearity.
+  </p>
+  <p>
+  To prove $∠ABC≅∠A'B'C'$, we use SAS on $ΔABC≅ΔA'B'C'$. $AB$ ≅ $A'B'$ and $∠ABC≅∠A'B'C'$ so we are left with $BC$ ≅ $B'C'$. $BD$ ≅ $B'D'$, $CD$ ≅ $C'D'$ and $B*D*C$, $B'*D'*C'$ so by C3 $BC$ ≅ $B'C'$. 
   </p>
 </body>
