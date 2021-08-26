@@ -63,12 +63,12 @@
   <h2>theorem crossbar</h2>
   
   <p>
-    This theorem states that the ray $AD$ inside $∠BAC$ must meet $BC$. We prove it based on Pasch's and some sidedness reasoning.
+    This theorem states that the ray $AD$ inside $∠BAC$ must meet $BC$.
     <img src="draft/crossbar1.PNG" alt="Crossbar theorem" width="250" height="150">
   </p>
   
   <p>
-    First, we extend $C$ $A$ to $E$. Apply Pasch's on line $AD$ and points $E$ $B$ $C$ and we know $AD$ intersect with either $BE$ or $BC$. The proof is divided into the following steps.
+    We prove it based on Pasch's and some sidedness reasoning. First, extend $C$ $A$ to $E$. Applying Pasch's on line $AD$ and points $E$ $B$ $C$, we know $AD$ intersects with either $BE$ or $BC$. The proof is then divided into the following steps.
  <ol>
   <li>$BE$ doesn't intersect with ray $AD$.</li>
   <li>$BE$ doesn't intersect with the opposite ray of $AD$, so $BE$ doesn't intersect with line $AD$ so line $AD$ will meet $BC$.</li>
