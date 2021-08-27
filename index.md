@@ -36,7 +36,7 @@
     <p>
       This axiom says that if a line enters a triangle in one side, it must exit in one of the two other sides, but not both. As in the figure, $A$, $B$ and $C$ are not on $l$           and $l$ intersects with segment $AB$, so it should intersect with either $AC$ or $BC$.
     </p>
-    <img src="draft/pasch.PNG" alt="Pasch's" width="250" height="150">
+    <img src="images/pasch.PNG" alt="Pasch's" width="250" height="150">
 
     <h2>lemma two_pt_between</h2>
 
@@ -46,25 +46,25 @@
     <p>
       First, we need to prove that the three points are not on line $CE$. This is not as easy as it looks on the graph, which involves a series of collinearity arguments. Then as       line $CE$ intersects $AD$ at $C$, Pasch's says it either intersects $AB$ or $BD$. The first case is exactly what we want, and the second case leads to a contradiction: if         they intersect at $P$, which is also the intersection of line $CE$ and line $BD$ that is supposed to be $E$. By uniqueness, $P = E$ but $B*P*D$ and $B*D*E$, contradiction by        our axioms.
     </p>
-    <img src="draft/between.jpg" alt="Existence of a point between any two distinct ones" width="250" height="150">
+    <img src="images/between.jpg" alt="Existence of a point between any two distinct ones" width="250" height="150">
     
     <h2>lemma same_side_line_trans</h2>
     
     <p>
       This lemma proves the transitivity of the relation two points being on the same side to a line. The proof is divided into two parts, when the three points are collinear and       the converse. The noncollinear case is proven in same_side_line_trans_noncol and we will need it for the collinear case. This case is easily done by Pasch's. $A$ $B$ $C$ are noncollinear and not on $l$. Also, we have $l$ not intersecting $AB$ and $BC$ and want to prove it doesn't intersect $AC$. If it does, Pasch says $l$ must intersect with either $AB$ or $BC$, which is contradictive.
     </p>
-    <img src="draft/noncol.PNG" alt="noncollinear case" width="250" height="150">
+    <img src="images/noncol.PNG" alt="noncollinear case" width="250" height="150">
   
     <p>
       Proof when they are collinear involves contruction of three noncollinear points to apply the noncollinear case. Assume $A$ $B$ $C$ all lie on $m$. $m$ intersects with $l$ in       at most one point, so there must exist $D$ on $l$ but not on $m$. Then extend $D$ $A$ to get $E$. Now $A$ and $E$ are on the same side to $l$ since line $AE$ already       intersects with $l$ at $D$, which is not on segment $AE$. Also note that $A$ $B$ $E$ must be noncollinear and $A$ $B$ are on the same side to $l$. By the noncollinear case, $B$ $E$ are on the same side. Also $B$ $C$ $E$ are noncollinear and $B$ $C$ are on the same side. Again by the noncollinear case, $C$ $E$ are on the same side. Lastly, $A$ $C$ $E$ are noncollinear and $A$ $E$ are on the same side as proven before, $A$ $C$ are on the same side.
     </p>
-  <img src="draft/col.PNG" alt="collinear case" width="250" height="150">
+  <img src="images/col.PNG" alt="collinear case" width="250" height="150">
   
   <h2>theorem crossbar</h2>
   
   <p>
     This theorem states that the ray $AD$ inside $∠BAC$ must meet $BC$.
-    <img src="draft/crossbar1.PNG" alt="Crossbar theorem" width="250" height="150">
+    <img src="images/crossbar1.PNG" alt="Crossbar theorem" width="250" height="150">
   </p>
   
   <p>
@@ -75,7 +75,7 @@
   <li>$BC$ doesn't meet the opposite ray of $AD$, so it must meet ray $AD$.</li>
 </ol>
   </p>
-  <img src="draft/crossbar2.PNG" alt="Crossbar theorem proof" width="250" height="150">
+  <img src="images/crossbar2.PNG" alt="Crossbar theorem proof" width="250" height="150">
  <p>
   1. All points on ray $AD$ except for $A$ are on the same side with $C$ to line $AB$. All points on $BE$ except for $B$ are on the same side with $E$. However, $C$ and $E$ are on different side to $AB$, so $BE$ cannot intersect with ray $AD$.
  </p>
@@ -98,14 +98,14 @@
   <li>Using SAS again, $ΔDAB≅ΔD'A'B'$ : $AD ≅ A'D'$, by $ΔCBD≅ΔC'B'D'$ $BD ≅ B'D'$ and $ΔBDA≅ΔB'D'A'$ (equivalently, $ΔBDC≅ΔB'D'C'$). Then we immediately have $∠BAD≅∠B'A'D'$.</li>
   </ol>
   
-  <img src="draft/supple.PNG" alt="supplementary angles" width="500" height="150">
+  <img src="images/supple.PNG" alt="supplementary angles" width="500" height="150">
   
   <h2>lemma congr_ang_add</h2>
   
   <p>
   Unlike segments, we don't have that angle congruence repsects addition as an axiom, because this is a result by C6 which is SAS. First, without the loss of generality, we assume $D$ lies on $BC$ with crossbar theorem. Also, we can assume that $AB$ ≅ $A'B'$, $AC$ ≅ $A'C'$ and $AD$ ≅ $A'D'$.
   </p>
-  <img src="draft/angleadd.PNG" alt="angle addition" width="500" height="150">
+  <img src="images/angleadd.PNG" alt="angle addition" width="500" height="150">
   <p>
   By SAS, we know that $ΔABD≅ΔA'B'D'$ and $ΔACD≅ΔA'C'D'$. Note that we don't know if $D'$ is on $B'C'$ as in the figure. We prove it by extending $B'$ $D'$ to $E'$ and prove $D'$ $C'$ and $E'$ are collinear. $ΔABD≅ΔA'B'D'$ implies that $∠ADB$ is congruent to $∠A'D'B'$ and so are their supplementary angles, namely $∠ADC$ and $∠A'D'E'$. Also, $ΔACD≅ΔA'C'D'$ implies $∠ADC≅∠A'D'C'$ and by transitivity $∠A'D'E'≅∠A'D'C'$. As $C'$ and $E'$ lie on the same side to line $A'D'$, they are on the same side to $D'$ by uniqueness, which implies collinearity.
   </p>
@@ -118,7 +118,7 @@
   <p>
   We prove SSS congruence using SAS congruence and isosceles theorem. Suppose we have two triangles $ΔABC$ and $ΔA'B'C'$ and their corresponding sides are congruent. Using axioms C1 and C4, we find a point $D$ on different side of $B$ to line $AC$ such that $AB≅AD$ and $∠BAC≅∠DAC$. By SAS, it is easy to prove that $ΔADC≅ΔA'B'C'$ and by transitivity, we are left with $ΔABC≅ΔADC$. Also, $AB≅AD$ and $BC≅DC$ so by SAS, it suffices to prove that $∠ABC≅∠ADC$. $B$ and $D$ are on different side to line $AC$ so $BD$ intersects with line $AC$. Depending ono the position of intersection (in the opposite ray of $AC$, at $A$, in $AC$, at $C$, or in the opposite ray of $CA$), we have the following three cases by symmetry.
   </p>
-  <img src="draft/SSS.jpg" alt="SSS" width="650" height="150">
+  <img src="images/SSS.jpg" alt="SSS" width="650" height="150">
   <p>
   By isoscles theorem, $AB≅AD$ implies $∠ABD≅∠ADB$ and $BC≅DC$ implies $∠CBD≅∠CDB$, which proves $∠ABC≅∠ADC$. In the first case, this is by congr_ang_sub. The second case is obvious and the last case is by congr_ang_add.
   </p>
