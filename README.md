@@ -12,6 +12,8 @@ More information on Lean and its community is in https://leanprover-community.gi
 
 This project develops Euclidean geometry from scratch in Lean, from formalising Hilbert's axioms and defining fundamental objects such as points, lines, segments etc., to proving important theorems in Euclidean geometry such as isosceles theorem, congruence by SSS and many other propositions in *Elements*. For reference, you can look at *Geometry: Euclid and Beyond* by Robin Hartshorne.
 
+See https://ja1941.github.io/Hilberts-axioms/ for some documentations on important theorems and their proofs(incomplete yet).
+
 ### How to run the project
 
 0) Install lean and git. More information can be found on https://leanprover-community.github.io/get_started.html. If you can run
