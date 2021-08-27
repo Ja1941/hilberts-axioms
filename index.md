@@ -112,4 +112,14 @@
   <p>
   To prove $∠ABC≅∠A'B'C'$, we use SAS on $ΔABC≅ΔA'B'C'$. $AB$ ≅ $A'B'$ and $∠ABC≅∠A'B'C'$ so we are left with $BC$ ≅ $B'C'$. $BD$ ≅ $B'D'$, $CD$ ≅ $C'D'$ and $B*D*C$, $B'*D'*C'$ so by C3 $BC$ ≅ $B'C'$. 
   </p>
+  
+  <h2> theorem SSS </h2>
+  
+  <p>
+  We prove SSS congruence using SAS congruence and isosceles theorem. Suppose we have two triangles $ΔABC$ and $ΔA'B'C'$ and their corresponding sides are congruent. Using axioms C1 and C4, we find a point $D$ on different side of $B$ to line $AC$ such that $AB≅AD$ and $∠BAC≅∠DAC$. By SAS, it is easy to prove that $ΔADC≅ΔA'B'C'$ and by transitivity, we are left with $ΔABC≅ΔADC$. Also, $AB≅AD$ and $BC≅DC$ so by SAS, it suffices to prove that $∠ABC≅∠ADC$. $B$ and $D$ are on different side to line $AC$ so $BD$ intersects with line $AC$. Depending ono the position of intersection (in the opposite ray of $AC$, at $A$, in $AC$, at $C$, or in the opposite ray of $CA$), we have the following three cases by symmetry.
+  </p>
+  <img src="draft/SSS.jpg" alt="SSS" width="650" height="150">
+  <p>
+  By isoscles theorem, $AB≅AD implies $∠ABD≅∠ADB$ and $BC≅DC$ implies $∠CBD≅∠CDB$, which proves $∠ABC≅∠ADC$. In the first case, this is by congr_ang_sub. The second case is obvious and the last case is by congr_ang_add.
+  </p>
 </body>
