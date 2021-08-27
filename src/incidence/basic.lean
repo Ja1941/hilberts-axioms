@@ -99,15 +99,14 @@ lemma two_pt_on_one_line {l : set pts} (hl : l ∈ lines) :
 
 -- this would be much better as a ∈ l → b ∈ l → a ∈ m → ... (all before the colon!)
 lemma two_pt_one_line {l m : set pts} (hl : l ∈ lines) (hm : m ∈ lines)
-{a b : pts} (hab : a ≠ b) : a ∈ l ∧ b ∈ l → a ∈ m ∧ b ∈ m → l = m :=
-λ habl habm, (two_pt_line_unique hab hl habl.1 habl.2).trans
-  (two_pt_line_unique hab hm habm.1 habm.2).symm
+{a b : pts} (hab : a ≠ b) (hal : a ∈ l) (hbl : b ∈ l) (ham : a ∈ m) (hbm : b ∈ m) : l = m :=
+(two_pt_line_unique hab hl hal hbl).trans(two_pt_line_unique hab hm ham hbm).symm
 
 lemma line_symm (a b : pts) : (a-ₗb) = (b-ₗa) :=
 begin
   by_cases a = b, rw h,
   exact two_pt_one_line (line_in_lines h) (line_in_lines (ne.symm h))
-    h ⟨pt_left_in_line a b, pt_right_in_line a b⟩ ⟨pt_right_in_line b a, pt_left_in_line b a⟩
+    h (pt_left_in_line a b) (pt_right_in_line a b) (pt_right_in_line b a) (pt_left_in_line b a)
 end
 
 lemma two_line_one_pt {l₁ l₂ : set pts} (hl₁ : l₁ ∈ lines) (hl₂ : l₂ ∈ lines) :
@@ -133,8 +132,8 @@ begin
   rcases hf x with ⟨l, hl, hal, hbl, hxl⟩,
   rcases hf y with ⟨m, hm, ham, hbm, hym⟩,
   rcases hf z with ⟨n, hn, han, hbn, hzn⟩,
-  rw ←two_pt_one_line hl hm hab ⟨hal, hbl⟩ ⟨ham, hbm⟩ at hym,
-  rw ←two_pt_one_line hl hn hab ⟨hal, hbl⟩ ⟨han, hbn⟩ at hzn,
+  rw ←two_pt_one_line hl hm hab hal hbl ham hbm at hym,
+  rw ←two_pt_one_line hl hn hab hal hbl han hbn at hzn,
   exact hxyz ⟨l, hl, hxl, hym, hzn⟩
 end
 
@@ -197,7 +196,7 @@ lemma col_trans {a b c d : pts} (habc : col a b c) (habd : col a b d)
   (hab : a ≠ b) : col a c d :=
 begin
   rcases habc with ⟨l, hl, hal, hbl, hcl⟩, rcases habd with ⟨m, hm, ham, hbm, hdm⟩,
-  rw two_pt_one_line hm hl hab ⟨ham, hbm⟩ ⟨hal, hbl⟩ at hdm,
+  rw two_pt_one_line hm hl hab ham hbm hal hbl at hdm,
   exact ⟨l, hl, hal, hcl, hdm⟩
 end
 
@@ -209,58 +208,91 @@ lemma col_in12 {a b c : pts} : col a b c → a ≠ b → c ∈ (a-ₗb) :=
 begin
   rintros ⟨l, hl, hal, hbl, hcl⟩, intro hab,
   rw two_pt_one_line hl (line_in_lines hab) hab
-    ⟨hal, hbl⟩ ⟨pt_left_in_line a b, pt_right_in_line a b⟩ at hcl,
+    hal hbl (pt_left_in_line a b) (pt_right_in_line a b) at hcl,
   exact hcl
 end
+
+lemma col_in21 {a b c : pts} : col a b c → b ≠ a → c ∈ (b-ₗa) :=
+by {rw line_symm, exact λhabc hba, col_in12 habc hba.symm}
 
 lemma col_in13 {a b c : pts} : col a b c → a ≠ c → b ∈ (a-ₗc) :=
 begin
   rintros ⟨l, hl, hal, hbl, hcl⟩, intro hac,
   rw two_pt_one_line hl (line_in_lines hac) hac
-    ⟨hal, hcl⟩ ⟨pt_left_in_line a c, pt_right_in_line a c⟩ at hbl,
+    hal hcl (pt_left_in_line a c) (pt_right_in_line a c) at hbl,
   exact hbl
 end
+
+lemma col_in31 {a b c : pts} : col a b c → c ≠ a → b ∈ (c-ₗa) :=
+by {rw line_symm, exact λhabc hca, col_in13 habc hca.symm}
 
 lemma col_in23 {a b c : pts} : col a b c → b ≠ c → a ∈ (b-ₗc) :=
 begin
   rintros ⟨l, hl, hal, hbl, hcl⟩, intro hbc,
   rw two_pt_one_line hl (line_in_lines hbc) hbc
-    ⟨hbl, hcl⟩ ⟨pt_left_in_line b c, pt_right_in_line b c⟩ at hal,
+    hbl hcl (pt_left_in_line b c) (pt_right_in_line b c) at hal,
   exact hal
 end
+
+lemma col_in32 {a b c : pts} : col a b c → c ≠ b → a ∈ (c-ₗb) :=
+by {rw line_symm, exact λhabc hcb, col_in23 habc hcb.symm}
 
 lemma noncol_in12 {a b c : pts} : noncol a b c → c ∉ (a-ₗb) :=
 λ habc hc, habc ⟨(a-ₗb), line_in_lines (noncol_neq habc).1,
   pt_left_in_line a b, pt_right_in_line a b, hc⟩
 
+lemma noncol_in21 {a b c : pts} : noncol a b c → c ∉ (b-ₗa) :=
+by {rw line_symm, exact noncol_in12}
+
 lemma noncol_in13 {a b c : pts} : noncol a b c → b ∉ (a-ₗc) :=
 λ habc hb, habc ⟨(a-ₗc), line_in_lines (noncol_neq habc).2.1,
   pt_left_in_line a c, hb, pt_right_in_line a c⟩
+
+lemma noncol_in31 {a b c : pts} : noncol a b c → b ∉ (c-ₗa) :=
+by {rw line_symm, exact noncol_in13}
 
 lemma noncol_in23 {a b c : pts} : noncol a b c → a ∉ (b-ₗc) :=
 λ habc ha, habc ⟨(b-ₗc), line_in_lines (noncol_neq habc).2.2, ha,
   pt_left_in_line b c, pt_right_in_line b c⟩
 
+lemma noncol_in32 {a b c : pts} : noncol a b c → a ∉ (c-ₗb) :=
+by {rw line_symm, exact noncol_in23}
+
 lemma col_in12' {a b c : pts} : c ∈ (a-ₗb) → col a b c :=
 by { intro h, by_contra habc, exact (noncol_in12 habc) h }
+
+lemma col_in21' {a b c : pts} : c ∈ (b-ₗa) → col a b c :=
+by { rw line_symm, exact col_in12' }
 
 lemma col_in13' {a b c : pts} : b ∈ (a-ₗc) → col a b c :=
 by { intro h, by_contra habc, exact (noncol_in13 habc) h }
 
+lemma col_in31' {a b c : pts} : b ∈ (c-ₗa) → col a b c :=
+by { rw line_symm, exact col_in13' }
+
 lemma col_in23' {a b c : pts} : a ∈ (b-ₗc) → col a b c :=
 by { intro h, by_contra habc, exact (noncol_in23 habc) h }
 
-lemma noncol_in12' {a b c : pts} (hab : a ≠ b)
-: c ∉ (a-ₗb) → noncol a b c :=
+lemma col_in32' {a b c : pts} : a ∈ (c-ₗb) → col a b c :=
+by { rw line_symm, exact col_in23' }
+
+lemma noncol_in12' {a b c : pts} (hab : a ≠ b) : c ∉ (a-ₗb) → noncol a b c :=
 by { contrapose!, intro h, unfold noncol at h, rw not_not at h,
   exact col_in12 h hab }
 
-lemma noncol_in13' {a b c : pts} (hac : a ≠ c)
-: b ∉ (a-ₗc) → noncol a b c :=
+lemma noncol_in21' {a b c : pts} (hba : b ≠ a) : c ∉ (b-ₗa) → noncol a b c :=
+by { rw line_symm, exact noncol_in12' hba.symm }
+
+lemma noncol_in13' {a b c : pts} (hac : a ≠ c) : b ∉ (a-ₗc) → noncol a b c :=
 by { contrapose!, intro h, unfold noncol at h, rw not_not at h,
   exact col_in13 h hac }
 
-lemma noncol_in23' {a b c : pts} (hbc : b ≠ c)
-: a ∉ (b-ₗc) → noncol a b c :=
+lemma noncol_in31' {a b c : pts} (hca : c ≠ a) : b ∉ (c-ₗa) → noncol a b c :=
+by { rw line_symm, exact noncol_in13' hca.symm }
+
+lemma noncol_in23' {a b c : pts} (hbc : b ≠ c) : a ∉ (b-ₗc) → noncol a b c :=
 by { contrapose!, intro h, unfold noncol at h, rw not_not at h,
   exact col_in23 h hbc }
+
+lemma noncol_in32' {a b c : pts} (hcb : c ≠ b) : a ∉ (c-ₗb) → noncol a b c :=
+by { rw line_symm, exact noncol_in23' hcb.symm }

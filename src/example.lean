@@ -133,9 +133,10 @@ lemma collinear (h : between a b c) : c ∈ {x : ℝ × ℝ | ∃ (μ : ℝ), x 
 begin
   rcases h.2 with ⟨k, hkpos, hk⟩,
   use (k + 1) / k,
-  rw [div_eq_mul_one_div, mul_comm, ←smul_smul, smul_sub, add_smul, one_smul, ←hk, add_comm _ (k • c),
-    ←add_sub, add_smul, one_smul, add_comm _ a, ←sub_sub, sub_self, zero_sub, tactic.ring.add_neg_eq_sub,
-    ←smul_sub, smul_smul, one_div_mul_cancel (ne_of_gt hkpos), one_smul, add_comm, sub_add_cancel],
+  rw [div_eq_mul_one_div, mul_comm, ←smul_smul, smul_sub, add_smul, one_smul, ←hk,
+    add_comm _ (k • c), ←add_sub, add_smul, one_smul, add_comm _ a, ←sub_sub, sub_self, zero_sub,
+    tactic.ring.add_neg_eq_sub, ←smul_sub, smul_smul, one_div_mul_cancel (ne_of_gt hkpos),
+    one_smul, add_comm, sub_add_cancel]
 end
 
 lemma extend (hab : a ≠ b) : ∃ d : ℝ × ℝ, between a b d :=
@@ -152,8 +153,10 @@ begin
   exact @line_in_lines (affine_plane ℝ) a b hab,
   use [a, b], exact ⟨hab.symm, rfl⟩,
   exact hab,
-  exact ⟨@pt_left_in_line (affine_plane ℝ) a b, @pt_right_in_line (affine_plane ℝ) a b⟩,
-  exact ⟨⟨0, by simp⟩, ⟨1, by simp⟩⟩
+  exact @pt_left_in_line (affine_plane ℝ) a b,
+  exact @pt_right_in_line (affine_plane ℝ) a b,
+  exact ⟨0, by simp⟩,
+  exact ⟨1, by simp⟩
 end
 
 lemma tri {μ : ℝ} (hac : a ≠ c) (hbc : b ≠ c) (hc : c = a + μ • (b - a)) :
@@ -354,7 +357,7 @@ def r_squared : incidence_order_geometry :=
     exact ⟨0, by simp⟩, exact ⟨1, by simp⟩,
     exact between.collinear h
   end,
-  B2 := λ a b hab, between.extend hab,
+  B2 := λa b hab, between.extend hab,
   B3 :=
   begin
     split,
@@ -364,9 +367,9 @@ def r_squared : incidence_order_geometry :=
     cases this with μ hc,
     exact between.tri hac hbc hc,
     intros a b c,
-    split, exact between.contra a b c,
     split, intro hf, exact between.contra c b a ⟨between.symm hf.1, between.symm hf.2⟩,
-    intro hf, exact between.contra b c a ⟨between.symm hf.1, hf.2⟩,
+    split, exact between.contra a b c,
+    intro hf, exact between.contra b a c ⟨hf.1, between.symm hf.2⟩
   end,
   B4 :=
   begin
@@ -471,13 +474,13 @@ end
 
 open real
 
-lemma extend {a b : ℝ × ℝ} {l : @seg r_squared} (hl : @seg_nontrivial r_squared l)
+lemma extend {a b : ℝ × ℝ} {l : @seg r_squared} (hl : @seg_proper r_squared l)
 (hab : a ≠ b) : ∃ c, @same_side_pt r_squared a b c ∧ seg_congr l (@two_pt_seg r_squared a c)
 ∧ ∀ (x : r_squared.pts), @same_side_pt r_squared a b x
 → seg_congr l (@two_pt_seg r_squared a x) → x = c:=
 begin
   rcases @seg_two_pt r_squared l with ⟨m, n, hlmn⟩,
-  rw [hlmn, seg_nontrivial_iff_neq] at hl,
+  rw [hlmn, seg_proper_iff_neq] at hl,
   rw hlmn,
   set μ := sqrt ((m.1 - n.1)^2 + (m.2 - n.2)^2) / sqrt ((a.1 - b.1)^2 + (a.2 - b.2)^2) with hμ,
   use (a.1 + μ * (b.1 - a.1), a.2 + μ * (b.2- a.2)),
@@ -597,7 +600,7 @@ by {rw [norm_equiv, sq_sqrt], nlinarith}
 open euclidean_geometry
 open inner_product_geometry
 
-lemma ang_eq_same_side_pt {a o c : ℝ × ℝ} (b : ℝ × ℝ) (h : @same_side_pt r_squared o a c) :
+lemma ang_eq_same_side_pt_pt {a o c : ℝ × ℝ} (b : ℝ × ℝ) (h : @same_side_pt r_squared o a c) :
 angle (f a) (f o) (f b) = angle (f c) (f o) (f b) :=
 begin
   unfold euclidean_geometry.angle inner_product_geometry.angle,
@@ -622,28 +625,28 @@ angle (f a) (f o) (f b) = angle (f a') (f o') (f b') :=
 begin
   rcases he with ⟨c, d, c', d', h₁, h₂, h, key⟩,
   rw three_pt_ang_vertex at h₁ h₂ key h, rw three_pt_ang_vertex at key h,
-  have hcod := (@ang_nontrivial_iff_noncol r_squared a o b).2 haob,
-  rw [h₁, ang_nontrivial_iff_noncol] at hcod,
+  have hcod := (@ang_proper_iff_noncol r_squared a o b).2 haob,
+  rw [h₁, ang_proper_iff_noncol] at hcod,
   specialize key hcod,
   have ha'o'b' : @noncol (affine_plane ℝ) a' o' b',
-    apply (@ang_nontrivial_iff_noncol r_squared a' o' b').1,
-    rw [h₂, ang_nontrivial_iff_noncol], intro hf, rw ←h at hf, exact absurd hf hcod,
+    apply (@ang_proper_iff_noncol r_squared a' o' b').1,
+    rw [h₂, ang_proper_iff_noncol], intro hf, rw ←h at hf, exact absurd hf hcod,
   have : angle (f a) (f o) (f b) = angle (f c) (f o) (f d),
     rw three_pt_ang_eq_iff at h₁,
     cases h₁.2 with h h,
-    rw [ang_eq_same_side_pt b h.1, euclidean_geometry.angle_comm,
-      ang_eq_same_side_pt c h.2, euclidean_geometry.angle_comm],
-    rw [ang_eq_same_side_pt b h.1, euclidean_geometry.angle_comm,
-      ang_eq_same_side_pt d h.2, euclidean_geometry.angle_comm],
+    rw [ang_eq_same_side_pt_pt b h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt_pt c h.2, euclidean_geometry.angle_comm],
+    rw [ang_eq_same_side_pt_pt b h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt_pt d h.2, euclidean_geometry.angle_comm],
     exact haob,
   rw [this, key],
   rw three_pt_ang_eq_iff at h₂,
   symmetry,
   cases h₂.2 with h h,
-  rw [ang_eq_same_side_pt b' h.1, euclidean_geometry.angle_comm,
-      ang_eq_same_side_pt c' h.2, euclidean_geometry.angle_comm],
-  rw [ang_eq_same_side_pt b' h.1, euclidean_geometry.angle_comm,
-    ang_eq_same_side_pt d' h.2, euclidean_geometry.angle_comm],
+  rw [ang_eq_same_side_pt_pt b' h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt_pt c' h.2, euclidean_geometry.angle_comm],
+  rw [ang_eq_same_side_pt_pt b' h.1, euclidean_geometry.angle_comm,
+    ang_eq_same_side_pt_pt d' h.2, euclidean_geometry.angle_comm],
   exact ha'o'b'
 end
 
@@ -866,7 +869,7 @@ begin
   have := int.le_of_dvd (by linarith) ⟨n, h.symm⟩, norm_num at this
 end
 
-lemma extend {α : @ang r_squared} {o a : ℝ × ℝ} (hα : @ang_nontrivial r_squared α)
+lemma extend {α : @ang r_squared} {o a : ℝ × ℝ} (hα : @ang_proper r_squared α)
 (hao : a ≠ o) : ∃ b c : ℝ × ℝ, ang_congr α (@three_pt_ang r_squared b o a)
 ∧ ang_congr α (@three_pt_ang r_squared c o a)
 ∧ @diff_side_line r_squared (@line (affine_plane ℝ) o a) b c
@@ -893,7 +896,7 @@ begin
     exact ⟨sub_eq_zero.1 (sq_add_sq_zero hf).1, sub_eq_zero.1 (sq_add_sq_zero hf).2⟩,
     nlinarith,
   rcases @ang_three_pt r_squared α with ⟨c, d, hcd⟩,
-  rw [hcd, ang_nontrivial_iff_noncol] at hα,
+  rw [hcd, ang_proper_iff_noncol] at hα,
   set o' := @ang.vertex r_squared α with ho',
   set C := cos (angle (f c) (f o') (f d)) with hC,
   have hC1 : C^2 ≠ 1^2,
@@ -995,7 +998,7 @@ begin
     intro hx, have hxo := (@same_side_line_neq' r_squared o a _ x hx).1,
     rcases unit_wlog hxo.symm with ⟨y, hxy, hy⟩,
     have hoy := (@same_side_pt_neq r_squared o x y hxy).2.symm,
-    rw [ang_symm, @ang_eq_same_side r_squared a o x y hxy, ang_symm] at hxoa,
+    rw [ang_symm, @ang_eq_same_side_pt r_squared a o x y hxy, ang_symm] at hxoa,
     have hu : ∥f y -ᵥ f o∥ = 1,
       rw [vsub_eq_sub, ←f_sub, norm_equiv, prod.fst_sub, prod.snd_sub, hy, sqrt_one],
     have hoxa := @noncol23 (affine_plane ℝ) o a x
@@ -1022,16 +1025,16 @@ begin
       exact ⟨rfl, rfl⟩,
     rw ←not_same_side_line at this, exfalso, apply this,
     apply same_side_line_trans, exact @line_in_lines (affine_plane ℝ) o a hao.symm,
-    exact hx, rw hy, apply (@same_side_pt_line r_squared o x y hxy).2.2.2,
+    exact hx, rw hy, apply @same_side_pt_line r_squared o x y hxy,
     exact @line_in_lines (affine_plane ℝ) o a hao.symm,
-    split, exact @pt_left_in_line (affine_plane ℝ) o a,
-    split, exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
+    exact @pt_left_in_line (affine_plane ℝ) o a,
+    exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
     exact @noncol_in23 (affine_plane ℝ) y o a hyoa,
     exact this.2.1, exact this.2.2,
     intro hx, have hxo := (@same_side_line_neq' r_squared o a _ x hx).1,
     rcases unit_wlog hxo.symm with ⟨y, hxy, hy⟩,
     have hoy := (@same_side_pt_neq r_squared o x y hxy).2.symm,
-    rw [ang_symm, @ang_eq_same_side r_squared a o x y hxy, ang_symm] at hxoa,
+    rw [ang_symm, @ang_eq_same_side_pt r_squared a o x y hxy, ang_symm] at hxoa,
     have hu : ∥f y -ᵥ f o∥ = 1,
       rw [vsub_eq_sub, ←f_sub, norm_equiv, prod.fst_sub, prod.snd_sub, hy, sqrt_one],
     have hoxa := @noncol23 (affine_plane ℝ) o a x
@@ -1052,10 +1055,10 @@ begin
       exact ⟨rfl, rfl⟩,
     rw ←not_same_side_line at this, exfalso, apply this,
     apply same_side_line_trans, exact @line_in_lines (affine_plane ℝ) o a hao.symm,
-    rw hy, apply same_side_line_symm, apply (@same_side_pt_line r_squared o x y hxy).2.2.2,
+    rw hy, apply same_side_line_symm, apply @same_side_pt_line r_squared o x y hxy,
     exact @line_in_lines (affine_plane ℝ) o a hao.symm,
-    split, exact @pt_left_in_line (affine_plane ℝ) o a,
-    split, exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
+    exact @pt_left_in_line (affine_plane ℝ) o a,
+    exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
     exact @noncol_in23 (affine_plane ℝ) y o a hyoa,
     apply same_side_line_symm, exact hx,
     exact this.2.1, exact this.2.2,
@@ -1158,7 +1161,7 @@ begin
   intro hx, have hxo := (@same_side_line_neq' r_squared o a _ x hx).1,
   rcases unit_wlog hxo.symm with ⟨y, hxy, hy⟩,
   have hoy := (@same_side_pt_neq r_squared o x y hxy).2.symm,
-  rw [ang_symm, @ang_eq_same_side r_squared a o x y hxy, ang_symm] at hxoa,
+  rw [ang_symm, @ang_eq_same_side_pt r_squared a o x y hxy, ang_symm] at hxoa,
   have hu : ∥f y -ᵥ f o∥ = 1,
     rw [vsub_eq_sub, ←f_sub, norm_equiv, prod.fst_sub, prod.snd_sub, hy, sqrt_one],
   have hoxa := @noncol23 (affine_plane ℝ) o a x
@@ -1178,16 +1181,16 @@ begin
     exact ⟨rfl, rfl⟩,
   rw ←not_same_side_line at this, exfalso, apply this,
   apply same_side_line_trans, exact @line_in_lines (affine_plane ℝ) o a hao.symm,
-  exact hx, rw hy, apply (@same_side_pt_line r_squared o x y hxy).2.2.2,
+  exact hx, rw hy, apply @same_side_pt_line r_squared o x y hxy,
   exact @line_in_lines (affine_plane ℝ) o a hao.symm,
-  split, exact @pt_left_in_line (affine_plane ℝ) o a,
-  split, exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
+  exact @pt_left_in_line (affine_plane ℝ) o a,
+  exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
   exact @noncol_in23 (affine_plane ℝ) y o a hyoa,
   exact this.2.1, exact this.2.2,
   intro hx, have hxo := (@same_side_line_neq' r_squared o a _ x hx).1,
   rcases unit_wlog hxo.symm with ⟨y, hxy, hy⟩,
   have hoy := (@same_side_pt_neq r_squared o x y hxy).2.symm,
-  rw [ang_symm, @ang_eq_same_side r_squared a o x y hxy, ang_symm] at hxoa,
+  rw [ang_symm, @ang_eq_same_side_pt r_squared a o x y hxy, ang_symm] at hxoa,
   have hu : ∥f y -ᵥ f o∥ = 1,
     rw [vsub_eq_sub, ←f_sub, norm_equiv, prod.fst_sub, prod.snd_sub, hy, sqrt_one],
   have hoxa := @noncol23 (affine_plane ℝ) o a x
@@ -1203,10 +1206,10 @@ begin
   rw ←not_same_side_line at this, exfalso, apply this,
   apply same_side_line_trans, exact @line_in_lines (affine_plane ℝ) o a hao.symm,
   rw hy,apply same_side_line_symm,
-  apply (@same_side_pt_line r_squared o x y hxy).2.2.2,
+  apply @same_side_pt_line r_squared o x y hxy,
   exact @line_in_lines (affine_plane ℝ) o a hao.symm,
-  split, exact @pt_left_in_line (affine_plane ℝ) o a,
-  split, exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
+  exact @pt_left_in_line (affine_plane ℝ) o a,
+  exact @noncol_in13 (affine_plane ℝ) o x a hoxa,
   exact @noncol_in23 (affine_plane ℝ) y o a hyoa,
   apply same_side_line_symm, exact hx,
   exact this.2.1, exact this.2.2,
@@ -1298,20 +1301,20 @@ def r_squared' : hilbert_plane :=
     have he := hα.symm.trans hα',
       split, rw [←h₁, ←h₃], split; contrapose!;
       intros h hf;
-      have := (@ang_nontrivial_iff_noncol r_squared _ _ _).2 h,
-      rw [←he, ang_nontrivial_iff_noncol] at this, exact this hf,
-      rw [he, ang_nontrivial_iff_noncol] at this, exact this hf,
+      have := (@ang_proper_iff_noncol r_squared _ _ _).2 h,
+      rw [←he, ang_proper_iff_noncol] at this, exact this hf,
+      rw [he, ang_proper_iff_noncol] at this, exact this hf,
     rw ←not_iff_not at h₁ h₃,
     intro hcd,
     have hab := h₁.2 hcd,
-    have ha'b' := (@ang_nontrivial_iff_noncol r_squared _ _ _).2 hab,
-    rw [he, ang_nontrivial_iff_noncol] at ha'b',
+    have ha'b' := (@ang_proper_iff_noncol r_squared _ _ _).2 hab,
+    rw [he, ang_proper_iff_noncol] at ha'b',
     rw three_pt_ang_eq_iff at he, 
     rw [←h₂ hab, ←h₄ ha'b'], cases he.2,
-    rw [ang_eq_same_side_pt b h.1, euclidean_geometry.angle_comm,
-      ang_eq_same_side_pt a' h.2, euclidean_geometry.angle_comm],
-    rw [ang_eq_same_side_pt b h.1, euclidean_geometry.angle_comm,
-      ang_eq_same_side_pt b' h.2, euclidean_geometry.angle_comm],
+    rw [ang_eq_same_side_pt_pt b h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt_pt a' h.2, euclidean_geometry.angle_comm],
+    rw [ang_eq_same_side_pt_pt b h.1, euclidean_geometry.angle_comm,
+      ang_eq_same_side_pt_pt b' h.2, euclidean_geometry.angle_comm],
     exact hab,
     intro α, rcases @ang_three_pt r_squared α with ⟨a, b, hα⟩,
     use [a, b, a, b], rw ←hα, simp
