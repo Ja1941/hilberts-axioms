@@ -120,6 +120,6 @@
   </p>
   <img src="draft/SSS.jpg" alt="SSS" width="650" height="150">
   <p>
-  By isoscles theorem, $AB≅AD implies $∠ABD≅∠ADB$ and $BC≅DC$ implies $∠CBD≅∠CDB$, which proves $∠ABC≅∠ADC$. In the first case, this is by congr_ang_sub. The second case is obvious and the last case is by congr_ang_add.
+  By isoscles theorem, $AB≅AD$ implies $∠ABD≅∠ADB$ and $BC≅DC$ implies $∠CBD≅∠CDB$, which proves $∠ABC≅∠ADC$. In the first case, this is by congr_ang_sub. The second case is obvious and the last case is by congr_ang_add.
   </p>
 </body>
