@@ -1,4 +1,4 @@
-# Hilberts-axioms
+# Hilbert's axioms in Lean
 
 ### About Lean theorem prover
 
