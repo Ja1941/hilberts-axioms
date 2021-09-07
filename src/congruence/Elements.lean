@@ -462,6 +462,20 @@ begin
   exact (tri_congr_seg this).2.2
 end
 
+def midpt (x : pts) (s : seg) : Prop :=
+∃ a b : pts, s = (a-ₛb) ∧ between a x b ∧ ((a-ₛx) ≅ₛ (b-ₛx))
+
+lemma midpt_two_pt {x a b : pts} : midpt x (a-ₛb) ↔ between a x b ∧ ((a-ₛx) ≅ₛ (b-ₛx)) :=
+begin
+  split,
+  { rintros ⟨a', b', hs, ha'xb', ha'xb'x⟩,
+    cases two_pt_seg_pt hs,
+    rw [h.1, h.2], exact ⟨ha'xb', ha'xb'x⟩,
+    rw [h.1, h.2, between_symm], exact ⟨ha'xb', seg_congr_symm ha'xb'x⟩ },
+  { intro h,
+    exact ⟨a, b, rfl, h.1, h.2⟩ }
+end
+
 open_locale perp_notation
 
 /--I.11 in Elements -/
@@ -702,7 +716,8 @@ begin
   rw [ang_symm a c d, three_pt_ang_lt],
   use b, rw ang_symm, split,
   exact hypo_inside_ang (noncol23 hadc) habd,
-  rw [ang_symm a d c, ang_eq_same_side_pt c (between_same_side_pt.1 habd).2, ang_symm, ang_symm c d b],
+  rw [ang_symm a d c, ang_eq_same_side_pt c (between_same_side_pt.1 habd).2, ang_symm,
+    ang_symm c d b],
   exact isosceles (noncol23 hbdc) (seg_congr_symm hbdbc)
 end
 
