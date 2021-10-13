@@ -128,24 +128,31 @@
   <p>
   
   Many propositions in Elements are still not provable and we need additional axioms and theory of area to work out the rest.
-
+  </p>
+<p>
 0) Playfair axiom
   This axiom asserts, given a line, the existence of the unique parallel line passing through a fixed point. Most results of Book IV involves this axiom.
-
+</p>
+<p>
 1) Circle intersection axiom
   This axiom ensures that two circles meet if one of them contains both points inside the other and outside. You can see this axiom showing up from Book I to IV. This axiom also makes ruler and compass construction formalizable. I am struggling to prove that angles are not trisectable. Although it's just an easy result in field theory, this method seems hard to apply here since we don't have coordinates.
-
+  </p>
+<p>
 2) Theory of area
   We can define an equivalence relation between rectilinear figures, intuitionally, if they have the same area. This is a useful tool dealing with some propositions in Book III.
-
+  </p>
+<p>
 In addition, we can add more axioms. Though not directly related to Elements, they gradually complete our axiomatic system to our intuition of real plane. For example,
-
+  </p>
+<p>
 3) Archimedes' axiom
   Similar to Archimedean property, the axiom says given two segments $s_1$ and $s_2$, we can always find a natural number $n$ such that $n$ copies of $s_1$ is greater than $s_2$.
-
+  </p>
+<p>
 4) Dedekind's axiom
   Suppose points of a line are divided into two nonempty parts $S$ and $T$ such that no points in $S$ lie between points in $T$ and no points in $T$ lie between points in $S$. Then there exists a unique point such that for all $A\in S$, $B\in T$, either $A=P$ or $B=P$ or $P$ is between $A$ and $B$. You may spot its similarity to dedekind cut. Indeed, this axiom "completes" the system such that it is isomorphic to the real plane!
-
+  </p>
+<p>
 5) We can define segment and angle arithmetic by taking quotient to segment and angle congruence and then define addition and multiplication on the equivalence classes. Similarity as well as many complicated geometry problems in high school competition is then formalizable.
   
   </p>
