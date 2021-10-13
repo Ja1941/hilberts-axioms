@@ -153,7 +153,7 @@ In addition, we can add more axioms. Though not directly related to Elements, th
   Suppose points of a line are divided into two nonempty parts $S$ and $T$ such that no points in $S$ lie between points in $T$ and no points in $T$ lie between points in $S$. Then there exists a unique point such that for all $A\in S$, $B\in T$, either $A=P$ or $B=P$ or $P$ is between $A$ and $B$. You may spot its similarity to dedekind cut. Indeed, this axiom "completes" the system such that it is isomorphic to the real plane!
   </p>
 <p>
-5) We can define segment and angle arithmetic by taking quotient to segment and angle congruence and then define addition and multiplication on the equivalence classes. Similarity as well as many complicated geometry problems in high school competition is then formalizable.
+5) We can define segment and angle arithmetic by taking quotient to segment and angle congruence and then define addition and multiplication on the equivalence classes. Similarity as well as many complicated geometry problems in high school competition are then formalizable.
   
   </p>
   
