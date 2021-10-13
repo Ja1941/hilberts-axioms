@@ -125,7 +125,7 @@
   
   <h2>Things to be done</h2>
   
-  </p>
+  <p>
   
   Many propositions in Elements are still not provable and we need additional axioms and theory of area to work out the rest.
 
