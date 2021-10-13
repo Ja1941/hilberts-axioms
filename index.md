@@ -123,6 +123,8 @@
   By isoscles theorem, $AB≅AD$ implies $∠ABD≅∠ADB$ and $BC≅DC$ implies $∠CBD≅∠CDB$, which proves $∠ABC≅∠ADC$. In the first case, this is by congr_ang_sub. The second case is obvious and the last case is by congr_ang_add.
   </p>
   
+  <h2>Things to be done</h2>
+  
   </p>
   
   Many propositions in Elements are still not provable and we need additional axioms and theory of area to work out the rest.
