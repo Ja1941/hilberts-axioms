@@ -195,3 +195,6 @@ begin
   exact hf.2.2.1, exact hf.2.2.2,
   intro hf, exact hf.2.2.1 hf.1
 end
+
+lemma ang_lt_supplementary {α α' β β' : ang} (hαα' : α <ₐ α')
+(hαβ : supplementary α β) (hα'β' : supplementary α' β') : β' <ₐ β := sorry

@@ -68,6 +68,23 @@ def intersect [I : incidence_geometry] (m n : set pts) : Prop := (m ∩ n).nonem
 
 notation m`♥`n := intersect m n
 
+lemma intersect_symm {m n : set pts} :
+(m ♥ n) → (n ♥ m) :=
+by {unfold intersect, rw set.inter_comm, simp only [imp_self]}
+
+/--Two lines are parallel if they have no intersection. -/
+def parallel (l₁ l₂ : set pts) : Prop :=
+¬(l₁ ♥ l₂) ∧ (l₁ ∈ lines) ∧ (l₂ ∈ lines)
+
+notation l₁`∥ₗ`l₂ := parallel l₁ l₂
+
+lemma parallel_symm {l₁ l₂ : set pts} :
+(l₁ ∥ₗ l₂) → (l₂ ∥ₗ l₁) :=
+begin
+  rintros ⟨hl₁l₂, hl₁, hl₂⟩,
+  exact ⟨λhf, hl₁l₂ (intersect_symm hf), hl₂, hl₁⟩
+end
+
 lemma line_in_lines {a b : pts} (hab : a ≠ b) :
 (a-ₗb) ∈ lines := (line a b).2.1 hab
 

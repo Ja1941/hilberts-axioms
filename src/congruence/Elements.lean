@@ -15,7 +15,7 @@ This file proves most propositions in Euclid's book I with some exceptions. For
 instance, intersection of two circles is not guaranteed by Hilbert's axioms. Also
 note that some proofs are different from Euclid's ones to fit Hilbert's axioms.
 
-Some propositions needs reintepretation. For example, the propositions on ruler
+Some propositions need reintepretation. For example, the propositions on ruler
 and compass contructions are understood to be existence proof.
 
 ## References
@@ -341,8 +341,7 @@ begin
     (between_col hadi)) (noncol123 hbda) (between_neq hadi).2.2),
   have : ((∠ b d i) ≅ₐ (∠ b d e)),
     rw [seg_symm, seg_symm d e] at hbede,
-    have hebd : noncol e b d,
-      from λhebd, he.2.2 (col_in23 hebd hbd),
+    have hebd := λhebd, he.2.2 (col_in23 hebd hbd),
     rw ang_symm b d e, apply ang_congr_trans _ (isosceles hebd hbede),
     rw ang_symm e b d,
     have : ((∠ b d a) ≅ₐ (∠ d b a)),
@@ -762,8 +761,8 @@ begin
   exact haba'b',
   { rcases (seg_tri (seg_proper_iff_neq.2 hac)
       (seg_proper_iff_neq.2 ha'c')).1 with hf | haca'c' | hf,
-    exact absurd hf (ASA_prep ha'b'c' habc (ang_congr_symm habca'b'c') (ang_congr_symm hbacb'a'c')
-      (seg_congr_symm haba'b')),
+    exact absurd hf (ASA_prep ha'b'c' habc (ang_congr_symm habca'b'c')
+      (ang_congr_symm hbacb'a'c') (seg_congr_symm haba'b')),
     exact haca'c',
     exact absurd hf (ASA_prep habc ha'b'c' habca'b'c' hbacb'a'c' haba'b') },
   exact hbacb'a'c'
@@ -859,8 +858,65 @@ begin
   exact seg_congr_refl _
 end
 
+lemma correspond_eq_parallel {a b c d e : pts}
+(hab : a ≠ b) (hcd : c ≠ d) (hcae : between c a e) (hbd : same_side_line (a-ₗc) b d) :
+((∠ e a b) ≅ₐ (∠ a c d)) → ((a-ₗb) ∥ₗ (c-ₗd)) :=
+begin
+  intro h,
+  by_contra hf,
+  unfold parallel intersect at hf,
+  rw [not_and_distrib, not_and_distrib, not_not] at hf,
+  rcases hf with hf | hf | hf,
+  { cases set.nonempty_def.mp hf with p hp,
+    have hac := (between_neq hcae).1.symm,
+    have hacb := (same_side_line_noncol hbd hac).1,
+    have hacd := (same_side_line_noncol hbd hac).2,
+    have hap : a ≠ p,
+      intro hap, rw ←hap at hp, exact hacd (col_in23' hp.2),
+    have hapc := col_noncol (col_in12' hp.1) (noncol23 hacb) hap,
+    have hae := (between_neq hcae).2.2,
+    have haeb := col_noncol (col12 (between_col hcae)) hacb hae,
+    have hce := (between_neq hcae).2.1,
+    have hced := col_noncol (between_col hcae) (noncol12 hacd) hce,
+    have hape := col_noncol (col_in12' hp.1) (noncol23 haeb) hap,
+    have hcp := (noncol_neq hapc).2.2.symm,
+    have hcpe := col_noncol (col_in12' hp.2) (noncol23 hced) hcp,
+    have key := (ang_exter_lt_inter (noncol123 hapc) hcae).2,
+    cases (plane_separation (noncol_in12 hacb) (noncol_in13 hapc)).1 with hp₁ hp₂,
+    { have habp := same_side_line_pt (col_in12' hp.1) (a-ₗc) (line_in_lines hac)
+        (pt_left_in_line a c) (noncol_in12 hacb) (noncol_in13 hapc) hp₁,
+      have hcdp := same_side_line_pt (col_in12' hp.2) (a-ₗc) (line_in_lines hac)
+        (pt_right_in_line a c) (noncol_in12 hacd) (noncol_in13 hapc)
+        (same_side_line_trans (line_in_lines hac) (same_side_line_symm hbd) hp₁),
+      rw [ang_symm, ←ang_eq_same_side_pt a hcdp,
+        ang_symm p a e, ←ang_eq_same_side_pt e habp] at key,
+      apply (ang_tri (ang_proper_iff_noncol.2 hacd)
+        (ang_proper_iff_noncol.2 (noncol12 haeb))).2.1,
+      exact ⟨key, (ang_congr_symm h)⟩ },
+      have habp := diff_side_line_pt (col_in12' hp.1) (a-ₗc) (line_in_lines hac)
+        (pt_left_in_line a c) (noncol_in12 hacb) (noncol_in13 hapc) hp₂,
+      have hcdp := diff_side_line_pt (col_in12' hp.2) (a-ₗc) (line_in_lines hac)
+        (pt_right_in_line a c) (noncol_in12 hacd) (noncol_in13 hapc)
+        (same_diff_side_line (line_in_lines hac) (same_side_line_symm hbd) hp₂),
+      have h₁ := three_pt_ang_supplementary.2 ⟨(between_diff_side_pt.2 habp),
+        noncol12 haeb, noncol132 hape⟩,
+      have h₂ := three_pt_ang_supplementary.2 ⟨(between_diff_side_pt.2 hcdp),
+        noncol12 hced, noncol132 hcpe⟩,
+      rw [ang_symm a c d, ang_eq_same_side_pt d
+        (between_same_side_pt.1 hcae).1, ang_symm d c e] at h,
+      rw [ang_eq_same_side_pt p (between_same_side_pt.1 hcae).1,
+        ang_symm, ang_symm p a e] at key,
+      have := supplementary_congr h₁ h₂ h,
+      apply (ang_tri (ang_proper_iff_noncol.2 (noncol132 hape))
+        (ang_proper_iff_noncol.2 (noncol132 hcpe))).2.2.2,
+      exact ⟨this, key⟩ },
+  exact hf (line_in_lines hab),
+  exact hf (line_in_lines hcd)
+end
+
+/--/
 /--Hypotenuse of a right triangle is greater than the other two sides. -/
 lemma side_lt_hypo {a b c : pts} (habc : is_right_ang (∠ a b c)) : (a-ₛb) <ₛ (a-ₛc) :=
 begin
-
-end
+  sorry
+end-/
