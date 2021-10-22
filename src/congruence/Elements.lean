@@ -760,8 +760,8 @@ begin
   apply SAS,
   exact habc, exact ha'b'c',
   exact haba'b',
-  { rcases (seg_tri (seg_proper_iff_neq.2 hac) (seg_proper_iff_neq.2 ha'c')).1
-      with hf | haca'c' | hf,
+  { rcases (seg_tri (seg_proper_iff_neq.2 hac)
+      (seg_proper_iff_neq.2 ha'c')).1 with hf | haca'c' | hf,
     exact absurd hf (ASA_prep ha'b'c' habc (ang_congr_symm habca'b'c') (ang_congr_symm hbacb'a'c')
       (seg_congr_symm haba'b')),
     exact haca'c',
@@ -857,4 +857,10 @@ begin
     apply seg_congr_trans haca'c',
     exact seg_congr_symm (tri_congr_seg this).2.2 },
   exact seg_congr_refl _
+end
+
+/--Hypotenuse of a right triangle is greater than the other two sides. -/
+lemma side_lt_hypo {a b c : pts} (habc : is_right_ang (∠ a b c)) : (a-ₛb) <ₛ (a-ₛc) :=
+begin
+
 end

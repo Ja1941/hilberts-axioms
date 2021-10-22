@@ -1,4 +1,5 @@
-/-Some geometry exercises I did during high school-/
+/-Some geometry exercises I did during high school
+  I will be gradually adding more of them here -/
 
 import congruence.Elements
 
@@ -47,4 +48,12 @@ begin
     rw seg_symm,
     exact seg_congr_trans (seg_congr_symm (tri_congr_seg this).2.2) (seg_congr_symm hbeac) },
   exact vertical_ang_congr (noncol13 hgeb) hbef (between_trans' hadg haed).2
+end
+
+example {a b c p d e f q : pts} (habc : noncol a b c) (hdef : noncol d e f) (hbpc : col b p c)
+(heqf : col e q f) (hapb : is_right_ang (∠ a p b)) (hdqe : is_right_ang (∠ d q e))
+(habde : (a-ₛb) ≅ₛ (d-ₛe)) (hacdf : (a-ₛc) ≅ₛ (d-ₛf)) (hapdq : (a-ₛp) ≅ₛ (d-ₛq)) :
+((∠ a b c) ≅ₐ (∠ d e f)) ∨ ∃ α : ang, ((α ≅ₐ (∠ a b c)) ∧ supplementary α (∠ d e f)) :=
+begin
+  sorry
 end
