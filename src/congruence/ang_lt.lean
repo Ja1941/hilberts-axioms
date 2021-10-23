@@ -197,4 +197,35 @@ begin
 end
 
 lemma ang_lt_supplementary {α α' β β' : ang} (hαα' : α <ₐ α')
-(hαβ : supplementary α β) (hα'β' : supplementary α' β') : β' <ₐ β := sorry
+(hαβ : supplementary α β) (hα'β' : supplementary α' β') : β' <ₐ β :=
+begin
+  have hαβ := hαβ,
+  rcases hαβ with ⟨⟨a, b, c, d, hα, hβ, hcad⟩, hbac, hbad⟩,
+  rw hβ at hbad,
+  rcases hα'β' with ⟨⟨a', b', c', d', hα', hβ', hc'a'd'⟩, hb'a'c', hb'a'd'⟩,
+  rw [hα', ang_proper_iff_noncol] at hb'a'c',
+  rw [hβ', ang_proper_iff_noncol] at hb'a'd',
+  rw [hβ, hβ'], rw [hα, hα'] at hαα',
+  rw [hα, hβ] at hαβ,
+  rw [ang_symm b' a' c'] at hαα',
+  rcases three_pt_ang_lt.1 hαα' with ⟨e', he', hc'a'e'bac⟩,
+  have ha'c' := (noncol_neq hb'a'c').2.2,
+  have ha'd' := (noncol_neq hb'a'd').2.2,
+  have ha'c'e' := (same_side_line_noncol (inside_three_pt_ang.1 he').1 ha'c').2,
+  have ha'd'e' := col_noncol (col12 (between_col hc'a'd')) ha'c'e' ha'd',
+  have : supplementary (∠ e' a' c') (∠ e' a' d'),
+    rw three_pt_ang_supplementary,
+    exact ⟨hc'a'd', noncol132 ha'c'e', noncol132 ha'd'e'⟩,
+  rw ang_symm at hc'a'e'bac,
+  have hbade'a'd' := supplementary_congr hαβ this (ang_congr_symm hc'a'e'bac),
+  apply (ang_lt_congr (ang_congr_symm hbade'a'd')).2 hbad,
+  rw ang_symm e' a' d',
+  rw three_pt_ang_lt, use b',
+  split,
+  rw ang_symm,
+  { apply inside_ang_trans' hc'a'd',
+    rw ang_symm,
+    exact he' },
+  { rw ang_symm,
+    exact ang_congr_refl _ }
+end
