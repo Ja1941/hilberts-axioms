@@ -136,8 +136,13 @@ begin
   rw ang_symm d c a, rw ang_symm at h, exact ang_congr_trans this h
 end
 
+/--Some hints for Tchsurvives:
+  1. extend_congr_seg'
+  2. SAS
+  3. alternative_eq_iff_parallel
+  4. ASA -/
 lemma midpoint {a b c d e : pts} (habc : noncol a b c) (hadb : between a d b)
-(haec : between a e c) (hd : (a-ₛd) ≅ₛ (b-ₛd)) : ((a-ₛe) ≅ₛ (c-ₛe)) ↔ ((d-ₗe) ∥ₗ (b-ₗc)) :=
+(haec : between a e c) (hd : midpt d (a-ₛb)) : (midpt e (a-ₛc)) ↔ ((d-ₗe) ∥ₗ (b-ₗc)) :=
 begin
-  
+  sorry
 end
