@@ -114,6 +114,16 @@ end
 lemma two_pt_on_one_line {l : set pts} (hl : l ∈ lines) :
 ∃ a b : pts, a ≠ b ∧ a ∈ l ∧ b ∈ l := I2 l hl
 
+lemma line_two_pt {a b : pts} (hl : (a-ₗb) ∈ lines) : a ≠ b :=
+begin
+  intro hf,
+  rw [hf, ←subtype.val_eq_coe, (line b b).2.2.2.2 rfl] at hl,
+  rcases two_pt_on_one_line hl with ⟨x, y, hxy, hx, hy⟩,
+  rw set.mem_singleton_iff at hx hy,
+  rw [hx, hy] at hxy,
+  exact hxy rfl
+end
+
 -- this would be much better as a ∈ l → b ∈ l → a ∈ m → ... (all before the colon!)
 lemma two_pt_one_line {l m : set pts} (hl : l ∈ lines) (hm : m ∈ lines)
 {a b : pts} (hab : a ≠ b) (hal : a ∈ l) (hbl : b ∈ l) (ham : a ∈ m) (hbm : b ∈ m) : l = m :=

@@ -26,7 +26,7 @@ of parallel lines such as alternative angles.
 /--We can add Playfair axiom to Hilbert plane so that given a line and a point,
 we can find a unique parallel line containing this point. -/
 class hilbert_plane_playfair extends hilbert_plane :=
-(P : ∀ (a : pts) (l ∈ lines), (∃ l' ∈ lines, a ∈ l' ∧ (l ∥ₗ l'))
+(P : ∀ (a : pts) (l ∈ lines), (a ∉ l → ∃ l' ∈ lines, a ∈ l' ∧ (l ∥ₗ l'))
 ∧ (∀ m n ∈ lines, a ∈ m → (l ∥ₗ m) → a ∈ n → (l ∥ₗ n) → m = n))
 
 open incidence_geometry incidence_order_geometry hilbert_plane hilbert_plane_playfair
@@ -35,9 +35,9 @@ variables [CP : hilbert_plane_playfair]
 
 include CP
 
-lemma parallel_exist {l : set pts} (a : pts) (hl : l ∈ lines) :
+lemma parallel_exist {l : set pts} (a : pts) (hl : l ∈ lines) (hal : a ∉ l) :
 ∃ l' ∈ lines, a ∈ l' ∧ (l ∥ₗ l') :=
-by {rcases (P a l hl).1 with ⟨l', hl', hal', hll'⟩, exact ⟨l', hl', hal', hll'⟩}
+by {rcases (P a l hl).1 hal with ⟨l', hl', hal', hll'⟩, exact ⟨l', hl', hal', hll'⟩}
 
 lemma parallel_unique {a : pts} {l m n : set pts} (hl : l ∈ lines) :
 m ∈ lines → n ∈ lines → a ∈ m → (l ∥ₗ m) → a ∈ n → (l ∥ₗ n) → m = n :=
